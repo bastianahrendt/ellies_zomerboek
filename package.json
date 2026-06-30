@@ -1,0 +1,11 @@
+{
+  "name": "ellies-zomerboek",
+  "version": "1.0.0",
+  "description": "Het Grote Zomerboekje van Ellie — groep 6",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

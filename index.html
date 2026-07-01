@@ -573,6 +573,7 @@
     <div class="letter-display" id="letter-display"></div>
     <div class="letter-choices" id="letter-choices"></div>
     <div class="spelling-result" id="spelling-result"></div>
+    <button class="check-btn" onclick="undoLetter()" style="background:#64748b">⬅️ Wis letter</button>
     <button class="check-btn" onclick="nextSpelling()">➡️ Volgend woord</button>
     <div id="spelling-score" class="score-box" style="margin-top:12px"></div>
   </div>
@@ -910,12 +911,13 @@ const spellingWords = [
   {word:'VLIEGTUIG', hint:'Daarmee vlieg je naar verre landen ✈️'},
   {word:'SCHELPEN', hint:'Die vind je op het strand 🐚'},
 ];
-let spIdx = 0, spTyped = [], spCorrect = 0, spTotal = 0;
+let spIdx = 0, spTyped = [], spCorrect = 0, spTotal = 0, spScored = false;
 
 function renderSpelling() {
   const w = spellingWords[spIdx];
   document.getElementById('spelling-hint').textContent = w.hint;
   spTyped = [];
+  spScored = false;
   document.getElementById('spelling-result').textContent = '';
 
   // Letter display (blanks)
@@ -936,7 +938,8 @@ function pickLetter(letter, btnIdx) {
   const lb = document.getElementById('lb-'+pos);
   if (lb) lb.textContent = letter;
 
-  if (spTyped.length === w.word.length) {
+  if (spTyped.length === w.word.length && !spScored) {
+    spScored = true;
     const typed = spTyped.map(x=>x.letter).join('');
     const res = document.getElementById('spelling-result');
     if (typed === w.word) {
@@ -948,6 +951,19 @@ function pickLetter(letter, btnIdx) {
     }
     document.getElementById('spelling-score').textContent = `Score: ${spCorrect} van ${spTotal} 🌟`;
   }
+}
+
+function undoLetter() {
+  if (spTyped.length === 0) return;
+  const last = spTyped.pop();
+  // letter weer beschikbaar maken
+  const btn = document.getElementById('lb-btn-' + last.btnIdx);
+  if (btn) btn.disabled = false;
+  // vakje leegmaken
+  const lb = document.getElementById('lb-' + spTyped.length);
+  if (lb) lb.textContent = '';
+  // eventuele uitslag wissen zodat je verder kunt
+  document.getElementById('spelling-result').textContent = '';
 }
 
 function nextSpelling() {

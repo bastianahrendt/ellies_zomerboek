@@ -405,6 +405,49 @@
     .page-nav button:disabled { background: #cbd5e1; cursor: default; }
 
     .star { color: #f59e0b; font-size: 1.3rem; }
+
+    /* ===== REBUS ===== */
+    #rebus-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin: 16px 0; }
+    .rebus-card {
+      background: #f0f9ff;
+      border: 2px solid #bae6fd;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .rebus-puzzle {
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      flex: 1;
+      min-width: 200px;
+    }
+    .rebus-puzzle .op { font-size: 1.4rem; font-weight: bold; color: #0369a1; }
+    .rebus-puzzle .txt { font-size: 1.5rem; font-weight: bold; color: #92400e; }
+    .rebus-card input {
+      width: 150px; padding: 8px;
+      border: 2px solid #38bdf8;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .rebus-card input.correct { background: #dcfce7; border-color: #4ade80; color: #166534; }
+    .rebus-card input.wrong { background: #fee2e2; border-color: #f87171; }
+    .rebus-hint {
+      width: 100%;
+      font-size: 0.85rem;
+      color: #0369a1;
+      font-style: italic;
+      display: none;
+    }
+    .rebus-hint.show { display: block; }
   </style>
 </head>
 <body>
@@ -416,7 +459,8 @@
   <button onclick="showPage(3)">✏️ Kruiswoord</button>
   <button onclick="showPage(4)">🔢 Rekenen</button>
   <button onclick="showPage(5)">🔤 Spelling</button>
-  <button onclick="showPage(6)">📖 Achterkant</button>
+  <button onclick="showPage(6)">🧩 Rebus</button>
+  <button onclick="showPage(7)">📖 Achterkant</button>
 </nav>
 
 <!-- ===== PAGINA 0: VOORKANT ===== -->
@@ -468,7 +512,7 @@
   </div>
   <div class="page-nav">
     <button disabled>← Vorige</button>
-    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 1 van 7</span>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 1 van 8</span>
     <button onclick="showPage(1)">Volgende →</button>
   </div>
 </div>
@@ -489,7 +533,7 @@
   </div>
   <div class="page-nav">
     <button onclick="showPage(0)">← Vorige</button>
-    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 2 van 7</span>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 2 van 8</span>
     <button onclick="showPage(2)">Volgende →</button>
   </div>
 </div>
@@ -510,7 +554,7 @@
   </div>
   <div class="page-nav">
     <button onclick="showPage(1)">← Vorige</button>
-    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 3 van 7</span>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 3 van 8</span>
     <button onclick="showPage(3)">Volgende →</button>
   </div>
 </div>
@@ -540,7 +584,7 @@
   </div>
   <div class="page-nav">
     <button onclick="showPage(2)">← Vorige</button>
-    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 4 van 7</span>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 4 van 8</span>
     <button onclick="showPage(4)">Volgende →</button>
   </div>
 </div>
@@ -559,7 +603,7 @@
   </div>
   <div class="page-nav">
     <button onclick="showPage(3)">← Vorige</button>
-    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 5 van 7</span>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 5 van 8</span>
     <button onclick="showPage(5)">Volgende →</button>
   </div>
 </div>
@@ -579,13 +623,32 @@
   </div>
   <div class="page-nav">
     <button onclick="showPage(4)">← Vorige</button>
-    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 6 van 7</span>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 6 van 8</span>
     <button onclick="showPage(6)">Volgende →</button>
   </div>
 </div>
 
-<!-- ===== PAGINA 6: ACHTERKANT ===== -->
+<!-- ===== PAGINA 6: REBUS ===== -->
 <div class="page" id="page-6">
+  <div class="page-header">🧩 Rebus</div>
+  <div class="page-body">
+    <div class="highlight">📌 <strong>Opdracht:</strong> Wat staat hier? Tel de plaatjes en letters bij elkaar op en schrijf het woord!</div>
+    <div id="rebus-grid"></div>
+    <div style="text-align:center; margin-top:8px;">
+      <button class="check-btn" onclick="checkRebus()">✅ Controleer</button>
+      <button class="check-btn" onclick="hintRebus()" style="background:#059669">💡 Hint</button>
+    </div>
+    <div id="rebus-score" class="score-box" style="display:none"></div>
+  </div>
+  <div class="page-nav">
+    <button onclick="showPage(5)">← Vorige</button>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 7 van 8</span>
+    <button onclick="showPage(7)">Volgende →</button>
+  </div>
+</div>
+
+<!-- ===== PAGINA 7: ACHTERKANT ===== -->
+<div class="page" id="page-7">
   <div class="cover">
     <div class="sun"></div>
     <div class="cloud c1"></div>
@@ -627,8 +690,8 @@
     <div style="font-size:2rem; margin-top:12px;">🐚 🦀 🌴 🦋 🌺</div>
   </div>
   <div class="page-nav">
-    <button onclick="showPage(5)">← Vorige</button>
-    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 7 van 7</span>
+    <button onclick="showPage(6)">← Vorige</button>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 8 van 8</span>
     <button disabled>Einde →</button>
   </div>
 </div>
@@ -971,11 +1034,58 @@ function nextSpelling() {
   renderSpelling();
 }
 
+// ===== REBUS =====
+const rebusPuzzles = [
+  { parts:[{e:'🌊'},{op:'+'},{e:'⭐'}], answer:'ZEESTER', hint:'Een dier op de zeebodem met vijf punten.' },
+  { parts:[{e:'🍦'},{op:'+'},{e:'🐻'}], answer:'IJSBEER', hint:'Een grote witte beer die van de kou houdt.' },
+  { parts:[{e:'🌊'},{op:'+'},{e:'🐴'}], answer:'ZEEPAARD', hint:'Een klein diertje in zee dat op een paardje lijkt.' },
+  { parts:[{e:'🏖️'},{op:'+'},{e:'🏐'}], answer:'STRANDBAL', hint:'Hiermee speel je op het strand.' },
+  { parts:[{e:'🌞'},{op:'−'},{t:'N'},{op:'+'},{t:'MER'}], answer:'ZOMER', hint:'Het warmste seizoen van het jaar.' },
+  { parts:[{e:'🌞'},{op:'+'},{t:'NE'},{op:'+'},{e:'🕶️'}], answer:'ZONNEBRIL', hint:'Die zet je op tegen de felle zon.' },
+];
+
+function renderRebus() {
+  const grid = document.getElementById('rebus-grid');
+  grid.innerHTML = rebusPuzzles.map((p, i) => {
+    const puzzle = p.parts.map(part => {
+      if (part.op) return `<span class="op">${part.op}</span>`;
+      if (part.e)  return `<span>${part.e}</span>`;
+      return `<span class="txt">${part.t}</span>`;
+    }).join(' ');
+    return `<div class="rebus-card">
+      <div class="rebus-puzzle">${puzzle} <span class="op">=</span></div>
+      <input id="rebus-${i}" placeholder="?" autocomplete="off" oninput="this.classList.remove('correct','wrong')" />
+      <div class="rebus-hint" id="rebus-hint-${i}">💡 ${p.hint}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('rebus-score').style.display = 'none';
+}
+
+function checkRebus() {
+  let correct = 0;
+  rebusPuzzles.forEach((p, i) => {
+    const inp = document.getElementById('rebus-' + i);
+    const val = (inp.value || '').toUpperCase().replace(/\s+/g, '');
+    if (val === p.answer) { inp.classList.add('correct'); inp.classList.remove('wrong'); correct++; }
+    else if (val) { inp.classList.add('wrong'); inp.classList.remove('correct'); }
+    else { inp.classList.remove('correct', 'wrong'); }
+  });
+  const sc = document.getElementById('rebus-score');
+  sc.style.display = 'block';
+  const stars = '⭐'.repeat(Math.round(correct / rebusPuzzles.length * 3));
+  sc.innerHTML = `${stars} Jij had <strong>${correct} van ${rebusPuzzles.length}</strong> goed!`;
+}
+
+function hintRebus() {
+  document.querySelectorAll('.rebus-hint').forEach(h => h.classList.add('show'));
+}
+
 // ===== INIT =====
 buildWordSearch();
 buildCrossword();
 genMath(); renderMath();
 renderSpelling();
+renderRebus();
 </script>
 </body>
 </html>

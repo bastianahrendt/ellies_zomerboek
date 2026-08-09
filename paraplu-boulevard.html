@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Paraplu op de Boulevard ☂️</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg, #87CEEB 0%, #87CEEB 55%, #f0c27f 55%, #f0c27f 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    color: #1e293b;
+    user-select: none;
+  }
+
+  h1 {
+    color: #92400e;
+    text-shadow: 1px 1px 0 #fff8;
+    font-size: 1.6rem;
+    text-align: center;
+  }
+
+  .subtitle {
+    color: #78350f;
+    font-size: 0.95rem;
+    text-align: center;
+    margin: 6px 0 16px;
+    max-width: 520px;
+  }
+
+  .game-card {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    background: #fffdf7;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    overflow: hidden;
+  }
+
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: #fef3c7;
+    border-bottom: 3px solid #f0c27f;
+    font-weight: bold;
+  }
+
+  #lives { font-size: 1.3rem; letter-spacing: 2px; }
+  #score-box { color: #1d4ed8; font-size: 1.1rem; }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #87CEEB;
+    touch-action: none;
+    cursor: pointer;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    top: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.55);
+    text-align: center;
+    padding: 20px;
+  }
+  .overlay[hidden] { display: none; }
+
+  .overlay-box {
+    background: #fffdf7;
+    border-radius: 14px;
+    padding: 24px 28px;
+    max-width: 360px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  }
+  .overlay-box h2 { color: #92400e; margin-bottom: 8px; }
+  .overlay-box p { color: #475569; font-size: 0.9rem; margin-bottom: 14px; }
+
+  .big-btn {
+    background: #f97316;
+    color: white;
+    border: none;
+    padding: 12px 26px;
+    border-radius: 24px;
+    font-size: 1.05rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .big-btn:hover { background: #ea580c; transform: scale(1.05); }
+  .big-btn:active { transform: scale(0.97); }
+
+  #lift-btn {
+    margin-top: 18px;
+    width: 100%;
+    max-width: 800px;
+    padding: 18px;
+    font-size: 1.1rem;
+    border-radius: 16px;
+    border: none;
+    background: #1d4ed8;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #1e3a8a;
+    touch-action: none;
+  }
+  #lift-btn:active, #lift-btn.pressed {
+    background: #1e40af;
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #1e3a8a;
+  }
+
+  .hint {
+    color: #78350f;
+    font-size: 0.8rem;
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .back-link {
+    margin-top: 18px;
+    color: #1d4ed8;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  .back-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<h1>☂️ Paraplu op de Boulevard</h1>
+<p class="subtitle">Ellie loopt over de boulevard met haar paraplu. Er komen mensen de andere kant op — til je paraplu op als ze vlak naast je zijn, anders bots je ertegenaan!</p>
+
+<div class="game-card">
+  <div class="hud">
+    <div id="lives">❤️❤️❤️</div>
+    <div id="score-box">Score: <span id="score">0</span></div>
+  </div>
+  <canvas id="game" width="800" height="400"></canvas>
+
+  <div class="overlay" id="start-overlay">
+    <div class="overlay-box">
+      <h2>Klaar voor je wandeling?</h2>
+      <p>Houd de knop (of SPATIE / ↑) ingedrukt om je paraplu op te tillen precies als iemand naast je loopt. Je hebt 3 levens!</p>
+      <button class="big-btn" id="start-btn">▶️ Start</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="gameover-overlay" hidden>
+    <div class="overlay-box">
+      <h2>Au! Je paraplu-avontuur zit erop</h2>
+      <p id="final-score">Score: 0</p>
+      <button class="big-btn" id="restart-btn">🔁 Nog een keer</button>
+    </div>
+  </div>
+</div>
+
+<button id="lift-btn">☂️ HOUD INGEDRUKT OM OP TE TILLEN</button>
+<p class="hint">Toetsenbord: houd SPATIE of ↑ ingedrukt. Op telefoon/tablet: houd de blauwe knop ingedrukt.</p>
+<a href="index.html" class="back-link">← Terug naar het zomerboekje</a>
+
+<script>
+(function () {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const GROUND_Y = H - 130;
+
+  const livesEl = document.getElementById('lives');
+  const scoreEl = document.getElementById('score');
+  const startOverlay = document.getElementById('start-overlay');
+  const gameoverOverlay = document.getElementById('gameover-overlay');
+  const finalScoreEl = document.getElementById('final-score');
+  const startBtn = document.getElementById('start-btn');
+  const restartBtn = document.getElementById('restart-btn');
+  const liftBtn = document.getElementById('lift-btn');
+
+  const PLAYER_X = W * 0.24;
+  const COLLIDE_RADIUS = 34;
+
+  let state = 'ready'; // ready | playing | over
+  let lives = 3;
+  let score = 0;
+  let elapsed = 0;
+  let groundOffset = 0;
+  let walkPhase = 0;
+  let umbrellaUp = false;      // is the button currently held
+  let umbrellaLift = 0;        // animated 0 (down) -> 1 (up)
+  let shake = 0;
+  let flashRed = 0;
+
+  let people = [];
+  let particles = [];
+  let spawnTimer = 0;
+  let nextSpawnIn = 1.4;
+
+  const hatColors = ['#ef4444', '#8b5cf6', '#059669', '#f59e0b', '#0ea5e9', '#ec4899'];
+  const shirtColors = ['#fca5a5', '#a5b4fc', '#6ee7b7', '#fcd34d', '#7dd3fc', '#f9a8d4'];
+
+  let audioCtx = null;
+  function beep(freq, dur, type) {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + dur);
+    } catch (e) { /* audio not available, ignore */ }
+  }
+
+  function resetGame() {
+    lives = 3;
+    score = 0;
+    elapsed = 0;
+    people = [];
+    particles = [];
+    spawnTimer = 0;
+    nextSpawnIn = 1.4;
+    umbrellaUp = false;
+    umbrellaLift = 0;
+    updateHud();
+  }
+
+  function updateHud() {
+    livesEl.textContent = '❤️'.repeat(Math.max(lives, 0)) + '🖤'.repeat(Math.max(3 - lives, 0));
+    scoreEl.textContent = score;
+  }
+
+  function spawnPerson() {
+    people.push({
+      x: W + 30,
+      speed: currentSpeed() * (0.9 + Math.random() * 0.25),
+      hat: hatColors[Math.floor(Math.random() * hatColors.length)],
+      shirt: shirtColors[Math.floor(Math.random() * shirtColors.length)],
+      phase: Math.random() * Math.PI * 2,
+      resolved: false,
+      hit: false,
+      hitTimer: 0
+    });
+  }
+
+  function currentSpeed() {
+    return Math.min(260, 130 + elapsed * 6);
+  }
+
+  function addParticle(x, y, text, color) {
+    particles.push({ x, y, text, color, life: 1 });
+  }
+
+  function update(dt) {
+    if (state !== 'playing') return;
+    elapsed += dt;
+    groundOffset += currentSpeed() * dt;
+    walkPhase += dt * 6;
+
+    // umbrella animation towards target
+    const target = umbrellaUp ? 1 : 0;
+    umbrellaLift += (target - umbrellaLift) * Math.min(1, dt * 10);
+
+    // spawn logic
+    spawnTimer += dt;
+    if (spawnTimer >= nextSpawnIn) {
+      spawnTimer = 0;
+      nextSpawnIn = Math.max(0.7, 1.6 - elapsed * 0.015) * (0.8 + Math.random() * 0.4);
+      spawnPerson();
+    }
+
+    // move people & collisions
+    for (let i = people.length - 1; i >= 0; i--) {
+      const p = people[i];
+      if (!p.hit) {
+        p.x -= p.speed * dt;
+        p.phase += dt * 6;
+      } else {
+        p.hitTimer += dt;
+        p.x -= p.speed * 0.15 * dt;
+      }
+
+      if (!p.resolved && Math.abs(p.x - PLAYER_X) < COLLIDE_RADIUS) {
+        p.resolved = true;
+        if (umbrellaLift > 0.6) {
+          score++;
+          scoreEl.textContent = score;
+          addParticle(PLAYER_X, GROUND_Y - 120, '+1 ✨', '#16a34a');
+          beep(880, 0.12, 'sine');
+        } else {
+          p.hit = true;
+          lives--;
+          updateHud();
+          shake = 0.35;
+          flashRed = 0.4;
+          addParticle(PLAYER_X, GROUND_Y - 120, 'Oeps! 😣', '#dc2626');
+          beep(160, 0.25, 'sawtooth');
+          if (lives <= 0) {
+            endGame();
+          }
+        }
+      }
+
+      if (p.x < -60) people.splice(i, 1);
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const pt = particles[i];
+      pt.y -= dt * 30;
+      pt.life -= dt * 0.9;
+      if (pt.life <= 0) particles.splice(i, 1);
+    }
+
+    if (shake > 0) shake = Math.max(0, shake - dt);
+    if (flashRed > 0) flashRed = Math.max(0, flashRed - dt);
+  }
+
+  function endGame() {
+    state = 'over';
+    finalScoreEl.textContent = 'Je hebt ' + score + ' mensen veilig laten passeren!';
+    gameoverOverlay.hidden = false;
+  }
+
+  // ---------- drawing ----------
+  function drawBackground() {
+    const seaTop = GROUND_Y - 100;
+    const seaBottom = GROUND_Y - 66;
+    const sandBottom = GROUND_Y - 40;
+
+    const grad = ctx.createLinearGradient(0, 0, 0, seaTop);
+    grad.addColorStop(0, '#87CEEB');
+    grad.addColorStop(1, '#bee7f5');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, seaTop);
+
+    // sun
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath();
+    ctx.arc(W - 70, 55, 34, 0, Math.PI * 2);
+    ctx.fill();
+
+    // clouds (slow parallax)
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    const cOff = (groundOffset * 0.15) % (W + 200);
+    for (let i = 0; i < 3; i++) {
+      const cx = ((i * 300) - cOff + W + 200) % (W + 200) - 100;
+      drawCloud(cx, 40 + (i % 2) * 25);
+    }
+
+    // distant sea band (background scenery, well above the walking surface)
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(0, seaTop, W, seaBottom - seaTop);
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 2;
+    const wOff = (groundOffset * 0.6) % 60;
+    for (let x = -wOff; x < W; x += 60) {
+      ctx.beginPath();
+      ctx.moveTo(x, seaTop + 16);
+      ctx.quadraticCurveTo(x + 15, seaTop + 8, x + 30, seaTop + 16);
+      ctx.stroke();
+    }
+
+    // sand dune strip between the sea and the boardwalk
+    ctx.fillStyle = '#f0c27f';
+    ctx.fillRect(0, seaBottom, W, sandBottom - seaBottom);
+
+    // sky gap between the sand and the boardwalk railing (keeps figures clear of the scenery)
+    ctx.fillStyle = '#bee7f5';
+    ctx.fillRect(0, sandBottom, W, GROUND_Y - sandBottom);
+
+    // low railing along the boardwalk edge
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y - 4);
+    ctx.lineTo(W, GROUND_Y - 4);
+    ctx.stroke();
+
+    // boardwalk
+    ctx.fillStyle = '#c98a4b';
+    ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+    ctx.strokeStyle = 'rgba(120,72,32,0.45)';
+    ctx.lineWidth = 2;
+    const plankW = 42;
+    const pOff = groundOffset % plankW;
+    for (let x = -pOff; x < W; x += plankW) {
+      ctx.beginPath();
+      ctx.moveTo(x, GROUND_Y);
+      ctx.lineTo(x, H);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(120,72,32,0.3)';
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y + 30);
+    ctx.lineTo(W, GROUND_Y + 30);
+    ctx.stroke();
+  }
+
+  function drawCloud(x, y) {
+    ctx.beginPath();
+    ctx.ellipse(x, y, 26, 14, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + 20, y - 8, 18, 12, 0, 0, Math.PI * 2);
+    ctx.ellipse(x - 20, y - 6, 16, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawWalkingFigure(x, groundY, phase, shirt, hat, faceRight, umbrella) {
+    const legSwing = Math.sin(phase) * 9;
+    const bob = Math.abs(Math.cos(phase)) * 3;
+    const y = groundY - bob;
+
+    ctx.save();
+    ctx.translate(x, y);
+    if (!faceRight) ctx.scale(-1, 1);
+
+    // legs
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-4, -30);
+    ctx.lineTo(-4 + legSwing, 0);
+    ctx.moveTo(4, -30);
+    ctx.lineTo(4 - legSwing, 0);
+    ctx.stroke();
+
+    // torso
+    ctx.fillStyle = shirt;
+    ctx.beginPath();
+    ctx.roundRect(-13, -62, 26, 34, 8);
+    ctx.fill();
+
+    // arm holding umbrella (opposite side)
+    ctx.strokeStyle = shirt;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(10, -50);
+    ctx.lineTo(16, -34);
+    ctx.stroke();
+
+    // head
+    ctx.fillStyle = '#ffd9b3';
+    ctx.beginPath();
+    ctx.arc(0, -72, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // hat
+    ctx.fillStyle = hat;
+    ctx.beginPath();
+    ctx.arc(0, -78, 12, Math.PI, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(-14, -80, 28, 4);
+
+    if (umbrella !== undefined) {
+      drawUmbrella(16, -34, umbrella);
+    }
+
+    ctx.restore();
+  }
+
+  function drawUmbrella(handX, handY, lift) {
+    // lift: 0 = down (dangerous, canopy at head height sticking out), 1 = up (safe, above head)
+    const stickBottom = { x: handX, y: handY };
+    const tipY = -92 - lift * 34;
+    const tipX = handX + (1 - lift) * 12;
+
+    ctx.strokeStyle = '#7c2d12';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(stickBottom.x, stickBottom.y);
+    ctx.lineTo(tipX, tipY + 14);
+    ctx.stroke();
+
+    // canopy
+    ctx.fillStyle = lift > 0.6 ? '#38bdf8' : '#f87171';
+    ctx.beginPath();
+    ctx.moveTo(tipX - 22, tipY + 14);
+    ctx.quadraticCurveTo(tipX, tipY - 14, tipX + 22, tipY + 14);
+    ctx.quadraticCurveTo(tipX, tipY + 20, tipX - 22, tipY + 14);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  function drawPlayer() {
+    drawWalkingFigure(PLAYER_X, GROUND_Y, walkPhase, '#fca5a5', '#facc15', true, umbrellaLift);
+    // danger zone hint ring while playing
+  }
+
+  function drawPeople() {
+    for (const p of people) {
+      let phase = p.phase;
+      if (p.hit) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, 1 - p.hitTimer * 1.2);
+        drawWalkingFigure(p.x, GROUND_Y, phase, p.shirt, p.hat, false, undefined);
+        ctx.restore();
+      } else {
+        drawWalkingFigure(p.x, GROUND_Y, phase, p.shirt, p.hat, false, undefined);
+      }
+    }
+  }
+
+  function drawParticles() {
+    for (const pt of particles) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, pt.life);
+      ctx.fillStyle = pt.color;
+      ctx.font = 'bold 18px Segoe UI';
+      ctx.textAlign = 'center';
+      ctx.fillText(pt.text, pt.x, pt.y);
+      ctx.restore();
+    }
+  }
+
+  function render() {
+    ctx.save();
+    if (shake > 0) {
+      const s = shake * 8;
+      ctx.translate((Math.random() - 0.5) * s, (Math.random() - 0.5) * s);
+    }
+    drawBackground();
+    drawPeople();
+    drawPlayer();
+    drawParticles();
+    if (flashRed > 0) {
+      ctx.fillStyle = 'rgba(220,38,38,' + (flashRed * 0.35) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+    ctx.restore();
+  }
+
+  let lastTime = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - lastTime) / 1000);
+    lastTime = now;
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- input ----------
+  function setLift(on) {
+    umbrellaUp = on;
+    liftBtn.classList.toggle('pressed', on);
+  }
+
+  liftBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); setLift(true); });
+  liftBtn.addEventListener('pointerup', (e) => { e.preventDefault(); setLift(false); });
+  liftBtn.addEventListener('pointerleave', () => setLift(false));
+  liftBtn.addEventListener('pointercancel', () => setLift(false));
+
+  canvas.addEventListener('pointerdown', (e) => { e.preventDefault(); setLift(true); });
+  window.addEventListener('pointerup', () => setLift(false));
+
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); setLift(true); }
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); setLift(false); }
+  });
+
+  startBtn.addEventListener('click', () => {
+    resetGame();
+    startOverlay.hidden = true;
+    state = 'playing';
+  });
+
+  restartBtn.addEventListener('click', () => {
+    resetGame();
+    gameoverOverlay.hidden = true;
+    state = 'playing';
+  });
+
+  updateHud();
+  render();
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>

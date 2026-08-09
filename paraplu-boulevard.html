@@ -192,6 +192,7 @@
 
   const PLAYER_X = W * 0.24;
   const COLLIDE_RADIUS = 34;
+  const MAX_LIFT_SECONDS = 3;
 
   let state = 'ready'; // ready | playing | over
   let lives = 3;
@@ -201,6 +202,8 @@
   let walkPhase = 0;
   let umbrellaUp = false;      // is the button currently held
   let umbrellaLift = 0;        // animated 0 (down) -> 1 (up)
+  let liftTimer = 0;           // seconds the umbrella has been up in this hold
+  let liftLocked = false;      // true right after hitting the 3s cap, until released
   let shake = 0;
   let flashRed = 0;
 
@@ -238,6 +241,8 @@
     nextSpawnIn = 1.4;
     umbrellaUp = false;
     umbrellaLift = 0;
+    liftTimer = 0;
+    liftLocked = false;
     updateHud();
   }
 
@@ -272,6 +277,17 @@
     elapsed += dt;
     groundOffset += currentSpeed() * dt;
     walkPhase += dt * 6;
+
+    // umbrella can only stay up for MAX_LIFT_SECONDS in one go
+    if (umbrellaUp) {
+      liftTimer += dt;
+      if (liftTimer >= MAX_LIFT_SECONDS) {
+        liftTimer = MAX_LIFT_SECONDS;
+        umbrellaUp = false;
+        liftLocked = true;
+        liftBtn.classList.remove('pressed');
+      }
+    }
 
     // umbrella animation towards target
     const target = umbrellaUp ? 1 : 0;
@@ -487,8 +503,13 @@
     ctx.lineTo(tipX, tipY + 14);
     ctx.stroke();
 
-    // canopy
-    ctx.fillStyle = lift > 0.6 ? '#38bdf8' : '#f87171';
+    // canopy: down = red (in the way); up = counts down from green to red as the 3s runs out
+    if (lift > 0.6) {
+      const ratio = Math.min(1, liftTimer / MAX_LIFT_SECONDS);
+      ctx.fillStyle = `hsl(${130 * (1 - ratio)}, 75%, 50%)`;
+    } else {
+      ctx.fillStyle = '#f87171';
+    }
     ctx.beginPath();
     ctx.moveTo(tipX - 22, tipY + 14);
     ctx.quadraticCurveTo(tipX, tipY - 14, tipX + 22, tipY + 14);
@@ -558,8 +579,16 @@
 
   // ---------- input ----------
   function setLift(on) {
-    umbrellaUp = on;
-    liftBtn.classList.toggle('pressed', on);
+    if (!on) {
+      liftLocked = false;
+      umbrellaUp = false;
+      liftBtn.classList.remove('pressed');
+      return;
+    }
+    if (liftLocked) return; // still cooling down after hitting the 3s cap
+    if (!umbrellaUp) liftTimer = 0; // fresh lift starts the countdown over
+    umbrellaUp = true;
+    liftBtn.classList.add('pressed');
   }
 
   liftBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); setLift(true); });

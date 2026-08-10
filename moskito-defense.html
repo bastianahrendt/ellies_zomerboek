@@ -7,41 +7,56 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html, body {
+      height: 100%;
+    }
+
     body {
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(180deg, #87CEEB 0%, #87CEEB 60%, #f0c27f 60%, #f0c27f 100%);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      padding: 12px;
     }
 
     .card {
-      max-width: 750px;
+      max-width: 1400px;
       width: 100%;
+      flex: 1;
+      min-height: 0;
       background: #fffdf7;
       border-radius: 16px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.25);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     .header {
       background: linear-gradient(135deg, #0ea5e9, #38bdf8);
       color: white;
-      padding: 20px 24px;
+      padding: 16px 24px;
       font-size: 1.6rem;
       font-weight: 800;
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-shrink: 0;
     }
-    .body { padding: 24px; }
+    .body {
+      padding: 16px 20px 20px;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
 
     .highlight {
       background: #fef9c3; border-left: 4px solid #f59e0b;
-      padding: 10px 16px; border-radius: 0 8px 8px 0; margin-bottom: 16px;
+      padding: 10px 16px; border-radius: 0 8px 8px 0; margin-bottom: 12px;
       color: #374151; font-size: 0.95rem;
+      flex-shrink: 0;
     }
 
     .check-btn {
@@ -54,10 +69,17 @@
     .check-btn:hover { background: #ea580c; }
 
     /* ===== MOSKITO DEFENSE ===== */
-    .moskito-wrap { text-align: center; }
+    .moskito-wrap {
+      text-align: center;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
     .moskito-stats {
       display: flex; justify-content: space-between; align-items: center;
-      margin: 10px 0; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 12px; gap: 12px; flex-wrap: wrap;
+      flex-shrink: 0;
     }
     .health-bar-outer {
       flex: 1; min-width: 160px; height: 22px;
@@ -72,8 +94,9 @@
     .moskito-score { font-weight: bold; color: #0369a1; font-size: 1.1rem; white-space: nowrap; }
     .moskito-game {
       position: relative;
-      width: 100%; max-width: 640px; height: 400px;
-      margin: 0 auto;
+      flex: 1;
+      min-height: 320px;
+      width: 100%;
       background: linear-gradient(180deg, #fef3c7 0%, #fde68a 55%, #d6a86a 55%, #b6884f 100%);
       border: 3px solid #92400e;
       border-radius: 16px;
@@ -96,41 +119,48 @@
       filter: drop-shadow(2px 4px 3px rgba(0,0,0,0.3));
       z-index: 5;
     }
+
+    /* Swatter rig: the origin (0,0) IS the pointer position, and it now sits
+       exactly on the paddle (the only part that can kill a mosquito). The
+       stick and hand trail below it, as if held from underneath. */
     .swatter-rig {
       position: absolute; top: 0; left: 0;
       width: 0; height: 0;
       z-index: 15;
       pointer-events: none;
-      transform-origin: 10px 90px;
+      transform-origin: 3px 100px;
     }
     .swatter-rig.swing { animation: swat-swing 0.18s ease; }
     @keyframes swat-swing {
       0% { transform: rotate(0deg); }
-      40% { transform: rotate(-55deg); }
+      40% { transform: rotate(-45deg); }
       100% { transform: rotate(0deg); }
-    }
-    .swatter-hand {
-      position: absolute; font-size: 60px;
-      left: -40px; top: 40px;
-      filter: drop-shadow(0 0 6px rgba(255,255,255,0.9)) drop-shadow(2px 4px 3px rgba(0,0,0,0.35));
-    }
-    .swatter-stick {
-      position: absolute;
-      width: 6px; height: 90px;
-      background: linear-gradient(#a16207, #78350f);
-      border-radius: 3px;
-      left: -3px; top: -70px;
     }
     .swatter-pad {
       position: absolute;
       width: 46px; height: 36px;
-      left: -23px; top: -100px;
+      left: -23px; top: -18px;
       background: #facc15;
       border: 3px solid #ca8a04;
       border-radius: 8px;
       background-image: radial-gradient(circle, #ca8a04 2px, transparent 2px);
       background-size: 9px 9px;
       background-position: 4px 4px;
+      z-index: 2;
+    }
+    .swatter-stick {
+      position: absolute;
+      width: 6px; height: 90px;
+      background: linear-gradient(#a16207, #78350f);
+      border-radius: 3px;
+      left: -3px; top: 18px;
+      z-index: 1;
+    }
+    .swatter-hand {
+      position: absolute; font-size: 60px;
+      left: -40px; top: 108px;
+      filter: drop-shadow(0 0 6px rgba(255,255,255,0.9)) drop-shadow(2px 4px 3px rgba(0,0,0,0.35));
+      z-index: 1;
     }
     .mosquito {
       position: absolute;
@@ -166,6 +196,21 @@
       0% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
       100% { opacity: 0; transform: translate(-50%, -50%) translateY(-40px); }
     }
+    .squish-mark {
+      position: absolute;
+      width: 15px; height: 11px;
+      transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+      background: radial-gradient(circle at 30% 30%, rgba(120,40,20,0.55), rgba(80,25,15,0.35) 60%, transparent 78%);
+      border-radius: 50% 60% 55% 45%;
+      z-index: 3;
+      pointer-events: none;
+      animation: mark-fade 5s ease forwards;
+    }
+    @keyframes mark-fade {
+      0% { opacity: 0.85; }
+      65% { opacity: 0.55; }
+      100% { opacity: 0; }
+    }
     .mg-shake { animation: mg-shake 0.35s; }
     @keyframes mg-shake {
       0%, 100% { transform: translateX(0); }
@@ -180,8 +225,8 @@
   <div class="header">🦟 Moskito Verdediging</div>
   <div class="body moskito-wrap">
     <div class="highlight">
-      📌 Beweeg je muis (of vinger) om de vliegenmepper in je hand te besturen.
-      Klik of tik om muggen weg te meppen voordat ze op je andere hand landen en prikken!
+      📌 Beweeg je muis (of vinger) om het uiteinde van de vliegenmepper te besturen.
+      Alleen het gele netje raakt een mug — mep ze weg voor ze op je andere hand landen en prikken!
     </div>
     <div class="moskito-stats">
       <div class="moskito-score" id="mg-score">🦟 Gemept: 0</div>
@@ -196,9 +241,9 @@
       </div>
       <div class="left-hand" id="mg-left-hand">🖐️</div>
       <div class="swatter-rig" id="mg-swatter">
-        <div class="swatter-hand">🤚</div>
-        <div class="swatter-stick"></div>
         <div class="swatter-pad"></div>
+        <div class="swatter-stick"></div>
+        <div class="swatter-hand">🤚</div>
       </div>
     </div>
   </div>
@@ -215,7 +260,11 @@
   const healthBar = document.getElementById('mg-health-bar');
   const healthText = document.getElementById('mg-health-text');
 
-  const SWAT_RADIUS = 42;
+  // The pointer position IS the paddle center — these half-extents define
+  // the only zone that can kill a mosquito (slightly bigger than the drawn
+  // paddle so it stays forgiving for small fingers on touch screens).
+  const PAD_HALF_W = 26;
+  const PAD_HALF_H = 21;
   const MAX_MOSQUITOS = 6;
   const BASE_SPAWN_MS = 1700;
   const MIN_SPAWN_MS = 650;
@@ -259,9 +308,10 @@
   function trySwat(x, y) {
     let closest = null, closestDist = Infinity;
     mosquitoes.forEach(m => {
-      const dx = m.x - x, dy = m.y - y;
-      const d = Math.sqrt(dx * dx + dy * dy);
-      if (d <= SWAT_RADIUS && d < closestDist) { closest = m; closestDist = d; }
+      const dx = Math.abs(m.x - x), dy = Math.abs(m.y - y);
+      if (dx > PAD_HALF_W || dy > PAD_HALF_H) return;
+      const d = dx * dx + dy * dy;
+      if (d < closestDist) { closest = m; closestDist = d; }
     });
     if (closest) swatMosquito(closest);
   }
@@ -353,6 +403,7 @@
     mgScore++;
     updateStats();
     floatingText('+1', m.x, m.y, '#16a34a');
+    leaveMark(m.x, m.y);
     removeMosquito(m);
   }
 
@@ -361,6 +412,16 @@
     m.el.remove();
     if (m.timerEl) m.timerEl.remove();
     mosquitoes = mosquitoes.filter(x => x !== m);
+  }
+
+  function leaveMark(x, y) {
+    const mark = document.createElement('div');
+    mark.className = 'squish-mark';
+    mark.style.left = x + 'px';
+    mark.style.top = y + 'px';
+    mark.style.setProperty('--rot', (Math.random() * 360).toFixed(0) + 'deg');
+    game.appendChild(mark);
+    setTimeout(() => mark.remove(), 5000);
   }
 
   function floatingText(txt, x, y, color) {
@@ -416,6 +477,7 @@
   function startMoskitoGame() {
     mosquitoes.forEach(removeMosquito);
     mosquitoes = [];
+    document.querySelectorAll('.squish-mark').forEach(el => el.remove());
     mgScore = 0;
     mgHealth = 100;
     spawnAcc = 0;

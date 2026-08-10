@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moskito Verdediging 🦟</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(180deg, #87CEEB 0%, #87CEEB 60%, #f0c27f 60%, #f0c27f 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .card {
+      max-width: 750px;
+      width: 100%;
+      background: #fffdf7;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: white;
+      padding: 20px 24px;
+      font-size: 1.6rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .body { padding: 24px; }
+
+    .highlight {
+      background: #fef9c3; border-left: 4px solid #f59e0b;
+      padding: 10px 16px; border-radius: 0 8px 8px 0; margin-bottom: 16px;
+      color: #374151; font-size: 0.95rem;
+    }
+
+    .check-btn {
+      background: #f97316; color: white;
+      border: none; padding: 10px 24px;
+      border-radius: 20px; font-size: 1rem; font-weight: bold;
+      cursor: pointer; margin: 8px 4px;
+      transition: background 0.2s;
+    }
+    .check-btn:hover { background: #ea580c; }
+
+    /* ===== MOSKITO DEFENSE ===== */
+    .moskito-wrap { text-align: center; }
+    .moskito-stats {
+      display: flex; justify-content: space-between; align-items: center;
+      margin: 10px 0; gap: 12px; flex-wrap: wrap;
+    }
+    .health-bar-outer {
+      flex: 1; min-width: 160px; height: 22px;
+      background: #fecaca; border: 2px solid #ef4444;
+      border-radius: 12px; overflow: hidden;
+    }
+    .health-bar-inner {
+      height: 100%; width: 100%;
+      background: linear-gradient(90deg, #4ade80, #22c55e);
+      transition: width 0.25s ease, background 0.25s ease;
+    }
+    .moskito-score { font-weight: bold; color: #0369a1; font-size: 1.1rem; white-space: nowrap; }
+    .moskito-game {
+      position: relative;
+      width: 100%; max-width: 640px; height: 400px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #fef3c7 0%, #fde68a 55%, #d6a86a 55%, #b6884f 100%);
+      border: 3px solid #92400e;
+      border-radius: 16px;
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
+    }
+    .mg-overlay {
+      position: absolute; inset: 0;
+      background: rgba(15,23,42,0.78);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: white; text-align: center; padding: 20px; gap: 10px; z-index: 20;
+    }
+    .mg-overlay h3 { font-size: 1.4rem; }
+    .mg-overlay p { font-size: 0.95rem; opacity: 0.9; max-width: 420px; }
+    .left-hand {
+      position: absolute; bottom: -10px; left: 8%;
+      font-size: 70px;
+      transform: rotate(-8deg);
+      filter: drop-shadow(2px 4px 3px rgba(0,0,0,0.3));
+      z-index: 5;
+    }
+    .swatter-rig {
+      position: absolute; top: 0; left: 0;
+      width: 0; height: 0;
+      z-index: 15;
+      pointer-events: none;
+      transform-origin: 10px 90px;
+    }
+    .swatter-rig.swing { animation: swat-swing 0.18s ease; }
+    @keyframes swat-swing {
+      0% { transform: rotate(0deg); }
+      40% { transform: rotate(-55deg); }
+      100% { transform: rotate(0deg); }
+    }
+    .swatter-hand {
+      position: absolute; font-size: 60px;
+      left: -40px; top: 40px;
+      filter: drop-shadow(0 0 6px rgba(255,255,255,0.9)) drop-shadow(2px 4px 3px rgba(0,0,0,0.35));
+    }
+    .swatter-stick {
+      position: absolute;
+      width: 6px; height: 90px;
+      background: linear-gradient(#a16207, #78350f);
+      border-radius: 3px;
+      left: -3px; top: -70px;
+    }
+    .swatter-pad {
+      position: absolute;
+      width: 46px; height: 36px;
+      left: -23px; top: -100px;
+      background: #facc15;
+      border: 3px solid #ca8a04;
+      border-radius: 8px;
+      background-image: radial-gradient(circle, #ca8a04 2px, transparent 2px);
+      background-size: 9px 9px;
+      background-position: 4px 4px;
+    }
+    .mosquito {
+      position: absolute;
+      font-size: 26px;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+    }
+    .mosquito.landed { animation: mg-bite-wiggle 0.3s infinite; }
+    @keyframes mg-bite-wiggle {
+      0%, 100% { transform: translate(-50%, -50%) rotate(-6deg); }
+      50% { transform: translate(-50%, -50%) rotate(6deg); }
+    }
+    .bite-timer {
+      position: absolute;
+      width: 26px; height: 4px;
+      background: #7f1d1d;
+      border-radius: 2px;
+      overflow: hidden;
+      transform: translate(-50%, 0);
+      z-index: 11;
+    }
+    .bite-timer-inner { height: 100%; width: 100%; background: #ef4444; }
+    .floating-text {
+      position: absolute;
+      font-weight: bold; font-size: 15px;
+      transform: translate(-50%, -50%);
+      animation: mg-float-up 0.8s ease forwards;
+      pointer-events: none;
+      z-index: 25;
+    }
+    @keyframes mg-float-up {
+      0% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+      100% { opacity: 0; transform: translate(-50%, -50%) translateY(-40px); }
+    }
+    .mg-shake { animation: mg-shake 0.35s; }
+    @keyframes mg-shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">🦟 Moskito Verdediging</div>
+  <div class="body moskito-wrap">
+    <div class="highlight">
+      📌 Beweeg je muis (of vinger) om de vliegenmepper in je hand te besturen.
+      Klik of tik om muggen weg te meppen voordat ze op je andere hand landen en prikken!
+    </div>
+    <div class="moskito-stats">
+      <div class="moskito-score" id="mg-score">🦟 Gemept: 0</div>
+      <div class="health-bar-outer"><div class="health-bar-inner" id="mg-health-bar"></div></div>
+      <div class="moskito-score" id="mg-health-text">❤️ 100</div>
+    </div>
+    <div class="moskito-game" id="mg-game">
+      <div class="mg-overlay" id="mg-overlay">
+        <h3>🦟 Moskito Verdediging</h3>
+        <p>Er vliegen muggen om je heen. Mep ze weg voor ze op je hand landen en prikken! Beweeg je muis of vinger en klik/tik om te meppen.</p>
+        <button class="check-btn" id="mg-start-btn" onclick="startMoskitoGame()">▶️ Start spel</button>
+      </div>
+      <div class="left-hand" id="mg-left-hand">🖐️</div>
+      <div class="swatter-rig" id="mg-swatter">
+        <div class="swatter-hand">🤚</div>
+        <div class="swatter-stick"></div>
+        <div class="swatter-pad"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== MOSKITO DEFENSE =====
+(function() {
+  const game = document.getElementById('mg-game');
+  const overlay = document.getElementById('mg-overlay');
+  const swatterRig = document.getElementById('mg-swatter');
+  const leftHand = document.getElementById('mg-left-hand');
+  const scoreEl = document.getElementById('mg-score');
+  const healthBar = document.getElementById('mg-health-bar');
+  const healthText = document.getElementById('mg-health-text');
+
+  const SWAT_RADIUS = 42;
+  const MAX_MOSQUITOS = 6;
+  const BASE_SPAWN_MS = 1700;
+  const MIN_SPAWN_MS = 650;
+  const BITE_DAMAGE = 15;
+  const BASE_LAND_MS = 1450;
+  const MIN_LAND_MS = 750;
+
+  let mgState = 'ready'; // ready | playing | gameover
+  let mgScore = 0;
+  let mgHealth = 100;
+  let mosquitoes = [];
+  let pointer = { x: 100, y: 100 };
+  let spawnAcc = 0;
+  let lastTs = null;
+  let rafId = null;
+
+  function rect() { return game.getBoundingClientRect(); }
+
+  function landZone() {
+    const r = rect();
+    const hr = leftHand.getBoundingClientRect();
+    return {
+      x: hr.left - r.left + hr.width * 0.55,
+      y: hr.top - r.top + hr.height * 0.35
+    };
+  }
+
+  function updatePointer(clientX, clientY) {
+    const r = rect();
+    pointer.x = Math.max(0, Math.min(r.width, clientX - r.left));
+    pointer.y = Math.max(0, Math.min(r.height, clientY - r.top));
+    swatterRig.style.transform = `translate(${pointer.x}px, ${pointer.y}px)`;
+  }
+
+  function swing() {
+    swatterRig.classList.remove('swing');
+    void swatterRig.offsetWidth;
+    swatterRig.classList.add('swing');
+  }
+
+  function trySwat(x, y) {
+    let closest = null, closestDist = Infinity;
+    mosquitoes.forEach(m => {
+      const dx = m.x - x, dy = m.y - y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d <= SWAT_RADIUS && d < closestDist) { closest = m; closestDist = d; }
+    });
+    if (closest) swatMosquito(closest);
+  }
+
+  game.addEventListener('pointermove', e => updatePointer(e.clientX, e.clientY));
+  game.addEventListener('pointerdown', e => {
+    if (mgState !== 'playing') return;
+    updatePointer(e.clientX, e.clientY);
+    swing();
+    trySwat(pointer.x, pointer.y);
+  });
+
+  function randomTarget() {
+    const r = rect();
+    if (Math.random() < 0.35) return { ...landZone(), landing: true };
+    return {
+      x: 30 + Math.random() * (r.width - 60),
+      y: 30 + Math.random() * (r.height - 100),
+      landing: false
+    };
+  }
+
+  function positionMosquito(m) {
+    m.el.style.left = m.x + 'px';
+    m.el.style.top = m.y + 'px';
+    if (m.timerEl) {
+      m.timerEl.style.left = m.x + 'px';
+      m.timerEl.style.top = (m.y + 18) + 'px';
+    }
+  }
+
+  function spawnMosquito() {
+    if (mosquitoes.length >= MAX_MOSQUITOS) return;
+    const r = rect();
+    const edge = Math.floor(Math.random() * 4);
+    let x, y;
+    if (edge === 0) { x = 0; y = Math.random() * r.height; }
+    else if (edge === 1) { x = r.width; y = Math.random() * r.height; }
+    else if (edge === 2) { x = Math.random() * r.width; y = 0; }
+    else { x = Math.random() * r.width; y = r.height; }
+
+    const el = document.createElement('div');
+    el.className = 'mosquito';
+    el.textContent = '🦟';
+    game.appendChild(el);
+
+    const m = {
+      el, x, y,
+      target: randomTarget(),
+      speed: 55 + Math.random() * 45,
+      state: 'flying',
+      timeoutId: null,
+      timerEl: null
+    };
+    mosquitoes.push(m);
+    positionMosquito(m);
+  }
+
+  function land(m) {
+    m.state = 'landed';
+    m.el.classList.add('landed');
+    const timerEl = document.createElement('div');
+    timerEl.className = 'bite-timer';
+    timerEl.innerHTML = '<div class="bite-timer-inner"></div>';
+    game.appendChild(timerEl);
+    m.timerEl = timerEl;
+    positionMosquito(m);
+
+    const landMs = Math.max(MIN_LAND_MS, BASE_LAND_MS - mgScore * 15);
+    const inner = timerEl.querySelector('.bite-timer-inner');
+    inner.style.transition = `width ${landMs}ms linear`;
+    requestAnimationFrame(() => { inner.style.width = '0%'; });
+
+    m.timeoutId = setTimeout(() => bite(m), landMs);
+  }
+
+  function bite(m) {
+    if (!mosquitoes.includes(m)) return;
+    mgHealth = Math.max(0, mgHealth - BITE_DAMAGE);
+    updateStats();
+    floatingText('-' + BITE_DAMAGE, m.x, m.y, '#dc2626');
+    game.classList.add('mg-shake');
+    setTimeout(() => game.classList.remove('mg-shake'), 350);
+    removeMosquito(m);
+    if (mgHealth <= 0) gameOver();
+  }
+
+  function swatMosquito(m) {
+    mgScore++;
+    updateStats();
+    floatingText('+1', m.x, m.y, '#16a34a');
+    removeMosquito(m);
+  }
+
+  function removeMosquito(m) {
+    if (m.timeoutId) clearTimeout(m.timeoutId);
+    m.el.remove();
+    if (m.timerEl) m.timerEl.remove();
+    mosquitoes = mosquitoes.filter(x => x !== m);
+  }
+
+  function floatingText(txt, x, y, color) {
+    const el = document.createElement('div');
+    el.className = 'floating-text';
+    el.textContent = txt;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.color = color;
+    game.appendChild(el);
+    setTimeout(() => el.remove(), 800);
+  }
+
+  function updateStats() {
+    scoreEl.textContent = '🦟 Gemept: ' + mgScore;
+    healthText.textContent = '❤️ ' + mgHealth;
+    healthBar.style.width = mgHealth + '%';
+    healthBar.style.background = mgHealth > 50
+      ? 'linear-gradient(90deg,#4ade80,#22c55e)'
+      : mgHealth > 25
+        ? 'linear-gradient(90deg,#fbbf24,#f59e0b)'
+        : 'linear-gradient(90deg,#f87171,#dc2626)';
+  }
+
+  function tick(ts) {
+    if (mgState !== 'playing') return;
+    if (lastTs === null) lastTs = ts;
+    const dt = ts - lastTs;
+    lastTs = ts;
+
+    spawnAcc += dt;
+    const spawnMs = Math.max(MIN_SPAWN_MS, BASE_SPAWN_MS - mgScore * 35);
+    if (spawnAcc >= spawnMs) { spawnAcc = 0; spawnMosquito(); }
+
+    mosquitoes.forEach(m => {
+      if (m.state !== 'flying') return;
+      const dx = m.target.x - m.x, dy = m.target.y - m.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 6) {
+        if (m.target.landing) { land(m); return; }
+        m.target = randomTarget();
+        return;
+      }
+      const step = m.speed * (dt / 1000);
+      m.x += (dx / dist) * step;
+      m.y += (dy / dist) * step;
+      positionMosquito(m);
+    });
+
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function startMoskitoGame() {
+    mosquitoes.forEach(removeMosquito);
+    mosquitoes = [];
+    mgScore = 0;
+    mgHealth = 100;
+    spawnAcc = 0;
+    lastTs = null;
+    mgState = 'playing';
+    overlay.style.display = 'none';
+    game.style.cursor = 'none';
+    updateStats();
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function gameOver() {
+    mgState = 'gameover';
+    game.style.cursor = 'default';
+    if (rafId) cancelAnimationFrame(rafId);
+    mosquitoes.forEach(removeMosquito);
+    mosquitoes = [];
+    overlay.innerHTML = `
+      <h3>😖 Game Over!</h3>
+      <p>Je hebt <strong>${mgScore}</strong> mug${mgScore === 1 ? '' : 'gen'} gemept voor je moest opgeven.</p>
+      <button class="check-btn" id="mg-start-btn" onclick="startMoskitoGame()">🔄 Opnieuw spelen</button>
+    `;
+    overlay.style.display = 'flex';
+  }
+
+  window.startMoskitoGame = startMoskitoGame;
+  updateStats();
+})();
+</script>
+</body>
+</html>

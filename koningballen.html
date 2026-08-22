@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#12071f" />
+<title>Koning Ballen 🎾</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='44' fill='%23ff2fb0'/%3E%3Ccircle cx='36' cy='34' r='11' fill='%23ffffff' opacity='.55'/%3E%3C/svg%3E" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    background: #0a0413;
+    font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+    color: #fff;
+    user-select: none;
+  }
+
+  /* Het speelveld is zo hoog als het scherm en niet breder dan een telefoon */
+  #shell {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    height: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+    background: #12071f;
+    box-shadow: 0 0 60px rgba(236, 72, 153, 0.35);
+  }
+
+  canvas#game { display: block; width: 100%; height: 100%; touch-action: none; }
+
+  /* ===== HUD boven in beeld ===== */
+  #hud {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 14px 14px 0;
+    pointer-events: none;
+  }
+  #hud.hidden { display: none; }
+  .round-btn {
+    pointer-events: auto;
+    width: 46px; height: 46px;
+    border: none;
+    border-radius: 50%;
+    background: #fff;
+    color: #ec4899;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  }
+  .round-btn:active { transform: scale(0.92); }
+  .hud-scores { display: flex; gap: 26px; padding-top: 4px; }
+  .hud-score { text-align: center; }
+  .hud-score .label {
+    font-size: 11px; letter-spacing: 2px; font-weight: bold;
+    text-transform: uppercase; opacity: 0.85;
+  }
+  .hud-score .value { font-size: 26px; font-weight: bold; line-height: 1.1; }
+  .hud-score.best .label, .hud-score.best .value { color: #34d399; }
+
+  /* ===== Stuurknoppen ===== */
+  #touch {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 18px;
+    gap: 18px;
+    pointer-events: none;
+  }
+  #touch.hidden { display: none; }
+  #touch button {
+    pointer-events: auto;
+    flex: 1;
+    max-width: 150px;
+    height: 76px;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-radius: 24px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    font-size: 30px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+  }
+  #touch button:active { background: rgba(236,72,153,0.55); }
+
+  /* ===== Schermen (menu, pauze, game over) ===== */
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 24px 20px;
+    text-align: center;
+    overflow-y: auto;
+    background: radial-gradient(circle at 50% 30%, rgba(168,85,247,0.35), rgba(10,4,19,0.94) 70%);
+    backdrop-filter: blur(3px);
+  }
+  .screen.active { display: flex; }
+
+  h1.logo {
+    font-size: clamp(34px, 11vw, 54px);
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: 2px;
+    background: linear-gradient(180deg, #fde68a, #f472b6 55%, #a855f7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 6px 24px rgba(236,72,153,0.45);
+  }
+  .made-by { font-size: 13px; opacity: 0.75; letter-spacing: 1px; }
+  h2.title { font-size: 30px; font-weight: 900; letter-spacing: 1px; }
+
+  .btn {
+    border: none;
+    border-radius: 999px;
+    padding: 15px 34px;
+    font-size: 19px;
+    font-weight: bold;
+    font-family: inherit;
+    color: #fff;
+    background: linear-gradient(180deg, #f472b6, #db2777);
+    box-shadow: 0 6px 0 #9d174d, 0 10px 24px rgba(0,0,0,0.45);
+    cursor: pointer;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #9d174d; }
+  .btn.secondary { background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 6px 0 #5b21b6, 0 10px 24px rgba(0,0,0,0.45); }
+  .btn.secondary:active { box-shadow: 0 2px 0 #5b21b6; }
+  .btn.small { padding: 11px 22px; font-size: 15px; }
+  .btn.link {
+    background: none; box-shadow: none; text-decoration: underline;
+    font-size: 14px; font-weight: normal; opacity: 0.8; padding: 6px;
+  }
+  .btn.link:active { transform: none; }
+
+  /* Moeilijkheid kiezen */
+  .modes { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .mode-chip {
+    border: 2px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .mode-chip.on { background: #34d399; border-color: #34d399; color: #05241a; }
+  .hint { font-size: 13px; line-height: 1.5; opacity: 0.85; max-width: 330px; }
+  .best-line { font-size: 15px; color: #34d399; font-weight: bold; }
+
+  /* ===== Bal maken ===== */
+  #ballPreview { width: 150px; height: 150px; }
+  #menuBall { width: 108px; height: 108px; cursor: pointer; filter: drop-shadow(0 8px 18px rgba(0,0,0,0.5)); }
+  #menuBall:active { transform: scale(0.94); }
+  .klik-hint { font-size: 12px; opacity: 0.7; margin-top: -8px; }
+  .section { width: 100%; max-width: 380px; }
+  .section h3 {
+    font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
+    opacity: 0.8; margin-bottom: 8px;
+  }
+  .swatches, .picks { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .swatch {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.25);
+    cursor: pointer;
+  }
+  .swatch.on { border-color: #fff; transform: scale(1.12); }
+  .pick {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    border: 3px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .pick.on { border-color: #fde68a; background: rgba(253,230,138,0.25); }
+  input[type=color] {
+    width: 44px; height: 44px; border: none; border-radius: 12px;
+    background: none; cursor: pointer; padding: 0;
+  }
+
+  .over-reason { font-size: 17px; font-weight: bold; color: #fbbf24; }
+  .big-score { font-size: 60px; font-weight: 900; line-height: 1; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+  /* Snelheids-melding bij een tunnel */
+  #boostFlash {
+    position: absolute;
+    top: 30%; left: 0; right: 0;
+    text-align: center;
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #fde68a;
+    text-shadow: 0 0 24px #f472b6;
+    opacity: 0;
+    pointer-events: none;
+  }
+  #boostFlash.show { animation: boostpop 1s ease-out; }
+  @keyframes boostpop {
+    0% { opacity: 0; transform: scale(0.5); }
+    25% { opacity: 1; transform: scale(1.15); }
+    70% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.3); }
+  }
+
+  #countdown {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 90px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 30px #ec4899;
+    pointer-events: none;
+  }
+  #countdown.show { display: flex; }
+</style>
+</head>
+<body>
+<div id="shell">
+  <canvas id="game"></canvas>
+
+  <div id="hud" class="hidden">
+    <button class="round-btn" id="btnBack" title="Terug naar het menu">‹</button>
+    <div class="hud-scores">
+      <div class="hud-score">
+        <div class="label" id="hudMode">MAKKELIJK</div>
+        <div class="value" id="hudScore">0</div>
+      </div>
+      <div class="hud-score best">
+        <div class="label">RECORD</div>
+        <div class="value" id="hudBest">0</div>
+      </div>
+    </div>
+    <button class="round-btn" id="btnPause" title="Pauze">❚❚</button>
+  </div>
+
+  <div id="boostFlash">SNELLER! 🚀</div>
+  <div id="countdown"></div>
+
+  <div id="touch" class="hidden">
+    <button id="btnLeft" aria-label="naar links">◀</button>
+    <button id="btnRight" aria-label="naar rechts">▶</button>
+  </div>
+
+  <!-- ===== Startscherm ===== -->
+  <div class="screen active" id="screen-start">
+    <h1 class="logo">KONING<br />BALLEN</h1>
+    <div class="made-by">een spel van Ellie 💖</div>
+    <canvas id="menuBall" width="300" height="300" title="Klik op je bal"></canvas>
+    <div class="klik-hint">👆 klik op je bal om hem te veranderen</div>
+    <div class="modes" id="modeChips"></div>
+    <div class="best-line" id="startBest">Record: 0</div>
+    <button class="btn" id="btnPlay">▶ SPELEN</button>
+    <button class="btn secondary small" id="btnShop">🎨 Mijn bal maken</button>
+    <div class="hint">
+      Rol zo ver mogelijk! Ga naar links en rechts met de pijltjes,
+      de knoppen onderin of door te slepen.<br />
+      Pas op voor de <b style="color:#f472b6">roze muren</b> en val niet van de baan.
+      Door een <b style="color:#c084fc">tunnel</b> ga je sneller!
+    </div>
+    <button class="btn link" id="btnBook">📖 Terug naar het zomerboekje</button>
+  </div>
+
+  <!-- ===== Bal maken ===== -->
+  <div class="screen" id="screen-shop">
+    <h2 class="title">🎨 Mijn bal</h2>
+    <canvas id="ballPreview" width="300" height="300"></canvas>
+    <div class="section">
+      <h3>Kleur van je bal</h3>
+      <div class="swatches" id="colorRow"></div>
+      <div style="margin-top:8px"><input type="color" id="customColor" value="#ff2fb0" title="Zelf een kleur kiezen" /></div>
+    </div>
+    <div class="section">
+      <h3>Kies je avatar</h3>
+      <div class="picks" id="avatarRow"></div>
+    </div>
+    <div class="section">
+      <h3>Stickers (max 4)</h3>
+      <div class="picks" id="stickerRow"></div>
+    </div>
+    <button class="btn" id="btnShopDone">✓ Klaar</button>
+  </div>
+
+  <!-- ===== Pauze ===== -->
+  <div class="screen" id="screen-pause">
+    <h2 class="title">⏸ PAUZE</h2>
+    <button class="btn" id="btnResume">▶ Verder spelen</button>
+    <div class="row">
+      <button class="btn secondary small" id="btnRestart2">🔄 Opnieuw</button>
+      <button class="btn secondary small" id="btnMenu2">🏠 Menu</button>
+    </div>
+  </div>
+
+  <!-- ===== Game over ===== -->
+  <div class="screen" id="screen-over">
+    <h2 class="title">GAME OVER</h2>
+    <div class="over-reason" id="overReason"></div>
+    <div class="big-score" id="overScore">0</div>
+    <div class="best-line" id="overBest">Record: 0</div>
+    <button class="btn" id="btnAgain">🔄 Nog een keer</button>
+    <div class="row">
+      <button class="btn secondary small" id="btnShop2">🎨 Mijn bal</button>
+      <button class="btn secondary small" id="btnMenu">🏠 Menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* =========================================================
+   KONING BALLEN — bedacht door Ellie
+   1. Raak je een roze muur, dan ben je game over
+   2. Ga je door een tunnel, dan ga je sneller
+   3. Je kiest zelf je avatar, kleur en stickers
+   4. Val je van de baan, dan ben je af
+   5. Je kan naar links en naar rechts
+   ========================================================= */
+
+/* ---------- Opslag (records en jouw bal onthouden) ---------- */
+var STORE = 'koningballen';
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORE)) || {}; }
+  catch (e) { return {}; }
+}
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify(data)); } catch (e) {}
+}
+var data = load();
+data.best = data.best || {};
+data.ball = data.ball || {};
+
+var ball = {
+  color: data.ball.color || '#ff2fb0',
+  avatar: data.ball.avatar || '😊',
+  stickers: data.ball.stickers || ['⭐', '💖']
+};
+
+var COLORS = ['#ff2fb0', '#f43f5e', '#fb923c', '#fde047', '#4ade80',
+              '#22d3ee', '#60a5fa', '#a855f7', '#ffffff', '#1f2937'];
+var AVATARS = ['😊', '😎', '🐱', '🐶', '🦄', '🐼', '🐸', '🦊', '👑', '🐧', '🐷', '🙃'];
+var STICKERS = ['⭐', '💖', '🌈', '🌸', '⚡', '🍭', '🦋', '🍉', '💎', '🌞', '🎀', '🔥'];
+
+var MODES = [
+  { id: 'easy',   naam: '🐢 Makkelijk', label: 'MAKKELIJK', speed: 11, groei: 0.22, ruimte: 15 },
+  { id: 'normal', naam: '🐇 Normaal',   label: 'NORMAAL',   speed: 15, groei: 0.30, ruimte: 13 },
+  { id: 'fast',   naam: '🚀 Snel',      label: 'SNEL',      speed: 19, groei: 0.38, ruimte: 11 }
+];
+var mode = MODES[0];
+for (var mi = 0; mi < MODES.length; mi++) {
+  if (MODES[mi].id === data.mode) mode = MODES[mi];
+}
+function bestOf(m) { return data.best[m.id] || 0; }
+
+/* ---------- Canvas ---------- */
+var canvas = document.getElementById('game');
+var ctx = canvas.getContext('2d');
+var W = 0, H = 0, cx = 0, horizon = 0, FOV = 0;
+
+function resize() {
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var r = canvas.getBoundingClientRect();
+  W = Math.max(1, Math.round(r.width));
+  H = Math.max(1, Math.round(r.height));
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cx = W / 2;
+  horizon = H * 0.40;
+  FOV = H * 0.85;
+  tekenBalVoorbeeld();
+}
+window.addEventListener('resize', resize);
+
+/* ---------- Wereld-instellingen ---------- */
+var BAAN = 3.0;        // halve breedte van de baan
+var STRAAL = 0.62;     // straal van de bal
+var CAM_ACHTER = 5.0;  // camera staat achter de bal
+var CAM_HOOG = 2.4;    // camera staat boven de baan
+var ZICHT = 72;        // hoe ver je vooruit kijkt
+var NABIJ = 0.6;       // niets tekenen dat dichterbij is dan dit
+
+var cam = { x: 0, y: CAM_HOOG, z: -CAM_ACHTER };
+
+/* ---------- 3D naar 2D ---------- */
+function proj(x, y, z) {
+  var d = z - cam.z;
+  var s = FOV / d;
+  return { x: cx + (x - cam.x) * s, y: horizon + (cam.y - y) * s, s: s };
+}
+
+// Snijdt een vlak af dat (deels) achter de camera ligt
+function clip(poly) {
+  var near = cam.z + NABIJ, out = [], i, a, b, ain, bin, t;
+  for (i = 0; i < poly.length; i++) {
+    a = poly[i];
+    b = poly[(i + 1) % poly.length];
+    ain = a[2] >= near;
+    bin = b[2] >= near;
+    if (ain) out.push(a);
+    if (ain !== bin) {
+      t = (near - a[2]) / (b[2] - a[2]);
+      out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, near]);
+    }
+  }
+  return out;
+}
+
+function padVlak(poly) {
+  var p = clip(poly);
+  if (p.length < 3) return false;
+  var q = proj(p[0][0], p[0][1], p[0][2]);
+  ctx.moveTo(q.x, q.y);
+  for (var i = 1; i < p.length; i++) {
+    q = proj(p[i][0], p[i][1], p[i][2]);
+    ctx.lineTo(q.x, q.y);
+  }
+  ctx.closePath();
+  return true;
+}
+
+function padLijn(a, b) {
+  var near = cam.z + NABIJ, t;
+  if (a[2] < near && b[2] < near) return;
+  if (a[2] < near) { t = (near - a[2]) / (b[2] - a[2]); a = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, near]; }
+  else if (b[2] < near) { t = (near - b[2]) / (a[2] - b[2]); b = [b[0] + (a[0] - b[0]) * t, b[1] + (a[1] - b[1]) * t, near]; }
+  var p = proj(a[0], a[1], a[2]), q = proj(b[0], b[1], b[2]);
+  ctx.moveTo(p.x, p.y);
+  ctx.lineTo(q.x, q.y);
+}
+
+// Een blok tekenen (voorkant, bovenkant en de zijkant die je kan zien)
+function tekenBlok(x0, x1, y0, y1, z0, z1, kleurVoor, kleurBoven, kleurZij, rand) {
+  ctx.beginPath();
+  padVlak([[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0]]);
+  ctx.fillStyle = kleurVoor;
+  ctx.fill();
+
+  ctx.beginPath();
+  padVlak([[x0, y1, z0], [x1, y1, z0], [x1, y1, z1], [x0, y1, z1]]);
+  ctx.fillStyle = kleurBoven;
+  ctx.fill();
+
+  // alleen de zijkant tekenen die naar de camera wijst
+  if (cam.x < x0 || cam.x > x1) {
+    var zx = cam.x < x0 ? x0 : x1;
+    ctx.beginPath();
+    padVlak([[zx, y0, z0], [zx, y0, z1], [zx, y1, z1], [zx, y1, z0]]);
+    ctx.fillStyle = kleurZij;
+    ctx.fill();
+  }
+
+  if (rand) {
+    ctx.beginPath();
+    padLijn([x0, y1, z0], [x1, y1, z0]);
+    padLijn([x0, y0, z0], [x0, y1, z0]);
+    padLijn([x1, y0, z0], [x1, y1, z0]);
+    ctx.strokeStyle = rand;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+/* =========================================================
+   De wereld: baan, gebouwen, muren, gaten en tunnels
+   ========================================================= */
+var obstakels = [];
+var volgendeZ = 0;
+var demo = true;              // in het menu rolt de baan leeg door
+
+function ruis(i) {
+  var x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+function nieuweWereld() {
+  obstakels = [];
+  volgendeZ = 26;               // de eerste meters zijn altijd vrij
+  genereerTot(volgendeZ + 120);
+}
+
+function genereerTot(z) {
+  while (volgendeZ < z) plaatsPatroon();
+}
+
+function plaatsPatroon() {
+  var z = volgendeZ;
+  if (demo) { volgendeZ = z + 20; return; }
+  var moeilijk = Math.min(1, z / 700);              // wordt langzaam lastiger
+  var ruimte = mode.ruimte - moeilijk * 4;
+  var kans = Math.random();
+
+  if (z > 60 && kans < 0.18) {
+    // ---- tunnel: hier ga je doorheen en daarna ga je sneller ----
+    var opening = 1.5;                               // halve breedte van de opening
+    var mid = (Math.random() * 2 - 1) * (BAAN - opening - 0.15);
+    obstakels.push({
+      type: 'tunnel', z0: z, z1: z + 8,
+      ox0: mid - opening, ox1: mid + opening, gebruikt: false
+    });
+    volgendeZ = z + 8 + ruimte + 4;
+    return;
+  }
+
+  if (kans < 0.42) {
+    // ---- gat in de baan: val je erin, dan ben je af ----
+    var links = Math.random() < 0.5;
+    var breed = 1.6 + Math.random() * 1.4;
+    obstakels.push({
+      type: 'gat',
+      x0: links ? -BAAN : BAAN - breed,
+      x1: links ? -BAAN + breed : BAAN,
+      z0: Math.round(z), z1: Math.round(z) + 4
+    });
+    volgendeZ = z + 4 + ruimte;
+    return;
+  }
+
+  // ---- roze muren, er blijft altijd een gat om langs te rollen ----
+  var vorm = Math.floor(Math.random() * 3);
+  var dikte = 0.9;
+  if (vorm === 0) {
+    var b = 1.8 + moeilijk * 1.0 + Math.random() * 0.8;
+    var rechts = Math.random() < 0.5;
+    obstakels.push({ type: 'muur', x0: rechts ? BAAN - b : -BAAN, x1: rechts ? BAAN : -BAAN + b, z0: z, z1: z + dikte });
+  } else if (vorm === 1) {
+    var half = 0.9 + moeilijk * 0.7;
+    var m = (Math.random() * 2 - 1) * 1.0;
+    obstakels.push({ type: 'muur', x0: m - half, x1: m + half, z0: z, z1: z + dikte });
+  } else {
+    // twee muren met een doorgang ertussen
+    var gatBreed = 2.5 - moeilijk * 0.6;
+    var g = (Math.random() * 2 - 1) * (BAAN - gatBreed / 2 - 0.3);
+    obstakels.push({ type: 'muur', x0: -BAAN, x1: g - gatBreed / 2, z0: z, z1: z + dikte });
+    obstakels.push({ type: 'muur', x0: g + gatBreed / 2, x1: BAAN, z0: z, z1: z + dikte });
+  }
+  volgendeZ = z + dikte + ruimte;
+}
+
+function opruimen(z) {
+  var i = 0;
+  while (i < obstakels.length && obstakels[i].z1 < z - 12) i++;
+  if (i > 0) obstakels.splice(0, i);
+}
+
+/* ---------- De sterrenhemel ---------- */
+function tekenLucht() {
+  var g = ctx.createLinearGradient(0, 0, 0, horizon + 40);
+  g.addColorStop(0, '#05010c');
+  g.addColorStop(0.7, '#160c2e');
+  g.addColorStop(1, '#3b1258');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, horizon + 40);
+  ctx.fillStyle = '#0b0616';
+  ctx.fillRect(0, horizon, W, H - horizon);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  for (var i = 0; i < 45; i++) {
+    var sx = ruis(i * 3 + 1) * W;
+    var sy = ruis(i * 7 + 5) * horizon * 0.85;
+    var sr = 0.6 + ruis(i * 11 + 2) * 1.3;
+    ctx.fillRect(sx, sy, sr, sr);
+  }
+}
+
+/* ---------- De flatgebouwen langs de baan ---------- */
+function tekenGebouwen() {
+  var stap = 5;
+  var k0 = Math.floor((cam.z + NABIJ) / stap);
+  var k1 = Math.floor((cam.z + ZICHT + 25) / stap);
+  for (var k = k1; k >= k0; k--) {
+    for (var s = 0; s < 2; s++) {
+      var kant = s === 0 ? -1 : 1;
+      var r1 = ruis(k * 2 + s * 97 + 3);
+      var r2 = ruis(k * 5 + s * 31 + 11);
+      var r3 = ruis(k * 9 + s * 53 + 7);
+      if (r3 < 0.12) continue;                        // af en toe een gaatje in de skyline
+      var binnen = BAAN + 1.1 + r1 * 1.6;
+      var breed = 2.5 + r2 * 4;
+      var hoog = 3 + r3 * 17;
+      var z0 = k * stap + r1 * 2;
+      var z1 = z0 + 3 + r2 * 2.5;
+      var x0 = kant < 0 ? -binnen - breed : binnen;
+      var x1 = kant < 0 ? -binnen : binnen + breed;
+      tekenGebouw(x0, x1, hoog, z0, z1, kant);
+    }
+  }
+}
+
+function tekenGebouw(x0, x1, hoog, z0, z1, kant) {
+  var bx = kant < 0 ? x1 : x0;                        // de kant die naar de baan kijkt
+  ctx.beginPath();
+  padVlak([[x0, 0, z0], [x1, 0, z0], [x1, hoog, z0], [x0, hoog, z0]]);
+  padVlak([[bx, 0, z0], [bx, 0, z1], [bx, hoog, z1], [bx, hoog, z0]]);
+  ctx.fillStyle = '#0e1236';
+  ctx.fill();
+
+  // raster van ramen
+  var kolommen = Math.max(2, Math.round((x1 - x0) / 0.9));
+  var rijen = Math.max(2, Math.round(hoog / 1.1));
+  var diep = Math.max(2, Math.round((z1 - z0) / 0.9));
+  var i;
+  ctx.beginPath();
+  for (i = 0; i <= kolommen; i++) {
+    var xx = x0 + (x1 - x0) * (i / kolommen);
+    padLijn([xx, 0, z0], [xx, hoog, z0]);
+  }
+  for (i = 0; i <= diep; i++) {
+    var zz = z0 + (z1 - z0) * (i / diep);
+    padLijn([bx, 0, zz], [bx, hoog, zz]);
+  }
+  for (i = 0; i <= rijen; i++) {
+    var yy = hoog * (i / rijen);
+    padLijn([x0, yy, z0], [x1, yy, z0]);
+    padLijn([bx, yy, z0], [bx, yy, z1]);
+  }
+  ctx.strokeStyle = '#7c8cf8';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+/* ---------- De baan met zijn ruitjes ---------- */
+function trekAf(spans, a, b) {
+  var uit = [];
+  for (var i = 0; i < spans.length; i++) {
+    var s = spans[i];
+    if (b <= s[0] || a >= s[1]) { uit.push(s); continue; }
+    if (a > s[0]) uit.push([s[0], a]);
+    if (b < s[1]) uit.push([b, s[1]]);
+  }
+  return uit;
+}
+
+function tekenBaan() {
+  var z0 = Math.floor(cam.z + NABIJ);
+  var z1 = Math.ceil(cam.z + ZICHT);
+  var vlakken = [], z, i;
+
+  for (z = z1; z >= z0; z--) {
+    var spans = [[-BAAN, BAAN]];
+    var mid = z + 0.5;
+    for (i = 0; i < obstakels.length; i++) {
+      var o = obstakels[i];
+      if (o.type === 'gat' && mid > o.z0 && mid < o.z1) spans = trekAf(spans, o.x0, o.x1);
+    }
+    for (i = 0; i < spans.length; i++) vlakken.push([spans[i][0], spans[i][1], z, z + 1]);
+  }
+
+  ctx.beginPath();
+  for (i = 0; i < vlakken.length; i++) {
+    var v = vlakken[i];
+    padVlak([[v[0], 0, v[2]], [v[1], 0, v[2]], [v[1], 0, v[3]], [v[0], 0, v[3]]]);
+  }
+  ctx.fillStyle = '#4a56a8';
+  ctx.fill();
+
+  // ruitjes
+  ctx.beginPath();
+  for (i = 0; i < vlakken.length; i++) {
+    var w = vlakken[i];
+    padLijn([w[0], 0, w[2]], [w[1], 0, w[2]]);
+    for (var x = -BAAN; x <= BAAN + 0.01; x += 1.2) {
+      if (x >= w[0] - 0.01 && x <= w[1] + 0.01) padLijn([x, 0, w[2]], [x, 0, w[3]]);
+    }
+  }
+  ctx.strokeStyle = 'rgba(167,180,255,0.85)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // gloeiende randen van de baan
+  ctx.beginPath();
+  padLijn([-BAAN, 0.02, cam.z + NABIJ], [-BAAN, 0.02, cam.z + ZICHT]);
+  padLijn([BAAN, 0.02, cam.z + NABIJ], [BAAN, 0.02, cam.z + ZICHT]);
+  ctx.strokeStyle = 'rgba(226,232,255,0.9)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+/* ---------- Muren, gaten en tunnels ---------- */
+function tekenObstakels() {
+  for (var i = obstakels.length - 1; i >= 0; i--) {
+    var o = obstakels[i];
+    if (o.z1 < cam.z + NABIJ || o.z0 > cam.z + ZICHT) continue;
+    if (o.type === 'muur') {
+      tekenBlok(o.x0, o.x1, 0, 1.7, o.z0, o.z1, '#ff4fbe', '#ffa8e0', '#d81f92', '#ffd6f2');
+    } else if (o.type === 'tunnel') {
+      tekenTunnel(o);
+    }
+  }
+}
+
+function tekenTunnel(t) {
+  var hoog = 3.4;
+  // de twee pilaren links en rechts van de opening
+  if (t.ox0 > -BAAN + 0.05) tekenBlok(-BAAN, t.ox0, 0, hoog, t.z0, t.z1, '#8b3ff0', '#c99bff', '#6d21d6', '#e9d5ff');
+  if (t.ox1 < BAAN - 0.05) tekenBlok(t.ox1, BAAN, 0, hoog, t.z0, t.z1, '#8b3ff0', '#c99bff', '#6d21d6', '#e9d5ff');
+  // het dak boven de opening
+  tekenBlok(t.ox0, t.ox1, hoog - 0.7, hoog, t.z0, t.z1, '#a855f7', '#d8b4fe', '#7e22ce', '#f5d0fe');
+
+  // gloeiende ring in de opening
+  ctx.beginPath();
+  padVlak([[t.ox0, 0.02, t.z0], [t.ox1, 0.02, t.z0], [t.ox1, hoog - 0.7, t.z0], [t.ox0, hoog - 0.7, t.z0]]);
+  ctx.strokeStyle = t.gebruikt ? 'rgba(148,163,184,0.6)' : '#67e8f9';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+/* =========================================================
+   De bal van Ellie: kleur, avatar en stickers
+   ========================================================= */
+function meng(hex, f) {
+  var n = parseInt(hex.slice(1), 16);
+  var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  if (f > 0) { r += (255 - r) * f; g += (255 - g) * f; b += (255 - b) * f; }
+  else { r *= (1 + f); g *= (1 + f); b *= (1 + f); }
+  return 'rgb(' + (r | 0) + ',' + (g | 0) + ',' + (b | 0) + ')';
+}
+
+// Waar de stickers op de bal geplakt zitten
+function plakPlekken() {
+  var p = [];
+  var hoeken = [0.6, 2.2, 3.8, 5.4];
+  for (var i = 0; i < ball.stickers.length && i < 4; i++) {
+    p.push({ u: (i % 2 ? 0.45 : -0.45), hoek: hoeken[i], groot: 0.38, teken: ball.stickers[i] });
+  }
+  return p;
+}
+
+function tekenBolletje(x, y, r, rol) {
+  var g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.08, x, y, r * 1.05);
+  g.addColorStop(0, meng(ball.color, 0.55));
+  g.addColorStop(0.55, ball.color);
+  g.addColorStop(1, meng(ball.color, -0.55));
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  // alles wat op de bal geplakt zit mee laten rollen
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.94, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // je avatar kijkt je altijd aan en wiebelt een beetje mee
+  ctx.font = (r * 0.9) + 'px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+  ctx.fillText(ball.avatar, x + Math.sin(rol * 0.3) * r * 0.06, y + Math.cos(rol * 0.3) * r * 0.06);
+
+  var plek = plakPlekken();
+  for (var i = 0; i < plek.length; i++) {
+    var p = plek[i];
+    var a = rol * 0.3 + p.hoek;
+    var voor = Math.cos(a);
+    if (voor <= 0.05) continue;                       // dit zit nu aan de achterkant
+    var px = x + p.u * r * 1.25;
+    var py = y + Math.sin(a) * r * 0.72;
+    var s = r * p.groot * (0.45 + 0.55 * voor);
+    ctx.globalAlpha = Math.min(1, voor * 1.8);
+    ctx.font = s + 'px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+    ctx.fillText(p.teken, px, py);
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+
+  // glimlicht bovenop
+  ctx.beginPath();
+  ctx.ellipse(x - r * 0.32, y - r * 0.44, r * 0.24, r * 0.15, -0.5, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.fill();
+}
+
+function tekenSpeler() {
+  var p = proj(speler.x, STRAAL + speler.y, speler.z);
+  var r = STRAAL * p.s;
+
+  // schaduw op de baan
+  if (!speler.valt) {
+    var sc = proj(speler.x, 0.01, speler.z + 0.1);
+    ctx.beginPath();
+    ctx.ellipse(sc.x, sc.y, r * 0.85, r * 0.3, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.fill();
+  }
+  tekenBolletje(p.x, p.y, r, speler.rol);
+}
+
+/* Het voorbeeldballetje in het scherm 'Mijn bal' */
+var pvRol = 0;
+var voorbeelden = [document.getElementById('ballPreview'), document.getElementById('menuBall')];
+function tekenBalVoorbeeld() {
+  var bewaar = ctx;
+  for (var i = 0; i < voorbeelden.length; i++) {
+    var c = voorbeelden[i];
+    ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+    tekenBolletje(c.width / 2, c.height / 2, c.width * 0.42, pvRol);
+  }
+  ctx = bewaar;
+}
+
+/* =========================================================
+   Geluid
+   ========================================================= */
+var audio = null;
+var geluidAan = data.geluid !== false;
+function piep(van, naar, duur, vorm, vol) {
+  if (!geluidAan) return;
+  try {
+    if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+    var o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
+    o.type = vorm || 'square';
+    o.frequency.setValueAtTime(van, t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(30, naar), t + duur);
+    g.gain.setValueAtTime(vol || 0.14, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + duur);
+    o.connect(g); g.connect(audio.destination);
+    o.start(t); o.stop(t + duur + 0.02);
+  } catch (e) {}
+}
+
+/* =========================================================
+   Het spel zelf
+   ========================================================= */
+var staat = 'menu';                    // menu | aftellen | spelen | pauze | over
+var speler = { x: 0, doel: 0, z: 0, y: 0, vy: 0, valt: false, rol: 0 };
+var snelheid = 0, boostTijd = 0, aftelTijd = 0, schud = 0, flitser = 0;
+var score = 0, richting = 0, laatsteTik = 0;
+var BOOST_DUUR = 3.5;
+
+var el = {};
+['hud', 'hudMode', 'hudScore', 'hudBest', 'touch', 'countdown', 'boostFlash',
+ 'overReason', 'overScore', 'overBest', 'startBest'].forEach(function (id) {
+  el[id] = document.getElementById(id);
+});
+
+function toonScherm(naam) {
+  ['start', 'shop', 'pause', 'over'].forEach(function (s) {
+    document.getElementById('screen-' + s).classList.toggle('active', s === naam);
+  });
+  var speelt = naam === null;
+  el.hud.classList.toggle('hidden', !speelt);
+  el.touch.classList.toggle('hidden', !speelt);
+}
+
+function startSpel() {
+  demo = false;
+  speler = { x: 0, doel: 0, z: 0, y: 0, vy: 0, valt: false, rol: 0 };
+  boostTijd = 0; schud = 0; flitser = 0; score = 0; richting = 0;
+  nieuweWereld();
+  el.hudMode.textContent = mode.label;
+  el.hudBest.textContent = bestOf(mode);
+  el.hudScore.textContent = '0';
+  toonScherm(null);
+  aftelTijd = 3.2;
+  staat = 'aftellen';
+  el.countdown.classList.add('show');
+}
+
+function gameOver(reden) {
+  if (staat === 'over') return;
+  staat = 'over';
+  var tekst = {
+    muur: 'Je raakte een roze muur! 🧱',
+    tunnel: 'Je knalde tegen de tunnel! 🚧',
+    gat: 'Je viel door een gat in de baan! 🕳️',
+    rand: 'Je rolde van de baan af! 😵'
+  };
+  el.overReason.textContent = tekst[reden] || 'Oeps!';
+  el.overScore.textContent = score;
+  if (score > bestOf(mode)) {
+    data.best[mode.id] = score;
+    save();
+    el.overBest.textContent = '🏆 Nieuw record!';
+  } else {
+    el.overBest.textContent = 'Record: ' + bestOf(mode);
+  }
+  el.hudBest.textContent = bestOf(mode);
+  el.startBest.textContent = 'Record: ' + bestOf(mode);
+  toonScherm('over');
+}
+
+function raak(reden) {
+  schud = 0.45;
+  piep(220, 60, 0.4, 'sawtooth', 0.2);
+  gameOver(reden);
+}
+
+function update(dt) {
+  // in het menu rolt de bal rustig door als achtergrondje
+  if (staat === 'menu' || staat === 'shop') {
+    speler.z += 7 * dt;
+    speler.rol += (7 * dt) / STRAAL;
+    speler.x = Math.sin(speler.z * 0.06) * 1.7;
+    speler.doel = speler.x;
+    genereerTot(speler.z + 130);
+    opruimen(speler.z);
+    return;
+  }
+  if (staat === 'aftellen') {
+    aftelTijd -= dt;
+    var n = Math.ceil(aftelTijd - 0.2);
+    el.countdown.textContent = n > 0 ? n : 'GO!';
+    if (aftelTijd <= 0) {
+      el.countdown.classList.remove('show');
+      staat = 'spelen';
+      piep(660, 900, 0.15, 'square', 0.12);
+    }
+    return;
+  }
+  if (staat !== 'spelen') return;
+
+  // ---- 5. naar links en naar rechts ----
+  if (!speler.valt) {
+    if (richting !== 0) speler.doel += richting * 7.5 * dt;
+    speler.doel = Math.max(-BAAN - 0.8, Math.min(BAAN + 0.8, speler.doel));
+    speler.x += (speler.doel - speler.x) * Math.min(1, dt * 13);
+  }
+
+  // ---- vooruit rollen, door een tunnel ga je sneller ----
+  var basis = mode.speed + Math.min(8, speler.z / 100 * mode.groei * 2.5);
+  var boost = boostTijd > 0 ? 1 + 0.55 * Math.min(1, boostTijd / BOOST_DUUR + 0.25) : 1;
+  snelheid = basis * boost * (speler.valt ? 0.35 : 1);
+  if (boostTijd > 0) boostTijd -= dt;
+
+  var vorigeZ = speler.z;
+  speler.z += snelheid * dt;
+  speler.rol += (snelheid * dt) / STRAAL;
+  genereerTot(speler.z + 130);
+  opruimen(speler.z);
+
+  score = Math.floor(speler.z / 2);
+  if (el.hudScore.textContent !== String(score)) {
+    el.hudScore.textContent = score;
+    if (score > 0 && score % 25 === 0) piep(880, 1200, 0.08, 'triangle', 0.07);
+  }
+
+  // ---- 4. van de baan vallen ----
+  if (!speler.valt && Math.abs(speler.x) > BAAN + 0.05) valBegin('rand');
+
+  // ---- botsingen ----
+  if (!speler.valt) {
+    for (var i = 0; i < obstakels.length; i++) {
+      var o = obstakels[i];
+      if (o.type === 'gat') {
+        if (speler.z > o.z0 && speler.z < o.z1 && speler.x > o.x0 - 0.15 && speler.x < o.x1 + 0.15) {
+          valBegin('gat');
+          break;
+        }
+        continue;
+      }
+      if (speler.z + STRAAL < o.z0 || speler.z - STRAAL > o.z1) continue;
+      if (o.type === 'muur') {
+        if (speler.x + STRAAL * 0.8 > o.x0 && speler.x - STRAAL * 0.8 < o.x1) { raak('muur'); return; }
+      } else if (o.type === 'tunnel') {
+        if (speler.x - STRAAL * 0.7 < o.ox0 || speler.x + STRAAL * 0.7 > o.ox1) { raak('tunnel'); return; }
+        if (!o.gebruikt && vorigeZ <= o.z1 && speler.z > (o.z0 + o.z1) / 2) {
+          o.gebruikt = true;
+          boostTijd = BOOST_DUUR;
+          flitser = 1;
+          el.boostFlash.classList.remove('show');
+          void el.boostFlash.offsetWidth;
+          el.boostFlash.classList.add('show');
+          piep(400, 1400, 0.35, 'sawtooth', 0.12);
+        }
+      }
+    }
+  }
+
+  // ---- het vallen zelf ----
+  if (speler.valt) {
+    speler.vy -= 22 * dt;
+    speler.y += speler.vy * dt;
+    if (speler.y < -9) gameOver(speler.reden);
+  }
+
+  if (schud > 0) schud = Math.max(0, schud - dt);
+  if (flitser > 0) flitser = Math.max(0, flitser - dt * 1.5);
+}
+
+function valBegin(reden) {
+  speler.valt = true;
+  speler.vy = -1.5;
+  speler.reden = reden;
+  piep(500, 90, 0.6, 'sine', 0.16);
+}
+
+/* =========================================================
+   Tekenen en de spel-lus
+   ========================================================= */
+function teken() {
+  ctx.save();
+  if (schud > 0) {
+    ctx.translate((Math.random() - 0.5) * schud * 26, (Math.random() - 0.5) * schud * 26);
+  }
+
+  cam.x = speler.x * 0.55;
+  cam.y = CAM_HOOG + speler.y * 0.35;
+  cam.z = speler.z - CAM_ACHTER;
+
+  tekenLucht();
+  tekenGebouwen();
+  tekenBaan();
+  tekenObstakels();
+  if (staat !== 'menu' && staat !== 'shop') tekenSpeler();
+
+  // vaartstrepen als je door een tunnel bent gegaan
+  if (boostTijd > 0) {
+    var a = Math.min(0.5, boostTijd / BOOST_DUUR);
+    ctx.strokeStyle = 'rgba(255,255,255,' + a + ')';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (var i = 0; i < 16; i++) {
+      var h = ruis(i * 13 + Math.floor(performance.now() / 60) * 0.37) * Math.PI * 2;
+      var r0 = W * 0.28 + ruis(i * 5) * W * 0.3;
+      ctx.moveTo(cx + Math.cos(h) * r0, horizon + Math.sin(h) * r0);
+      ctx.lineTo(cx + Math.cos(h) * (r0 + W * 0.22), horizon + Math.sin(h) * (r0 + W * 0.22));
+    }
+    ctx.stroke();
+  }
+
+  if (flitser > 0) {
+    ctx.fillStyle = 'rgba(196,132,252,' + (flitser * 0.35) + ')';
+    ctx.fillRect(0, 0, W, H);
+  }
+  ctx.restore();
+}
+
+var vorigeTijd = 0;
+function lus(t) {
+  requestAnimationFrame(lus);
+  var dt = Math.min(0.05, (t - vorigeTijd) / 1000 || 0);
+  vorigeTijd = t;
+  if (staat === 'menu' || staat === 'shop') {
+    pvRol += dt * 2.2;
+    tekenBalVoorbeeld();
+  }
+  update(dt);
+  teken();
+}
+
+/* =========================================================
+   Besturing
+   ========================================================= */
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { richting = -1; e.preventDefault(); }
+  else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { richting = 1; e.preventDefault(); }
+  else if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') { pauzeer(); }
+  else if (e.key === ' ' || e.key === 'Enter') {
+    if (staat === 'menu') startSpel();
+    else if (staat === 'over') startSpel();
+    else if (staat === 'pauze') hervat();
+    e.preventDefault();
+  }
+});
+document.addEventListener('keyup', function (e) {
+  if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') && richting === -1) richting = 0;
+  if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') && richting === 1) richting = 0;
+});
+
+function knopStuur(knop, kant) {
+  knop.addEventListener('pointerdown', function (e) { e.preventDefault(); richting = kant; });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) {
+    knop.addEventListener(ev, function () { if (richting === kant) richting = 0; });
+  });
+}
+knopStuur(document.getElementById('btnLeft'), -1);
+knopStuur(document.getElementById('btnRight'), 1);
+
+// slepen over het scherm
+var sleep = null;
+canvas.addEventListener('pointerdown', function (e) {
+  if (staat !== 'spelen') return;
+  sleep = { x: e.clientX, doel: speler.doel };
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', function (e) {
+  if (!sleep || staat !== 'spelen') return;
+  speler.doel = Math.max(-BAAN - 0.8, Math.min(BAAN + 0.8,
+    sleep.doel + (e.clientX - sleep.x) / W * (BAAN * 3.2)));
+});
+['pointerup', 'pointercancel'].forEach(function (ev) {
+  canvas.addEventListener(ev, function () { sleep = null; });
+});
+
+/* =========================================================
+   Knoppen en schermen
+   ========================================================= */
+function pauzeer() {
+  if (staat !== 'spelen' && staat !== 'aftellen') return;
+  staat = 'pauze';
+  el.countdown.classList.remove('show');
+  toonScherm('pause');
+}
+function hervat() {
+  if (staat !== 'pauze') return;
+  toonScherm(null);
+  aftelTijd = 1.6;
+  staat = 'aftellen';
+  el.countdown.classList.add('show');
+}
+function naarMenu() {
+  staat = 'menu';
+  demo = true;
+  speler = { x: 0, doel: 0, z: 0, y: 0, vy: 0, valt: false, rol: 0 };
+  nieuweWereld();
+  el.countdown.classList.remove('show');
+  el.startBest.textContent = 'Record: ' + bestOf(mode);
+  toonScherm('start');
+}
+
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) pauzeer();
+});
+
+document.getElementById('btnPlay').onclick = startSpel;
+document.getElementById('btnAgain').onclick = startSpel;
+document.getElementById('btnRestart2').onclick = startSpel;
+document.getElementById('btnResume').onclick = hervat;
+document.getElementById('btnPause').onclick = pauzeer;
+document.getElementById('btnBack').onclick = naarMenu;
+document.getElementById('btnMenu').onclick = naarMenu;
+document.getElementById('btnMenu2').onclick = naarMenu;
+document.getElementById('btnBook').onclick = function () { location.href = 'index.html'; };
+
+/* ---- moeilijkheid kiezen ---- */
+var chips = document.getElementById('modeChips');
+MODES.forEach(function (m) {
+  var b = document.createElement('button');
+  b.className = 'mode-chip' + (m.id === mode.id ? ' on' : '');
+  b.textContent = m.naam;
+  b.onclick = function () {
+    mode = m;
+    data.mode = m.id;
+    save();
+    Array.prototype.forEach.call(chips.children, function (c) { c.classList.remove('on'); });
+    b.classList.add('on');
+    el.startBest.textContent = 'Record: ' + bestOf(mode);
+  };
+  chips.appendChild(b);
+});
+
+/* ---- geluid aan of uit ---- */
+var geluidKnop = document.createElement('button');
+geluidKnop.className = 'btn link';
+function toonGeluid() { geluidKnop.textContent = geluidAan ? '🔊 Geluid aan' : '🔇 Geluid uit'; }
+geluidKnop.onclick = function () {
+  geluidAan = !geluidAan;
+  data.geluid = geluidAan;
+  save();
+  toonGeluid();
+  piep(700, 900, 0.1, 'triangle', 0.1);
+};
+toonGeluid();
+document.getElementById('btnBook').parentNode.insertBefore(geluidKnop, document.getElementById('btnBook'));
+
+/* ---- 3. je eigen bal maken ---- */
+function naarShop() {
+  staat = 'shop';
+  toonScherm('shop');
+}
+document.getElementById('btnShop').onclick = naarShop;
+document.getElementById('menuBall').onclick = naarShop;
+document.getElementById('btnShop2').onclick = naarShop;
+document.getElementById('btnShopDone').onclick = function () {
+  data.ball = { color: ball.color, avatar: ball.avatar, stickers: ball.stickers };
+  save();
+  naarMenu();
+};
+
+var kleurRij = document.getElementById('colorRow');
+COLORS.forEach(function (c) {
+  var b = document.createElement('button');
+  b.className = 'swatch' + (c === ball.color ? ' on' : '');
+  b.style.background = c;
+  b.onclick = function () {
+    ball.color = c;
+    Array.prototype.forEach.call(kleurRij.children, function (k) { k.classList.remove('on'); });
+    b.classList.add('on');
+  };
+  kleurRij.appendChild(b);
+});
+document.getElementById('customColor').addEventListener('input', function (e) {
+  ball.color = e.target.value;
+  Array.prototype.forEach.call(kleurRij.children, function (k) { k.classList.remove('on'); });
+});
+
+var avatarRij = document.getElementById('avatarRow');
+AVATARS.forEach(function (a) {
+  var b = document.createElement('button');
+  b.className = 'pick' + (a === ball.avatar ? ' on' : '');
+  b.textContent = a;
+  b.onclick = function () {
+    ball.avatar = a;
+    Array.prototype.forEach.call(avatarRij.children, function (k) { k.classList.remove('on'); });
+    b.classList.add('on');
+    piep(800, 1000, 0.07, 'triangle', 0.08);
+  };
+  avatarRij.appendChild(b);
+});
+
+var stickerRij = document.getElementById('stickerRow');
+STICKERS.forEach(function (s) {
+  var b = document.createElement('button');
+  b.className = 'pick' + (ball.stickers.indexOf(s) >= 0 ? ' on' : '');
+  b.textContent = s;
+  b.onclick = function () {
+    var i = ball.stickers.indexOf(s);
+    if (i >= 0) ball.stickers.splice(i, 1);
+    else if (ball.stickers.length < 4) ball.stickers.push(s);
+    else return;
+    b.classList.toggle('on', ball.stickers.indexOf(s) >= 0);
+    piep(900, 1100, 0.06, 'triangle', 0.08);
+  };
+  stickerRij.appendChild(b);
+});
+
+/* ---- starten ---- */
+el.startBest.textContent = 'Record: ' + bestOf(mode);
+resize();
+nieuweWereld();
+speler.z = 0;
+requestAnimationFrame(lus);
+
+})();
+</script>
+</body>
+</html>

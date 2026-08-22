@@ -42,6 +42,19 @@
     }
     nav button:hover { background: #ea580c; transform: scale(1.05); }
     nav button.active { background: #1d4ed8; }
+    nav a.game-link {
+      background: #16a34a;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.1s;
+    }
+    nav a.game-link:hover { background: #15803d; transform: scale(1.05); }
 
     /* ===== BOOK PAGE ===== */
     .page {
@@ -461,7 +474,7 @@
   <button onclick="showPage(5)">🔤 Spelling</button>
   <button onclick="showPage(6)">🧩 Rebus</button>
   <button onclick="showPage(7)">📖 Achterkant</button>
-  <button onclick="location.href='koningballen.html'" style="background:#db2777">🎾 Koning Ballen</button>
+  <a class="game-link" href="index.html">🏠 Start</a>
 </nav>
 
 <!-- ===== PAGINA 0: VOORKANT ===== -->
@@ -689,10 +702,10 @@
     <p style="font-size:1.2rem; color:#0369a1; font-weight:bold; margin-bottom:8px;">🎉 Goed gedaan!</p>
     <p style="color:#374151;">Je hebt het zomerboekje afgemaakt. Fijne vakantie! 🌞🌊🍦</p>
     <div style="font-size:2rem; margin-top:12px;">🐚 🦀 🌴 🦋 🌺</div>
-    <button onclick="location.href='koningballen.html'"
+    <button onclick="location.href='index.html'"
       style="margin-top:18px; background:#db2777; color:white; border:none; padding:12px 24px;
              border-radius:20px; font-size:1rem; font-weight:bold; cursor:pointer;">
-      🎾 Speel Koning Ballen
+      🎮 Naar alle spelletjes
     </button>
   </div>
   <div class="page-nav">

@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zomerboekje 🌊</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(180deg, #87CEEB 0%, #87CEEB 60%, #f0c27f 60%, #f0c27f 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* ===== NAV ===== */
+    nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+      background: rgba(255,255,255,0.7);
+      padding: 10px 16px;
+      border-radius: 30px;
+      backdrop-filter: blur(6px);
+    }
+    nav button {
+      background: #f97316;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: background 0.2s, transform 0.1s;
+    }
+    nav button:hover { background: #ea580c; transform: scale(1.05); }
+    nav button.active { background: #1d4ed8; }
+    nav a.game-link {
+      background: #16a34a;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.1s;
+    }
+    nav a.game-link:hover { background: #15803d; transform: scale(1.05); }
+
+    /* ===== BOOK PAGE ===== */
+    .page {
+      display: none;
+      max-width: 750px;
+      width: 100%;
+      background: #fffdf7;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      overflow: hidden;
+      animation: fadeIn 0.4s ease;
+    }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== COVER ===== */
+    .cover {
+      position: relative;
+      height: 560px;
+      background: linear-gradient(180deg, #0ea5e9 0%, #38bdf8 40%, #fde68a 40%, #fbbf24 55%, #d97706 55%, #d97706 70%, #0284c7 70%, #0284c7 85%, #075985 85%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
+    .cover .sun {
+      position: absolute;
+      top: 30px; left: 50%;
+      transform: translateX(-50%);
+      width: 90px; height: 90px;
+      background: radial-gradient(circle, #fef08a, #fbbf24);
+      border-radius: 50%;
+      box-shadow: 0 0 40px #fbbf24, 0 0 80px #fde68a;
+    }
+    .cover .sun::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(251,191,36,0.3) 40%, transparent 70%);
+      border-radius: 50%;
+    }
+    .cover .cloud {
+      position: absolute;
+      background: white;
+      border-radius: 50px;
+      opacity: 0.85;
+    }
+    .cover .cloud::before, .cover .cloud::after {
+      content: '';
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+    }
+    .cover .c1 { width: 80px; height: 28px; top: 60px; left: 40px; }
+    .cover .c1::before { width: 40px; height: 40px; top: -18px; left: 12px; }
+    .cover .c1::after { width: 30px; height: 30px; top: -12px; left: 35px; }
+    .cover .c2 { width: 60px; height: 22px; top: 80px; right: 60px; }
+    .cover .c2::before { width: 30px; height: 30px; top: -14px; left: 10px; }
+    .cover .c2::after { width: 24px; height: 24px; top: -10px; left: 28px; }
+
+    /* palmtree */
+    .cover .palm { position: absolute; bottom: 180px; left: 30px; }
+    .cover .palm .trunk {
+      width: 14px; height: 100px;
+      background: linear-gradient(#92400e, #b45309);
+      border-radius: 6px;
+      transform: rotate(-8deg);
+      transform-origin: bottom;
+    }
+    .cover .palm .leaf {
+      position: absolute;
+      width: 60px; height: 14px;
+      background: #16a34a;
+      border-radius: 50%;
+    }
+    .cover .palm .leaf1 { top: -8px; left: -45px; transform: rotate(-30deg); }
+    .cover .palm .leaf2 { top: -12px; left: -10px; transform: rotate(20deg); }
+    .cover .palm .leaf3 { top: 2px; left: -55px; transform: rotate(-60deg); }
+
+    /* umbrella */
+    .cover .umbrella { position: absolute; bottom: 172px; right: 60px; }
+    .cover .umbrella .stick {
+      width: 4px; height: 80px;
+      background: #78716c;
+      margin: 0 auto;
+    }
+    .cover .umbrella .top {
+      width: 90px; height: 45px;
+      background: conic-gradient(#ef4444 0deg 60deg, #fbbf24 60deg 120deg, #ef4444 120deg 180deg, #fbbf24 180deg 240deg, #ef4444 240deg 300deg, #fbbf24 300deg 360deg);
+      border-radius: 90px 90px 0 0;
+      position: relative;
+      left: -43px;
+    }
+
+    /* waves */
+    .cover .wave1 {
+      position: absolute;
+      bottom: 120px; left: 0; right: 0;
+      height: 40px;
+      background: #38bdf8;
+      border-radius: 50% 50% 0 0 / 20px 20px 0 0;
+    }
+    .cover .wave2 {
+      position: absolute;
+      bottom: 100px; left: -20px; right: -20px;
+      height: 50px;
+      background: #0284c7;
+      border-radius: 50% 50% 0 0 / 20px 20px 0 0;
+    }
+    .cover .wave3 {
+      position: absolute;
+      bottom: 80px; left: 0; right: 0;
+      height: 80px;
+      background: #075985;
+    }
+
+    /* slippers */
+    .cover .slipper { position: absolute; }
+    .cover .slipper-pink { bottom: 162px; left: 200px; }
+    .cover .slipper-purple { bottom: 156px; left: 248px; }
+    .cover .slipper svg { filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.3)); }
+
+    /* towel & bucket */
+    .cover .beach-item { position: absolute; }
+    .cover .towel {
+      bottom: 160px; left: 80px;
+      width: 80px; height: 24px;
+      background: repeating-linear-gradient(90deg, #f43f5e 0px, #f43f5e 8px, #fbbf24 8px, #fbbf24 16px);
+      border-radius: 4px;
+      transform: rotate(-5deg);
+    }
+    .cover .bucket {
+      bottom: 155px; right: 110px;
+      width: 28px; height: 30px;
+      background: #f97316;
+      clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
+    }
+
+    /* seagull */
+    .cover .gull {
+      position: absolute;
+      top: 100px; right: 100px;
+    }
+    .cover .gull::before, .cover .gull::after {
+      content: '';
+      display: inline-block;
+      width: 18px; height: 8px;
+      border-top: 3px solid #334155;
+      border-radius: 50% 50% 0 0;
+    }
+    .cover .gull::before { transform: rotate(-20deg); }
+    .cover .gull::after { transform: rotate(20deg); margin-left: 2px; }
+
+    .cover-title {
+      position: absolute;
+      top: 155px;
+      text-align: center;
+      background: rgba(255,255,255,0.88);
+      border-radius: 16px;
+      padding: 14px 28px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    .cover-title h1 { font-size: 2.4rem; color: #0369a1; font-weight: 900; line-height: 1.1; }
+    .cover-title p { font-size: 1rem; color: #92400e; margin-top: 4px; }
+    .cover-title .emoji-row { font-size: 1.6rem; margin-top: 6px; }
+
+    /* ===== CONTENT PAGES ===== */
+    .page-header {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: white;
+      padding: 20px 24px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .page-body { padding: 24px; }
+
+    /* ===== WOORDZOEKER ===== */
+    .word-grid {
+      display: inline-grid;
+      gap: 2px;
+      margin: 16px 0;
+    }
+    .word-grid .cell {
+      width: 36px; height: 36px;
+      background: #e0f2fe;
+      border: 2px solid #bae6fd;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: bold; font-size: 1.1rem; color: #0c4a6e;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .word-grid .cell:hover { background: #7dd3fc; }
+    .word-grid .cell.selected { background: #fbbf24; border-color: #f59e0b; }
+    .word-grid .cell.found { background: #4ade80; border-color: #22c55e; color: white; }
+
+    .word-list {
+      display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0;
+    }
+    .word-list span {
+      background: #fef3c7;
+      border: 2px solid #fde68a;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      color: #92400e;
+    }
+    .word-list span.found { background: #bbf7d0; border-color: #86efac; color: #166534; text-decoration: line-through; }
+
+    /* ===== KRUISWOORD ===== */
+    .crossword-grid {
+      display: inline-grid;
+      gap: 2px;
+      margin: 12px 0;
+    }
+    .cw-cell {
+      width: 38px; height: 38px;
+      position: relative;
+    }
+    .cw-cell.black { background: #1e293b; border-radius: 4px; }
+    .cw-cell input {
+      width: 100%; height: 100%;
+      border: 2px solid #93c5fd;
+      background: #eff6ff;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #1e40af;
+      border-radius: 4px;
+      text-transform: uppercase;
+      outline: none;
+    }
+    .cw-cell input:focus { border-color: #2563eb; background: #dbeafe; }
+    .cw-cell input.correct { background: #dcfce7; border-color: #4ade80; color: #166534; }
+    .cw-cell input.wrong { background: #fee2e2; border-color: #f87171; }
+    .cw-num {
+      position: absolute;
+      top: 1px; left: 2px;
+      font-size: 9px; color: #64748b;
+      z-index: 1; pointer-events: none;
+      line-height: 1;
+    }
+    .clues { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    .clues h3 { font-size: 0.95rem; color: #1e40af; margin-bottom: 6px; }
+    .clues li { font-size: 0.88rem; margin: 4px 0; color: #374151; }
+
+    /* ===== REKENEN ===== */
+    .sum-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+    .sum-card {
+      background: #fef9c3;
+      border: 2px solid #fde047;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+    .sum-card .vraag { font-size: 1.3rem; font-weight: bold; color: #854d0e; margin-bottom: 8px; }
+    .sum-card input {
+      width: 70px; padding: 6px;
+      border: 2px solid #fbbf24;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      text-align: center;
+      font-weight: bold;
+    }
+    .sum-card .feedback { margin-top: 6px; font-size: 0.9rem; font-weight: bold; min-height: 20px; }
+    .sum-card .feedback.goed { color: #16a34a; }
+    .sum-card .feedback.fout { color: #dc2626; }
+    .check-btn {
+      background: #f97316; color: white;
+      border: none; padding: 10px 24px;
+      border-radius: 20px; font-size: 1rem; font-weight: bold;
+      cursor: pointer; margin: 8px 4px;
+      transition: background 0.2s;
+    }
+    .check-btn:hover { background: #ea580c; }
+    .score-box {
+      background: #e0f2fe;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #0369a1;
+      margin-top: 12px;
+    }
+
+    /* ===== SPELLING ===== */
+    .spelling-game { text-align: center; }
+    .spelling-hint {
+      font-size: 1.2rem;
+      background: #f0fdf4;
+      border: 2px solid #86efac;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 12px 0;
+      color: #166534;
+      font-weight: bold;
+    }
+    .letter-display {
+      display: flex; justify-content: center; gap: 8px;
+      flex-wrap: wrap; margin: 12px 0;
+    }
+    .letter-box {
+      width: 44px; height: 44px;
+      border-bottom: 3px solid #0ea5e9;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: bold; color: #0c4a6e;
+      background: #f0f9ff; border-radius: 4px;
+    }
+    .letter-box.empty { background: white; }
+    .letter-choices {
+      display: flex; justify-content: center; gap: 10px;
+      flex-wrap: wrap; margin: 16px 0;
+    }
+    .letter-btn {
+      width: 46px; height: 46px;
+      background: #fef3c7; border: 2px solid #fbbf24;
+      border-radius: 8px; font-size: 1.3rem; font-weight: bold;
+      cursor: pointer; color: #92400e;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .letter-btn:hover { background: #fde68a; transform: scale(1.1); }
+    .letter-btn:disabled { opacity: 0.3; cursor: default; transform: none; }
+    .spelling-result { font-size: 1.2rem; font-weight: bold; margin: 10px 0; min-height: 28px; }
+
+    /* ===== TEKST ===== */
+    .text-page p { line-height: 1.8; color: #374151; margin-bottom: 12px; font-size: 1rem; }
+    .text-page .highlight {
+      background: #fef9c3; border-left: 4px solid #f59e0b;
+      padding: 10px 16px; border-radius: 0 8px 8px 0; margin: 12px 0;
+    }
+    textarea.journal {
+      width: 100%; height: 160px;
+      border: 2px solid #bae6fd; border-radius: 10px;
+      padding: 12px; font-size: 1rem; resize: vertical;
+      font-family: inherit; color: #1e293b;
+    }
+
+    /* footer nav */
+    .page-nav {
+      display: flex; justify-content: space-between;
+      padding: 16px 24px;
+      border-top: 2px solid #f1f5f9;
+      background: #f8fafc;
+    }
+    .page-nav button {
+      background: #0ea5e9; color: white;
+      border: none; padding: 10px 22px;
+      border-radius: 20px; font-weight: bold; cursor: pointer;
+      font-size: 0.95rem; transition: background 0.2s;
+    }
+    .page-nav button:hover { background: #0284c7; }
+    .page-nav button:disabled { background: #cbd5e1; cursor: default; }
+
+    .star { color: #f59e0b; font-size: 1.3rem; }
+
+    /* ===== REBUS ===== */
+    #rebus-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin: 16px 0; }
+    .rebus-card {
+      background: #f0f9ff;
+      border: 2px solid #bae6fd;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .rebus-puzzle {
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      flex: 1;
+      min-width: 200px;
+    }
+    .rebus-puzzle .op { font-size: 1.4rem; font-weight: bold; color: #0369a1; }
+    .rebus-puzzle .txt { font-size: 1.5rem; font-weight: bold; color: #92400e; }
+    .rebus-card input {
+      width: 150px; padding: 8px;
+      border: 2px solid #38bdf8;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .rebus-card input.correct { background: #dcfce7; border-color: #4ade80; color: #166534; }
+    .rebus-card input.wrong { background: #fee2e2; border-color: #f87171; }
+    .rebus-hint {
+      width: 100%;
+      font-size: 0.85rem;
+      color: #0369a1;
+      font-style: italic;
+      display: none;
+    }
+    .rebus-hint.show { display: block; }
+  </style>
+</head>
+<body>
+
+<nav id="main-nav">
+  <button onclick="showPage(0)" class="active">📖 Voorkant</button>
+  <button onclick="showPage(1)">✍️ Tekst</button>
+  <button onclick="showPage(2)">🔍 Woordzoeker</button>
+  <button onclick="showPage(3)">✏️ Kruiswoord</button>
+  <button onclick="showPage(4)">🔢 Rekenen</button>
+  <button onclick="showPage(5)">🔤 Spelling</button>
+  <button onclick="showPage(6)">🧩 Rebus</button>
+  <button onclick="showPage(7)">📖 Achterkant</button>
+  <a class="game-link" href="index.html">🏠 Start</a>
+</nav>
+
+<!-- ===== PAGINA 0: VOORKANT ===== -->
+<div class="page active" id="page-0">
+  <div class="cover">
+    <div class="sun"></div>
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="gull"></div>
+    <div class="palm">
+      <div class="leaf leaf1"></div>
+      <div class="leaf leaf2"></div>
+      <div class="leaf leaf3"></div>
+      <div class="trunk"></div>
+    </div>
+    <div class="umbrella">
+      <div class="top"></div>
+      <div class="stick"></div>
+    </div>
+    <div class="beach-item towel"></div>
+    <div class="beach-item bucket"></div>
+    <div class="slipper slipper-pink">
+      <svg width="52" height="28" viewBox="0 0 52 28">
+        <ellipse cx="26" cy="20" rx="24" ry="7" fill="#f472b6"/>
+        <path d="M8 20 Q10 8 22 6 Q30 4 34 10 L30 12 Q26 7 20 9 Q12 12 12 20Z" fill="#ec4899"/>
+        <rect x="18" y="5" width="6" height="10" rx="3" fill="#db2777"/>
+      </svg>
+    </div>
+    <div class="slipper slipper-purple">
+      <svg width="52" height="28" viewBox="0 0 52 28">
+        <ellipse cx="26" cy="20" rx="24" ry="7" fill="#a855f7"/>
+        <path d="M8 20 Q10 8 22 6 Q30 4 34 10 L30 12 Q26 7 20 9 Q12 12 12 20Z" fill="#9333ea"/>
+        <rect x="18" y="5" width="6" height="10" rx="3" fill="#7c3aed"/>
+      </svg>
+    </div>
+    <div class="wave1"></div>
+    <div class="wave2"></div>
+    <div class="wave3"></div>
+    <div class="cover-title">
+      <h1>🏖️ Het Grote Zomerboekje</h1>
+      <p style="font-size:1.1rem; color:#b45309; font-weight:700;">gemaakt door Ellie</p>
+      <p style="font-size:0.85rem; color:#92400e;">Groep 6 — Zomervakantie 2026</p>
+      <div class="emoji-row">🌞 🌊 🐚 🦀 🍦</div>
+      <p style="margin-top:10px; font-size:0.85rem; color:#64748b;">
+        Naam: <input type="text" placeholder="Jouw naam..." style="border:none; border-bottom:2px solid #0ea5e9; background:transparent; font-size:0.85rem; color:#1e293b; outline:none; width:130px; padding:2px 4px;" />
+        &nbsp; Groep: <input type="text" placeholder="6" style="border:none; border-bottom:2px solid #0ea5e9; background:transparent; font-size:0.85rem; color:#1e293b; outline:none; width:40px; padding:2px 4px;" />
+      </p>
+    </div>
+  </div>
+  <div class="page-nav">
+    <button disabled>← Vorige</button>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 1 van 8</span>
+    <button onclick="showPage(1)">Volgende →</button>
+  </div>
+</div>
+
+<!-- ===== PAGINA 1: TEKST ===== -->
+<div class="page" id="page-1">
+  <div class="page-header">✍️ Mijn Zomerverhaal</div>
+  <div class="page-body text-page">
+    <div class="highlight">
+      📌 <strong>Opdracht:</strong> Lees de tekst hieronder. Schrijf daarna jouw eigen zomerverhaal in het vak!
+    </div>
+    <p>De zon scheen fel op het strand. Lisa en haar broer Tim renden naar het water. De golven waren groot en het water was heerlijk koel. Ze bouwden een enorm zandkasteel met grachten en torens.</p>
+    <p>Ineens zagen ze een zeekrab. "Kijk!" riep Tim. "Een krab!" De krab liep zijwaarts weg en verdween in het natte zand. Lisa lachte. Dit was de beste vakantie ooit.</p>
+    <p>Later aten ze een ijsje. Lisa koos aardbei, Tim nam chocolade. De zon ging langzaam onder en de hemel werd oranje en roze. "We komen morgen terug," zei Lisa. En dat deden ze.</p>
+    <hr style="margin:16px 0; border:none; border-top:2px solid #e2e8f0;">
+    <p><strong>✏️ Schrijf hier jouw eigen zomerverhaal:</strong></p>
+    <textarea class="journal" placeholder="Het was een zonnige dag... Ik ging naar... Ik zag..."></textarea>
+  </div>
+  <div class="page-nav">
+    <button onclick="showPage(0)">← Vorige</button>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 2 van 8</span>
+    <button onclick="showPage(2)">Volgende →</button>
+  </div>
+</div>
+
+<!-- ===== PAGINA 2: WOORDZOEKER ===== -->
+<div class="page" id="page-2">
+  <div class="page-header">🔍 Woordzoeker</div>
+  <div class="page-body">
+    <div class="highlight">
+      📌 <strong>Opdracht:</strong> Vind alle zomerwoorden in het raster! Klik op de eerste en laatste letter van een woord.
+      Woorden staan horizontaal of verticaal.
+    </div>
+    <div class="word-list" id="word-list"></div>
+    <div style="overflow-x:auto;">
+      <div class="word-grid" id="word-grid" style="grid-template-columns: repeat(10, 36px);"></div>
+    </div>
+    <div id="ws-score" class="score-box" style="margin-top:12px; display:none"></div>
+  </div>
+  <div class="page-nav">
+    <button onclick="showPage(1)">← Vorige</button>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 3 van 8</span>
+    <button onclick="showPage(3)">Volgende →</button>
+  </div>
+</div>
+
+<!-- ===== PAGINA 3: KRUISWOORD ===== -->
+<div class="page" id="page-3">
+  <div class="page-header">✏️ Kruiswoordpuzzel</div>
+  <div class="page-body">
+    <div class="highlight">📌 <strong>Opdracht:</strong> Vul de kruiswoordpuzzel in! Gebruik de aanwijzingen hieronder.</div>
+    <div style="overflow-x:auto;">
+      <div class="crossword-grid" id="cw-grid" style="grid-template-columns: repeat(8, 38px);"></div>
+    </div>
+    <div style="text-align:center; margin:12px 0;">
+      <button class="check-btn" onclick="checkCrossword()">✅ Controleer</button>
+      <button class="check-btn" onclick="clearCrossword()" style="background:#64748b">🔄 Wis alles</button>
+    </div>
+    <div class="clues">
+      <div>
+        <h3>➡️ Horizontaal</h3>
+        <ol id="cw-across"></ol>
+      </div>
+      <div>
+        <h3>⬇️ Verticaal</h3>
+        <ol id="cw-down"></ol>
+      </div>
+    </div>
+  </div>
+  <div class="page-nav">
+    <button onclick="showPage(2)">← Vorige</button>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 4 van 8</span>
+    <button onclick="showPage(4)">Volgende →</button>
+  </div>
+</div>
+
+<!-- ===== PAGINA 4: REKENEN ===== -->
+<div class="page" id="page-4">
+  <div class="page-header">🔢 Rekenoefeningen</div>
+  <div class="page-body">
+    <div class="highlight">📌 <strong>Opdracht:</strong> Los de sommen op! Druk op "Controleer" als je klaar bent.</div>
+    <div class="sum-grid" id="sum-grid"></div>
+    <div style="text-align:center;">
+      <button class="check-btn" onclick="checkMath()">✅ Controleer antwoorden</button>
+      <button class="check-btn" onclick="newMath()" style="background:#059669">🔄 Nieuwe sommen</button>
+    </div>
+    <div id="math-score" class="score-box" style="display:none"></div>
+  </div>
+  <div class="page-nav">
+    <button onclick="showPage(3)">← Vorige</button>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 5 van 8</span>
+    <button onclick="showPage(5)">Volgende →</button>
+  </div>
+</div>
+
+<!-- ===== PAGINA 5: SPELLING ===== -->
+<div class="page" id="page-5">
+  <div class="page-header">🔤 Spellingspelletje</div>
+  <div class="page-body spelling-game">
+    <div class="highlight">📌 <strong>Opdracht:</strong> Klik de letters in de juiste volgorde om het woord te spellen!</div>
+    <div id="spelling-hint" class="spelling-hint"></div>
+    <div class="letter-display" id="letter-display"></div>
+    <div class="letter-choices" id="letter-choices"></div>
+    <div class="spelling-result" id="spelling-result"></div>
+    <button class="check-btn" onclick="undoLetter()" style="background:#64748b">⬅️ Wis letter</button>
+    <button class="check-btn" onclick="nextSpelling()">➡️ Volgend woord</button>
+    <div id="spelling-score" class="score-box" style="margin-top:12px"></div>
+  </div>
+  <div class="page-nav">
+    <button onclick="showPage(4)">← Vorige</button>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 6 van 8</span>
+    <button onclick="showPage(6)">Volgende →</button>
+  </div>
+</div>
+
+<!-- ===== PAGINA 6: REBUS ===== -->
+<div class="page" id="page-6">
+  <div class="page-header">🧩 Rebus</div>
+  <div class="page-body">
+    <div class="highlight">📌 <strong>Opdracht:</strong> Wat staat hier? Tel de plaatjes en letters bij elkaar op en schrijf het woord!</div>
+    <div id="rebus-grid"></div>
+    <div style="text-align:center; margin-top:8px;">
+      <button class="check-btn" onclick="checkRebus()">✅ Controleer</button>
+      <button class="check-btn" onclick="hintRebus()" style="background:#059669">💡 Hint</button>
+    </div>
+    <div id="rebus-score" class="score-box" style="display:none"></div>
+  </div>
+  <div class="page-nav">
+    <button onclick="showPage(5)">← Vorige</button>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 7 van 8</span>
+    <button onclick="showPage(7)">Volgende →</button>
+  </div>
+</div>
+
+<!-- ===== PAGINA 7: ACHTERKANT ===== -->
+<div class="page" id="page-7">
+  <div class="cover">
+    <div class="sun"></div>
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="gull"></div>
+    <div class="palm">
+      <div class="leaf leaf1"></div>
+      <div class="leaf leaf2"></div>
+      <div class="leaf leaf3"></div>
+      <div class="trunk"></div>
+    </div>
+    <div class="umbrella">
+      <div class="top"></div>
+      <div class="stick"></div>
+    </div>
+    <div class="beach-item towel"></div>
+    <div class="beach-item bucket"></div>
+    <div class="slipper slipper-pink">
+      <svg width="52" height="28" viewBox="0 0 52 28">
+        <ellipse cx="26" cy="20" rx="24" ry="7" fill="#f472b6"/>
+        <path d="M8 20 Q10 8 22 6 Q30 4 34 10 L30 12 Q26 7 20 9 Q12 12 12 20Z" fill="#ec4899"/>
+        <rect x="18" y="5" width="6" height="10" rx="3" fill="#db2777"/>
+      </svg>
+    </div>
+    <div class="slipper slipper-purple">
+      <svg width="52" height="28" viewBox="0 0 52 28">
+        <ellipse cx="26" cy="20" rx="24" ry="7" fill="#a855f7"/>
+        <path d="M8 20 Q10 8 22 6 Q30 4 34 10 L30 12 Q26 7 20 9 Q12 12 12 20Z" fill="#9333ea"/>
+        <rect x="18" y="5" width="6" height="10" rx="3" fill="#7c3aed"/>
+      </svg>
+    </div>
+    <div class="wave1"></div>
+    <div class="wave2"></div>
+    <div class="wave3"></div>
+  </div>
+  <div style="padding:24px; text-align:center; background:#fffdf7;">
+    <p style="font-size:1.2rem; color:#0369a1; font-weight:bold; margin-bottom:8px;">🎉 Goed gedaan!</p>
+    <p style="color:#374151;">Je hebt het zomerboekje afgemaakt. Fijne vakantie! 🌞🌊🍦</p>
+    <div style="font-size:2rem; margin-top:12px;">🐚 🦀 🌴 🦋 🌺</div>
+    <button onclick="location.href='index.html'"
+      style="margin-top:18px; background:#db2777; color:white; border:none; padding:12px 24px;
+             border-radius:20px; font-size:1rem; font-weight:bold; cursor:pointer;">
+      🎮 Naar alle spelletjes
+    </button>
+  </div>
+  <div class="page-nav">
+    <button onclick="showPage(6)">← Vorige</button>
+    <span style="align-self:center;color:#64748b;font-size:0.9rem">Pagina 8 van 8</span>
+    <button disabled>Einde →</button>
+  </div>
+</div>
+
+<script>
+// ===== NAVIGATION =====
+let currentPage = 0;
+function showPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + n).classList.add('active');
+  document.querySelectorAll('nav button')[n].classList.add('active');
+  currentPage = n;
+  window.scrollTo(0,0);
+}
+
+// ===== WOORDZOEKER =====
+const gridRows = 10, gridCols = 10;
+const wsWords = ['ZON','STRAND','GOLF','KRAB','IJS','ZAND','ZEE','BOOT','VIS','SCHELP'];
+let grid = [], foundWords = new Set(), selecting = false, startCell = null, selectedCells = [];
+
+function buildWordSearch() {
+  grid = Array.from({length: gridRows}, () => Array(gridCols).fill(''));
+  const placed = [];
+
+  function tryPlace(word) {
+    const dirs = [[0,1],[1,0]];
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const [dr, dc] = dirs[Math.floor(Math.random() * dirs.length)];
+      const maxR = dr === 0 ? gridRows : gridRows - word.length;
+      const maxC = dc === 0 ? gridCols : gridCols - word.length;
+      const r = Math.floor(Math.random() * maxR);
+      const c = Math.floor(Math.random() * maxC);
+      let ok = true;
+      for (let i = 0; i < word.length; i++) {
+        const ch = grid[r + dr*i][c + dc*i];
+        if (ch && ch !== word[i]) { ok = false; break; }
+      }
+      if (ok) {
+        for (let i = 0; i < word.length; i++) grid[r + dr*i][c + dc*i] = word[i];
+        placed.push({word, r, c, dr, dc});
+        return true;
+      }
+    }
+    return false;
+  }
+
+  wsWords.forEach(w => tryPlace(w));
+  const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for (let r = 0; r < gridRows; r++)
+    for (let c = 0; c < gridCols; c++)
+      if (!grid[r][c]) grid[r][c] = alpha[Math.floor(Math.random() * alpha.length)];
+
+  const container = document.getElementById('word-grid');
+  container.innerHTML = '';
+  for (let r = 0; r < gridRows; r++) {
+    for (let c = 0; c < gridCols; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.r = r; cell.dataset.c = c;
+      cell.textContent = grid[r][c];
+      cell.addEventListener('click', () => wsClick(r, c, cell));
+      container.appendChild(cell);
+    }
+  }
+
+  const wl = document.getElementById('word-list');
+  wl.innerHTML = wsWords.map(w => `<span id="ws-${w}">${w}</span>`).join('');
+  foundWords = new Set();
+  selectedCells = []; startCell = null;
+  document.getElementById('ws-score').style.display = 'none';
+
+  // store placements for checking
+  container._placements = placed;
+}
+
+function wsClick(r, c, cell) {
+  if (!startCell) {
+    startCell = {r, c};
+    selectedCells = [{r, c, el: cell}];
+    cell.classList.add('selected');
+  } else {
+    // check if valid line
+    const dr = Math.sign(r - startCell.r), dc = Math.sign(c - startCell.c);
+    const dist = Math.max(Math.abs(r-startCell.r), Math.abs(c-startCell.c));
+    const cells = [];
+    for (let i = 0; i <= dist; i++) {
+      cells.push({r: startCell.r + dr*i, c: startCell.c + dc*i});
+    }
+    const word = cells.map(p => grid[p.r][p.c]).join('');
+    const revWord = word.split('').reverse().join('');
+    const match = wsWords.find(w => w === word || w === revWord);
+    if (match && !foundWords.has(match)) {
+      foundWords.add(match);
+      cells.forEach(p => {
+        const el = document.querySelector(`#word-grid .cell[data-r="${p.r}"][data-c="${p.c}"]`);
+        if (el) { el.classList.remove('selected'); el.classList.add('found'); }
+      });
+      document.getElementById('ws-' + match).classList.add('found');
+      if (foundWords.size === wsWords.length) {
+        const sc = document.getElementById('ws-score');
+        sc.style.display = 'block';
+        sc.textContent = '🎉 Geweldig! Je hebt alle woorden gevonden!';
+      }
+    } else {
+      selectedCells.forEach(s => s.el && s.el.classList.remove('selected'));
+    }
+    startCell = null; selectedCells = [];
+  }
+}
+
+// ===== KRUISWOORD =====
+// 8x8 grid
+const cwLayout = [
+  // format: {word, row, col, dir:'across'|'down', clue, num}
+  {word:'STRAND', row:0, col:0, dir:'across', clue:'Zand en zee 🏖️', num:1},
+  {word:'ZON',    row:0, col:0, dir:'down',   clue:'Schijnt in de zomer ☀️', num:1},
+  {word:'GOLF',   row:2, col:1, dir:'across', clue:'Beweging van het water 🌊', num:2},
+  {word:'KRAB',   row:0, col:4, dir:'down',   clue:'Loopt zijwaarts 🦀', num:3},
+  {word:'IJS',    row:4, col:0, dir:'across', clue:'Koud lekker snoepje 🍦', num:4},
+  {word:'ZEE',    row:4, col:3, dir:'down',   clue:'Groot water vol vis 🐟', num:5},
+  {word:'BOOT',   row:6, col:1, dir:'across', clue:'Vaart op het water ⛵', num:6},
+  {word:'VIS',    row:2, col:6, dir:'down',   clue:'Zwemt in zee 🐠', num:7},
+];
+
+let cwCells = {}; // key: "r,c" -> {el, answers}
+
+function buildCrossword() {
+  const rows = 8, cols = 8;
+  const cellData = {}; // r,c -> char
+
+  cwLayout.forEach(({word, row, col, dir}) => {
+    for (let i = 0; i < word.length; i++) {
+      const r = dir === 'across' ? row : row + i;
+      const c = dir === 'across' ? col + i : col;
+      cellData[`${r},${c}`] = word[i];
+    }
+  });
+
+  const container = document.getElementById('cw-grid');
+  container.innerHTML = '';
+  cwCells = {};
+
+  // Determine which numbers go where
+  const nums = {};
+  cwLayout.forEach(({row, col, num}) => { nums[`${row},${col}`] = num; });
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const key = `${r},${c}`;
+      const cell = document.createElement('div');
+      cell.className = 'cw-cell';
+      if (cellData[key]) {
+        const inp = document.createElement('input');
+        inp.maxLength = 1;
+        inp.setAttribute('data-ans', cellData[key]);
+        inp.addEventListener('input', e => {
+          e.target.value = e.target.value.toUpperCase().slice(-1);
+          e.target.classList.remove('correct','wrong');
+        });
+        if (nums[key]) {
+          const numEl = document.createElement('span');
+          numEl.className = 'cw-num';
+          numEl.textContent = nums[key];
+          cell.appendChild(numEl);
+        }
+        cell.appendChild(inp);
+        cwCells[key] = inp;
+      } else {
+        cell.classList.add('black');
+      }
+      container.appendChild(cell);
+    }
+  }
+
+  // Clues
+  const across = cwLayout.filter(w=>w.dir==='across');
+  const down = cwLayout.filter(w=>w.dir==='down');
+  document.getElementById('cw-across').innerHTML = across.map(w=>`<li>${w.num}. ${w.clue} (${w.word.length})</li>`).join('');
+  document.getElementById('cw-down').innerHTML = down.map(w=>`<li>${w.num}. ${w.clue} (${w.word.length})</li>`).join('');
+}
+
+function checkCrossword() {
+  let correct = 0, total = 0;
+  Object.values(cwCells).forEach(inp => {
+    total++;
+    if (inp.value === inp.dataset.ans) { inp.classList.add('correct'); inp.classList.remove('wrong'); correct++; }
+    else if (inp.value) { inp.classList.add('wrong'); inp.classList.remove('correct'); }
+  });
+  // small feedback via title flash
+  if (correct === total) alert('🎉 Alle letters goed! Geweldig gedaan!');
+  else alert(`✅ ${correct} van ${total} letters goed!`);
+}
+
+function clearCrossword() {
+  Object.values(cwCells).forEach(inp => { inp.value = ''; inp.classList.remove('correct','wrong'); });
+}
+
+// ===== REKENEN =====
+let mathProblems = [];
+
+function genMath() {
+  mathProblems = [];
+  const types = ['keer', 'keer', 'gedeeld', 'gedeeld', 'keer', 'gedeeld'];
+  const keerzinnen = [
+    (a,b) => `Er zijn ${a} rijen strandstoelen. In elke rij staan ${b} stoelen. Hoeveel stoelen zijn er in totaal?`,
+    (a,b) => `Ellie vindt ${b} schelpen per emmer. Ze heeft ${a} emmers. Hoeveel schelpen heeft ze?`,
+    (a,b) => `Een ijsje kost ${b} euro. Ellie koopt er ${a}. Wat kost dat in totaal?`,
+    (a,b) => `Op het strand liggen ${a} rijen handdoeken. In elke rij liggen ${b} handdoeken. Hoeveel handdoeken zijn er?`,
+    (a,b) => `Een boot vaart ${b} kilometer per uur. Na ${a} uur, hoeveel kilometer heeft hij gevaren?`,
+    (a,b) => `Er zwemmen ${a} vissen in ${b} groepen, even groot. Hoeveel vissen per groep?`,
+  ];
+  const gedeeldzinnen = [
+    (a,b) => `${a} kinderen verdelen zich over ${b} strandstoelen gelijkmatig. Hoeveel kinderen per stoel?`,
+    (a,b) => `Ellie heeft ${a} snoepjes en deelt ze eerlijk met ${b} vrienden (inclusief zichzelf). Hoeveel krijgt iedereen?`,
+    (a,b) => `Er zijn ${a} ijsjes voor ${b} kinderen. Hoeveel ijsjes krijgt elk kind?`,
+    (a,b) => `${a} schelpen worden verdeeld over ${b} emmers. Hoeveel schelpen per emmer?`,
+    (a,b) => `Een boot doet ${a} kilometer over ${b} uur. Hoe snel gaat hij per uur?`,
+    (a,b) => `${a} vissen zwemmen in ${b} groepen van gelijke grootte. Hoeveel vissen per groep?`,
+  ];
+
+  for (let i = 0; i < 6; i++) {
+    const type = types[i];
+    let a, b, ans, q;
+    if (type === 'keer') {
+      b = Math.floor(Math.random() * 9) + 2;   // 2–10
+      a = Math.floor(Math.random() * 9) + 2;   // 2–10
+      ans = a * b;
+      q = keerzinnen[i](a, b);
+    } else {
+      b = Math.floor(Math.random() * 8) + 2;   // 2–9
+      ans = Math.floor(Math.random() * 9) + 2; // 2–10
+      a = b * ans;
+      q = gedeeldzinnen[i](a, b);
+    }
+    mathProblems.push({ q, ans, type });
+  }
+}
+
+function renderMath() {
+  const grid = document.getElementById('sum-grid');
+  grid.innerHTML = mathProblems.map((p, i) => `
+    <div class="sum-card">
+      <div style="font-size:0.75rem;font-weight:bold;color:#0369a1;margin-bottom:4px;">${p.type === 'keer' ? '✖️ Vermenigvuldigen' : '➗ Delen'}</div>
+      <div class="vraag">${p.q}</div>
+      <input type="number" id="math-${i}" placeholder="?" />
+      <div class="feedback" id="math-fb-${i}"></div>
+    </div>
+  `).join('');
+  const sc = document.getElementById('math-score');
+  if (sc) sc.style.display = 'none';
+}
+
+function newMath() { genMath(); renderMath(); }
+
+function checkMath() {
+  let correct = 0;
+  mathProblems.forEach((p, i) => {
+    const val = parseInt(document.getElementById('math-'+i).value);
+    const fb = document.getElementById('math-fb-'+i);
+    if (val === p.ans) { fb.textContent = '✅ Goed!'; fb.className = 'feedback goed'; correct++; }
+    else if (!isNaN(val)) { fb.textContent = `❌ Het is ${p.ans}`; fb.className = 'feedback fout'; }
+    else { fb.textContent = ''; }
+  });
+  const sc = document.getElementById('math-score');
+  sc.style.display = 'block';
+  const stars = '⭐'.repeat(Math.round(correct/mathProblems.length*3));
+  sc.innerHTML = `${stars} Jij had <strong>${correct} van ${mathProblems.length}</strong> sommen goed!`;
+}
+
+// ===== SPELLING =====
+const spellingWords = [
+  {word:'STRAND', hint:'Je ligt hier als het warm is 🏖️'},
+  {word:'ZONNEBRAND', hint:'Smeert mama op jou in de zon 🧴'},
+  {word:'IJSJE', hint:'Koud en lekker op een warme dag 🍦'},
+  {word:'ZEEMEEUW', hint:'Een vogel die boven het water vliegt 🐦'},
+  {word:'ZWEMMEN', hint:'Je doet dit in het water 🏊'},
+  {word:'VAKANTIE', hint:'Geen school! 🎉'},
+  {word:'PARASOL', hint:'Beschermt je tegen de zon ☂️'},
+  {word:'VLIEGTUIG', hint:'Daarmee vlieg je naar verre landen ✈️'},
+  {word:'SCHELPEN', hint:'Die vind je op het strand 🐚'},
+];
+let spIdx = 0, spTyped = [], spCorrect = 0, spTotal = 0, spScored = false;
+
+function renderSpelling() {
+  const w = spellingWords[spIdx];
+  document.getElementById('spelling-hint').textContent = w.hint;
+  spTyped = [];
+  spScored = false;
+  document.getElementById('spelling-result').textContent = '';
+
+  // Letter display (blanks)
+  const ld = document.getElementById('letter-display');
+  ld.innerHTML = w.word.split('').map((_,i) => `<div class="letter-box empty" id="lb-${i}"></div>`).join('');
+
+  // Shuffled letter buttons
+  const letters = w.word.split('').sort(() => Math.random()-0.5);
+  const lc = document.getElementById('letter-choices');
+  lc.innerHTML = letters.map((l,i) => `<button class="letter-btn" id="lb-btn-${i}" onclick="pickLetter('${l}', ${i})">${l}</button>`).join('');
+}
+
+function pickLetter(letter, btnIdx) {
+  const w = spellingWords[spIdx];
+  spTyped.push({letter, btnIdx});
+  document.getElementById('lb-btn-'+btnIdx).disabled = true;
+  const pos = spTyped.length - 1;
+  const lb = document.getElementById('lb-'+pos);
+  if (lb) lb.textContent = letter;
+
+  if (spTyped.length === w.word.length && !spScored) {
+    spScored = true;
+    const typed = spTyped.map(x=>x.letter).join('');
+    const res = document.getElementById('spelling-result');
+    if (typed === w.word) {
+      res.textContent = '✅ Super goed! 🎉'; res.style.color = '#16a34a';
+      spCorrect++; spTotal++;
+    } else {
+      res.textContent = `❌ Het goede woord was: ${w.word}`; res.style.color = '#dc2626';
+      spTotal++;
+    }
+    document.getElementById('spelling-score').textContent = `Score: ${spCorrect} van ${spTotal} 🌟`;
+  }
+}
+
+function undoLetter() {
+  if (spTyped.length === 0) return;
+  const last = spTyped.pop();
+  // letter weer beschikbaar maken
+  const btn = document.getElementById('lb-btn-' + last.btnIdx);
+  if (btn) btn.disabled = false;
+  // vakje leegmaken
+  const lb = document.getElementById('lb-' + spTyped.length);
+  if (lb) lb.textContent = '';
+  // eventuele uitslag wissen zodat je verder kunt
+  document.getElementById('spelling-result').textContent = '';
+}
+
+function nextSpelling() {
+  spIdx = (spIdx + 1) % spellingWords.length;
+  renderSpelling();
+}
+
+// ===== REBUS =====
+const rebusPuzzles = [
+  { parts:[{e:'🌊'},{op:'+'},{e:'⭐'}], answer:'ZEESTER', hint:'Een dier op de zeebodem met vijf punten.' },
+  { parts:[{e:'🍦'},{op:'+'},{e:'🐻'}], answer:'IJSBEER', hint:'Een grote witte beer die van de kou houdt.' },
+  { parts:[{e:'🌊'},{op:'+'},{e:'🐴'}], answer:'ZEEPAARD', hint:'Een klein diertje in zee dat op een paardje lijkt.' },
+  { parts:[{e:'🏖️'},{op:'+'},{e:'🏐'}], answer:'STRANDBAL', hint:'Hiermee speel je op het strand.' },
+  { parts:[{e:'🌞'},{op:'−'},{t:'N'},{op:'+'},{t:'MER'}], answer:'ZOMER', hint:'Het warmste seizoen van het jaar.' },
+  { parts:[{e:'🌞'},{op:'+'},{t:'NE'},{op:'+'},{e:'🕶️'}], answer:'ZONNEBRIL', hint:'Die zet je op tegen de felle zon.' },
+];
+
+function renderRebus() {
+  const grid = document.getElementById('rebus-grid');
+  grid.innerHTML = rebusPuzzles.map((p, i) => {
+    const puzzle = p.parts.map(part => {
+      if (part.op) return `<span class="op">${part.op}</span>`;
+      if (part.e)  return `<span>${part.e}</span>`;
+      return `<span class="txt">${part.t}</span>`;
+    }).join(' ');
+    return `<div class="rebus-card">
+      <div class="rebus-puzzle">${puzzle} <span class="op">=</span></div>
+      <input id="rebus-${i}" placeholder="?" autocomplete="off" oninput="this.classList.remove('correct','wrong')" />
+      <div class="rebus-hint" id="rebus-hint-${i}">💡 ${p.hint}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('rebus-score').style.display = 'none';
+}
+
+function checkRebus() {
+  let correct = 0;
+  rebusPuzzles.forEach((p, i) => {
+    const inp = document.getElementById('rebus-' + i);
+    const val = (inp.value || '').toUpperCase().replace(/\s+/g, '');
+    if (val === p.answer) { inp.classList.add('correct'); inp.classList.remove('wrong'); correct++; }
+    else if (val) { inp.classList.add('wrong'); inp.classList.remove('correct'); }
+    else { inp.classList.remove('correct', 'wrong'); }
+  });
+  const sc = document.getElementById('rebus-score');
+  sc.style.display = 'block';
+  const stars = '⭐'.repeat(Math.round(correct / rebusPuzzles.length * 3));
+  sc.innerHTML = `${stars} Jij had <strong>${correct} van ${rebusPuzzles.length}</strong> goed!`;
+}
+
+function hintRebus() {
+  document.querySelectorAll('.rebus-hint').forEach(h => h.classList.add('show'));
+}
+
+// ===== INIT =====
+buildWordSearch();
+buildCrossword();
+genMath(); renderMath();
+renderSpelling();
+renderRebus();
+</script>
+</body>
+</html>

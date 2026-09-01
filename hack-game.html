@@ -179,6 +179,26 @@
     font-size: 0.85rem;
   }
 
+  .slot { padding: 6px 0 2px; }
+  .slot .slotkop { font-weight: bold; color: var(--k-fel); margin-bottom: 6px; }
+  .slot p { color: #94a3b8; margin-bottom: 10px; }
+  .slotrij { display: flex; flex-wrap: wrap; gap: 8px; }
+  .slotrij input {
+    flex: 1 1 160px; min-width: 0;
+    background: #020617; border: 2px solid var(--k-rand); color: var(--k-licht);
+    border-radius: 10px; padding: 10px 13px;
+    font-family: ui-monospace, 'Courier New', monospace; font-size: 1rem; letter-spacing: 3px;
+  }
+  .slotrij input:focus { outline: none; border-color: var(--k); }
+  .slotrij .knop { padding: 10px 20px; font-size: 0.95rem; }
+  #slotFout { margin-top: 9px; min-height: 20px; color: #f87171; font-weight: bold; }
+  .slot.mis .slotrij { animation: schud 0.35s ease; }
+  @keyframes schud {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-9px); }
+    75% { transform: translateX(9px); }
+  }
+
   .toetstest { margin-top: 14px; border-top: 1px solid #1e293b; padding-top: 12px; line-height: 1.6; }
   .toetstest input {
     display: block; width: 100%; margin-top: 8px;
@@ -472,7 +492,19 @@
     </div>
 
     <details class="spiek">
-      <summary>🤫 Spiekbriefje — alleen voor Ellie</summary>
+      <summary>🔒 Spiekbriefje — alleen voor Ellie</summary>
+
+      <div class="slot" id="slot">
+        <div class="slotkop">🔒 Dit deel zit op slot</div>
+        <p>Typ het geheime wachtwoord om je spiekbriefje te openen.</p>
+        <div class="slotrij">
+          <input id="slotWoord" type="password" autocomplete="off" placeholder="wachtwoord" aria-label="Wachtwoord" />
+          <button class="knop" id="slotKnop" type="button">Openmaken</button>
+        </div>
+        <div id="slotFout"></div>
+      </div>
+
+      <div id="spiekInhoud" hidden>
       <ul>
         <li><kbd>alles</kbd> <span>Ram op willekeurige toetsen → er verschijnt code. Tik op je telefoon.</span></li>
         <li><kbd>+</kbd><kbd>⇧1</kbd> <span>TOEGANG VERLEEND ✔ — of <b>klik linksonder in de hoek</b></span></li>
@@ -489,6 +521,7 @@
         Hier zie je precies wat het spel van jouw toetsenbord binnenkrijgt:
         <input id="toetsTest" readonly value="klik hier en druk op een toets" />
         <div id="toetsUitslag">nog niets ingedrukt</div>
+      </div>
       </div>
     </details>
 
@@ -1138,6 +1171,45 @@ scherm.addEventListener('pointerdown', (e) => {
   if (e.target.id === 'zoneKleur') { volgendeKleur(1); return; }
   if ($('popup').classList.contains('aan')) { verbergPopup(); return; }
   for (let i = 0; i < 4; i++) typStap();
+});
+
+/* ---------------- slot op het spiekbriefje ---------------- */
+
+const SPIEK_WACHTWOORD = 'hacker';
+let misGeteld = 0;
+
+function probeerSlot() {
+  const ingevuld = $('slotWoord').value.trim().toLowerCase();
+  if (ingevuld === SPIEK_WACHTWOORD) {
+    $('slot').hidden = true;
+    $('spiekInhoud').hidden = false;
+    $('slotWoord').value = '';
+    $('slotFout').textContent = '';
+    misGeteld = 0;
+    [660, 880, 1180].forEach((f, i) => setTimeout(() => piep(f, 0.12, 0.08, 'triangle'), i * 110));
+  } else {
+    misGeteld++;
+    $('slotFout').textContent = ingevuld
+      ? '✘ Verkeerd wachtwoord (' + misGeteld + 'e poging)'
+      : '✘ Typ eerst het wachtwoord';
+    $('slot').classList.add('mis');
+    setTimeout(() => $('slot').classList.remove('mis'), 400);
+    $('slotWoord').select();
+    piep(180, 0.28, 0.08, 'sawtooth');
+  }
+}
+$('slotKnop').addEventListener('click', probeerSlot);
+$('slotWoord').addEventListener('keydown', (e) => {
+  e.stopPropagation();
+  if (e.key === 'Enter') { e.preventDefault(); probeerSlot(); }
+});
+// het slot valt weer dicht zodra je het spiekbriefje sluit
+document.querySelector('details.spiek').addEventListener('toggle', (e) => {
+  if (!e.target.open) {
+    $('slot').hidden = false;
+    $('spiekInhoud').hidden = true;
+    $('slotFout').textContent = '';
+  }
 });
 
 /* ---------------- toetsentest ---------------- */

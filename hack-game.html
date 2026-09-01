@@ -1019,11 +1019,19 @@ function geheimeActie(e) {
 
 /* --- DE KLAPPER: je bent gehackt door ... --- */
 let onthulTimer = null;
+let onthulTijd = 0;
+
+/* Het klapperscherm mag pas na een korte pauze weg. Zonder die pauze sloot
+   het meteen weer: als je Shift vasthoudt herhaalt je toetsenbord die toets,
+   en dat tweede signaal klikte het scherm direct weg. */
+function magOnthullingSluiten() { return Date.now() - onthulTijd > 900; }
+
 function onthul() {
   const o = $('onthulling');
   if (o.classList.contains('aan')) return;
   $('onthulNaam').textContent = hackerNaam().toUpperCase();
   o.classList.add('aan');
+  onthulTijd = Date.now();
   verbergPopup();
   snippers();
   fanfare();
@@ -1053,7 +1061,7 @@ function fanfare() {
   [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) =>
     setTimeout(() => piep(f, 0.18, 0.1, 'triangle'), i * 150));
 }
-$('onthulling').addEventListener('pointerdown', sluitOnthulling);
+$('onthulling').addEventListener('pointerdown', () => { if (magOnthullingSluiten()) sluitOnthulling(); });
 
 /* --- popups & geheime toetsen --- */
 let popTimer = null;
@@ -1095,8 +1103,15 @@ function voltooid() {
   [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => piep(f, 0.16, 0.09, 'triangle'), i * 130));
 }
 
+const LOSSE_MODIFIERS = new Set(['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'AltGraph']);
+
 document.addEventListener('keydown', (e) => {
-  if ($('onthulling').classList.contains('aan')) { e.preventDefault(); sluitOnthulling(); return; }
+  if (LOSSE_MODIFIERS.has(e.key)) return;
+  if ($('onthulling').classList.contains('aan')) {
+    e.preventDefault();
+    if (!e.repeat && magOnthullingSluiten()) sluitOnthulling();
+    return;
+  }
   if (!actief) return;
   if (e.key === 'Escape') {
     if ($('onthulling').classList.contains('aan')) sluitOnthulling();

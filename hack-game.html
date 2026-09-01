@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#020617" />
+<title>Hack-game 💻</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23020617'/%3E%3Ctext x='16' y='68' font-family='monospace' font-size='54' fill='%2322c55e'%3E%26gt;_%3C/text%3E%3C/svg%3E" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #0ea5e9 0%, #38bdf8 40%, #7dd3fc 60%, #fde68a 78%, #f0c27f 100%);
+    color: #0f172a;
+    padding: 18px 16px 40px;
+    overflow-x: hidden;
+  }
+
+  /* ============ STARTSCHERM ============ */
+  .terug {
+    display: inline-block;
+    margin-bottom: 14px;
+    color: #075985;
+    background: rgba(255,255,255,0.85);
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  .terug:hover { background: #fff; }
+
+  .kaart {
+    max-width: 720px;
+    margin: 0 auto;
+    background: #fffdf7;
+    border-radius: 22px;
+    box-shadow: 0 10px 30px rgba(2,60,110,0.35);
+    overflow: hidden;
+  }
+  .kop {
+    background: linear-gradient(135deg, #0f172a, #166534);
+    color: #bbf7d0;
+    padding: 18px 22px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .kop .knipper { color: #22c55e; animation: knip 1s steps(1) infinite; }
+  @keyframes knip { 50% { opacity: 0; } }
+
+  .binnen { padding: 18px 20px 24px; }
+
+  .uitleg {
+    background: #fef9c3;
+    border-left: 4px solid #f59e0b;
+    padding: 12px 16px;
+    border-radius: 0 10px 10px 0;
+    color: #374151;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 18px;
+  }
+
+  h3 { font-size: 1.05rem; margin: 18px 0 8px; color: #0f172a; }
+  h3:first-child { margin-top: 0; }
+
+  .doelwitten { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .doelwit {
+    border: 2px solid #cbd5e1;
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #334155;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform .12s ease, border-color .12s ease, background .12s ease;
+  }
+  .doelwit:hover { transform: translateY(-2px); }
+  .doelwit.aan { border-color: #16a34a; background: #dcfce7; color: #14532d; }
+  .doelwit .ico { font-size: 1.3rem; }
+
+  .veld {
+    width: 100%;
+    border: 2px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 11px 14px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: #0f172a;
+  }
+  .veld:focus { outline: none; border-color: #16a34a; }
+
+  .knoppen { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+  .knop {
+    border: none;
+    border-radius: 999px;
+    padding: 13px 24px;
+    font-size: 1rem;
+    font-weight: bold;
+    font-family: inherit;
+    color: #fff;
+    background: #16a34a;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #14532d;
+  }
+  .knop:active { transform: translateY(3px); box-shadow: 0 1px 0 #14532d; }
+  .knop.blauw { background: #0284c7; box-shadow: 0 4px 0 #075985; }
+  .knop.blauw:active { box-shadow: 0 1px 0 #075985; }
+  .knop.grijs { background: #64748b; box-shadow: 0 4px 0 #334155; }
+  .knop.grijs:active { box-shadow: 0 1px 0 #334155; }
+
+  details.spiek {
+    margin-top: 20px;
+    background: #0f172a;
+    color: #bbf7d0;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+  details.spiek summary { cursor: pointer; font-weight: bold; color: #4ade80; }
+  details.spiek ul { margin: 10px 0 0 4px; list-style: none; line-height: 1.75; }
+  details.spiek li { display: flex; gap: 10px; align-items: baseline; }
+  kbd {
+    display: inline-block;
+    min-width: 26px;
+    text-align: center;
+    background: #22c55e;
+    color: #052e16;
+    border-radius: 6px;
+    padding: 1px 7px;
+    font-family: ui-monospace, 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 0.85rem;
+  }
+
+  .voet { text-align: center; color: #fff; font-weight: bold; margin-top: 22px; text-shadow: 0 2px 6px rgba(0,0,0,0.45); }
+
+  /* ============ HACKSCHERM ============ */
+  #hackscherm {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #020617;
+    color: #22c55e;
+    font-family: ui-monospace, 'Courier New', monospace;
+    z-index: 50;
+    overflow: hidden;
+    cursor: default;
+  }
+  #hackscherm.aan { display: grid; }
+
+  #regen { position: absolute; inset: 0; opacity: 0.16; pointer-events: none; }
+
+  #hackscherm.aan {
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 1fr;
+  }
+
+  .balk {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 16px;
+    padding: 7px 12px;
+    border-bottom: 1px solid #14532d;
+    background: rgba(2,6,23,0.85);
+    font-size: 0.78rem;
+    letter-spacing: 0.4px;
+  }
+  .balk .rood { color: #f87171; }
+  .balk .geel { color: #fbbf24; }
+  .balk .spacer { flex: 1; }
+  .lampje { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; animation: knip 1.2s steps(1) infinite; }
+
+  #sluit {
+    background: none;
+    border: 1px solid #14532d;
+    color: #14532d;
+    border-radius: 6px;
+    width: 24px; height: 22px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  #sluit:hover { color: #22c55e; border-color: #22c55e; }
+
+  .midden {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    min-height: 0;
+  }
+
+  #code {
+    padding: 10px 14px;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    text-shadow: 0 0 6px rgba(34,197,94,0.55);
+    border-right: 1px solid #14532d;
+  }
+  #code .cursor { background: #22c55e; color: #020617; animation: knip 0.9s steps(1) infinite; }
+
+  .zijkant { padding: 10px 12px; overflow: hidden; display: flex; flex-direction: column; gap: 12px; }
+  .paneel { border: 1px solid #14532d; border-radius: 8px; padding: 8px 10px; background: rgba(5,46,22,0.25); }
+  .paneel h4 { font-size: 0.7rem; letter-spacing: 1.5px; color: #4ade80; margin-bottom: 7px; font-weight: 700; }
+
+  #wachtwoord { font-size: 1.15rem; letter-spacing: 3px; word-break: break-all; color: #86efac; }
+  #wachtwoord .vast { color: #fbbf24; text-shadow: 0 0 8px rgba(251,191,36,0.7); }
+
+  .bar { margin-bottom: 7px; font-size: 0.68rem; }
+  .bar:last-child { margin-bottom: 0; }
+  .bar .naam { display: flex; justify-content: space-between; margin-bottom: 3px; color: #86efac; }
+  .bar .baan { height: 7px; background: #052e16; border-radius: 4px; overflow: hidden; }
+  .bar .vul { height: 100%; width: 0%; background: linear-gradient(90deg, #16a34a, #4ade80); }
+
+  #kaart { display: grid; grid-template-columns: repeat(26, 1fr); gap: 2px; font-size: 7px; line-height: 1; }
+  #kaart i { color: #14532d; text-align: center; font-style: normal; }
+  #kaart i.aan { color: #4ade80; text-shadow: 0 0 6px #22c55e; }
+  #kaart i.doel { color: #f87171; text-shadow: 0 0 8px #ef4444; }
+
+  #bestanden { font-size: 0.68rem; line-height: 1.6; height: 88px; overflow: hidden; color: #86efac; }
+  #bestanden b { color: #22c55e; font-weight: normal; }
+
+  .commando {
+    position: relative;
+    z-index: 2;
+    border-top: 1px solid #14532d;
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    background: rgba(2,6,23,0.85);
+    color: #4ade80;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  /* popups */
+  #popup {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  #popup.aan { display: flex; }
+  #popup .doos {
+    border: 4px solid #22c55e;
+    background: rgba(2,6,23,0.94);
+    color: #22c55e;
+    padding: 26px 34px;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 0 60px rgba(34,197,94,0.6);
+    animation: pop .18s ease-out;
+    max-width: 92vw;
+  }
+  #popup .doos .groot { font-size: clamp(24px, 7vw, 52px); font-weight: 900; letter-spacing: 2px; }
+  #popup .doos .klein { font-size: 0.8rem; margin-top: 10px; color: #86efac; letter-spacing: 1px; }
+  #popup.fout .doos { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 60px rgba(239,68,68,0.6); }
+  #popup.fout .doos .klein { color: #fca5a5; }
+  @keyframes pop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  #alarmlicht {
+    position: absolute; inset: 0; z-index: 4;
+    background: rgba(239,68,68,0.28);
+    display: none;
+    pointer-events: none;
+  }
+  #alarmlicht.aan { display: block; animation: sirene .55s steps(1) infinite; }
+  @keyframes sirene { 50% { opacity: 0; } }
+
+  .tikzones { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+  .tikzones div { position: absolute; bottom: 0; width: 78px; height: 78px; pointer-events: auto; }
+  .tikzones .lo { left: 0; }
+  .tikzones .ro { right: 0; }
+
+  @media (max-width: 900px) {
+    .balk { font-size: 0.68rem; gap: 4px 10px; flex-wrap: nowrap; align-items: center; }
+    .balk .klein-weg { display: none; }
+    .balk > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  }
+
+  @media (max-width: 720px) {
+    .midden { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+    #code { border-right: none; border-bottom: 1px solid #14532d; font-size: 0.75rem; }
+    .zijkant { flex-direction: row; overflow-x: auto; gap: 8px; }
+    .paneel { min-width: 190px; flex: 0 0 auto; }
+    #bestanden { height: 60px; }
+  }
+
+  /* ============ VRIEND-SCANNER ============ */
+  #scanscherm {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #020617;
+    color: #22c55e;
+    font-family: ui-monospace, 'Courier New', monospace;
+    z-index: 60;
+    padding: 18px;
+    overflow-y: auto;
+  }
+  #scanscherm.aan { display: block; }
+  #scanuit {
+    float: right;
+    background: none; border: 1px solid #14532d; color: #4ade80;
+    border-radius: 6px; padding: 4px 10px; font-family: inherit; font-size: 0.8rem; cursor: pointer;
+  }
+  #scanregels { font-size: clamp(0.78rem, 3vw, 0.95rem); line-height: 1.85; white-space: pre-wrap; max-width: 760px; margin: 0 auto; clear: both; padding-top: 10px; }
+  #scanregels .goud { color: #fbbf24; }
+  #scanregels .wit { color: #e2e8f0; }
+  #scanregels .rood { color: #f87171; }
+</style>
+</head>
+<body>
+
+<a class="terug" href="index.html">‹ Terug naar het startscherm</a>
+
+<main class="kaart" id="startscherm">
+  <div class="kop">💻 Hack-game <span class="knipper">_</span></div>
+  <div class="binnen">
+
+    <div class="uitleg">
+      <b>Psst… dit is een fopspel.</b> Er wordt niks écht gehackt — het scherm doet alleen maar alsof.
+      Ram op willekeurige toetsen (of tik op het scherm) en er verschijnt supersnel code.
+      Alleen jij kent de geheime toetsen die "TOEGANG VERLEEND" of een alarm tevoorschijn toveren. 🤫
+    </div>
+
+    <h3>1. Kies je doelwit</h3>
+    <div class="doelwitten" id="doelwitten"></div>
+
+    <h3>2. Zet 'm op vol scherm (dan lijkt het echter)</h3>
+    <div class="knoppen">
+      <button class="knop" id="startKnop">▶ Start het hacken</button>
+      <button class="knop blauw" id="startVol">⛶ Start op vol scherm</button>
+    </div>
+
+    <h3>3. Of… hack een vriend 😈</h3>
+    <input class="veld" id="vriendNaam" maxlength="18" placeholder="Typ de naam van je vriend" />
+    <div class="knoppen">
+      <button class="knop grijs" id="scanKnop">🔍 Scan deze persoon</button>
+      <button class="knop grijs" id="geluidKnop">🔊 Geluid: aan</button>
+    </div>
+
+    <details class="spiek">
+      <summary>🤫 Spiekbriefje — alleen voor Ellie</summary>
+      <ul>
+        <li><kbd>alles</kbd> <span>Ram op willekeurige toetsen → er verschijnt code. Tik op je telefoon.</span></li>
+        <li><kbd>+</kbd> <span>TOEGANG VERLEEND ✔ (of tik linksonder in de hoek)</span></li>
+        <li><kbd>*</kbd> <span>ALARM! Rood knipperlicht (of tik rechtsonder in de hoek)</span></li>
+        <li><kbd>-</kbd> <span>TOEGANG GEWEIGERD ✘</span></li>
+        <li><kbd>/</kbd> <span>HACK VOLTOOID — alle balken springen naar 100%</span></li>
+        <li><kbd>esc</kbd> <span>Popup weg. Nog een keer esc = stoppen en terug hierheen.</span></li>
+      </ul>
+    </details>
+
+  </div>
+</main>
+
+<div class="voet">gemaakt door Ellie 💖</div>
+
+<!-- ===================== HACKSCHERM ===================== -->
+<div id="hackscherm">
+  <canvas id="regen"></canvas>
+
+  <div class="balk">
+    <span><span class="lampje"></span> VERBONDEN</span>
+    <span>DOELWIT: <b id="balkDoel">—</b></span>
+    <span class="geel klein-weg">POORT 443</span>
+    <span class="rood">FIREWALL: OMZEILD</span>
+    <span class="klein-weg">PAKKETTEN: <b id="balkPakket">0</b></span>
+    <span class="spacer"></span>
+    <span id="balkKlok">00:00</span>
+    <button id="sluit" title="Stoppen">✕</button>
+  </div>
+
+  <div class="midden">
+    <div id="code"></div>
+    <div class="zijkant">
+      <div class="paneel">
+        <h4>WACHTWOORD KRAKEN</h4>
+        <div id="wachtwoord"></div>
+      </div>
+      <div class="paneel" id="balkjes">
+        <h4>SYSTEMEN OVERNEMEN</h4>
+      </div>
+      <div class="paneel">
+        <h4>NETWERKSCAN</h4>
+        <div id="kaart"></div>
+      </div>
+      <div class="paneel">
+        <h4>BESTANDEN BINNENHALEN</h4>
+        <div id="bestanden"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="commando" id="commando">&gt; systeem gereed_</div>
+
+  <div class="tikzones">
+    <div class="lo" id="zoneLinks"></div>
+    <div class="ro" id="zoneRechts"></div>
+  </div>
+  <div id="alarmlicht"></div>
+  <div id="popup"><div class="doos"><div class="groot" id="popGroot"></div><div class="klein" id="popKlein"></div></div></div>
+</div>
+
+<!-- ===================== VRIEND-SCANNER ===================== -->
+<div id="scanscherm">
+  <button id="scanuit">✕ sluiten</button>
+  <div id="scanregels"></div>
+</div>
+
+<script>
+'use strict';
+
+/* ---------------- gegevens ---------------- */
+
+const DOELWITTEN = [
+  { ico: '🧊', naam: 'De koelkast van de buren' },
+  { ico: '🏫', naam: 'Het schoolrooster' },
+  { ico: '🛰️', naam: 'Geheime ruimtesatelliet' },
+  { ico: '🍦', naam: 'De ijscokar op de boulevard' },
+  { ico: '🐹', naam: 'De hamsterkooi-camera' },
+  { ico: '🚦', naam: 'Alle stoplichten van de stad' },
+  { ico: '📺', naam: 'De tv van je broer' },
+  { ico: '🍕', naam: 'De pizzabezorgrobot' },
+];
+
+const CODE = `
+[SESSIE] verbinding tot stand gebracht via knooppunt 7 :: sleutel uitwisselen
+function omzeilFirewall(poort, sleutel) {
+  const kanaal = openTunnel(poort, { versleuteld: true, diepte: 0x3f });
+  while (!kanaal.gereed) { kanaal.pols(); wacht(2); }
+  for (let i = 0; i < sleutel.length; i++) {
+    injecteer(kanaal, sleutel.charCodeAt(i) ^ 0x5a);
+  }
+  return kanaal.token;
+}
+0x00A4  MOV  EAX, [ESI+0x1C]     ; adres van de sleuteltabel
+0x00A8  XOR  EDX, EDX            ; teller op nul
+0x00AC  CALL 0x0041F3            ; kraakroutine aanroepen
+0x00B0  TEST EAX, EAX            ; gelukt?
+0x00B4  JNZ  0x0041FF            ; ja -> doorgaan
+> scan --diep --doelwit 10.44.19.7 --poorten 1-65535
+  poort 22   [ssh]    OPEN   ... zwak wachtwoord gevonden
+  poort 80   [http]   OPEN   ... verouderde server
+  poort 443  [https]  OPEN   ... certificaat verlopen
+  poort 8080 [proxy]  OPEN   ... geen beveiliging
+class SchaduwAgent extends Proces {
+  constructor(doel) {
+    super({ zichtbaar: false, prioriteit: 'HOOG' });
+    this.doel = doel;
+    this.sporen = [];
+  }
+  async kruipBinnen() {
+    const deur = await this.zoekAchterdeur(this.doel);
+    if (!deur) throw new Fout('geen achterdeur gevonden');
+    await deur.open({ stil: true });
+    this.sporen.push(deur.id);
+    return deur.rechten === 'beheerder';
+  }
+}
+[LOG] 04:11:02  pakket 1024 bytes verzonden -> antwoord OK
+[LOG] 04:11:03  hash 9f4c2b7e1a8d3f60 vergelijken met tabel...
+[LOG] 04:11:03  treffer! 3 van de 16 tekens vastgezet
+[LOG] 04:11:04  rechten verhogen -> gebruiker wordt BEHEERDER
+SELECT * FROM geheimen WHERE niveau > 9 ORDER BY datum DESC;
+  -> 4.812 rijen gevonden, kopieren naar veilige map...
+def ontsleutel(blok, sleutel):
+    uit = bytearray(len(blok))
+    for i, b in enumerate(blok):
+        uit[i] = (b ^ sleutel[i % len(sleutel)]) & 0xFF
+    return bytes(uit)
+11010010 01101101 10110100 00101110 11001001 01010111
+10011100 11100011 00011010 11110000 01001101 10101010
+> upload nep_gegevens.bin --naar /systeem/kern/
+  [==============>          ]  61%  ... 3,4 MB/s
+sudo herstart --stil --verberg-sporen --wis-logboek
+[WAARSCHUWING] beveiligingsscan gedetecteerd -> uitwijken naar knooppunt 12
+[OK] uitgeweken. Verbinding blijft staan.
+`.trim();
+
+const BESTANDSNAMEN = [
+  'geheim_plan.txt', 'wachtwoorden.db', 'kaart_van_de_kluis.png', 'satelliet_042.dat',
+  'boodschappenlijst.doc', 'kernsleutel.key', 'foto_van_de_baas.jpg', 'toegangscodes.bin',
+  'ijsjes_voorraad.xls', 'huiswerk_antwoorden.pdf', 'stiekeme_notities.txt', 'robot_brein.sys',
+];
+
+const COMMANDOS = [
+  'sudo toegang --forceer --niveau 9',
+  'scan --netwerk 10.44.19.0/24 --stil',
+  'ontsleutel kernsleutel.key --methode brute-kracht',
+  'verbind --via knooppunt-7 --anoniem',
+  'kopieer /geheim/* /veilig/ellie/',
+  'wis-sporen --logboek --camera --alles',
+  'injecteer script.js --in doelwit',
+  'volg-pakket 1024 --route tonen',
+  'omzeil firewall --poort 443',
+  'start schaduw-agent --naam ONZICHTBAAR',
+];
+
+/* ---------------- geluid ---------------- */
+
+let geluidAan = true;
+let ac = null;
+function audio() {
+  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (ac.state === 'suspended') ac.resume();
+  return ac;
+}
+function piep(freq, duur, vol, vorm) {
+  if (!geluidAan) return;
+  const c = audio(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = vorm || 'square';
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, c.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + duur);
+  o.connect(g); g.connect(c.destination);
+  o.start(); o.stop(c.currentTime + duur);
+}
+function tik() { piep(620 + Math.random() * 500, 0.035, 0.05); }
+function sirene() {
+  if (!geluidAan) return;
+  const c = audio(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = 'sawtooth';
+  o.frequency.setValueAtTime(440, c.currentTime);
+  o.frequency.linearRampToValueAtTime(880, c.currentTime + 0.5);
+  o.frequency.linearRampToValueAtTime(440, c.currentTime + 1.0);
+  o.frequency.linearRampToValueAtTime(880, c.currentTime + 1.5);
+  g.gain.setValueAtTime(0.09, c.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 1.9);
+  o.connect(g); g.connect(c.destination);
+  o.start(); o.stop(c.currentTime + 1.9);
+}
+
+/* ---------------- startscherm ---------------- */
+
+const $ = (id) => document.getElementById(id);
+let gekozenDoel = DOELWITTEN[0].naam;
+
+const doelBak = $('doelwitten');
+DOELWITTEN.forEach((d, i) => {
+  const b = document.createElement('button');
+  b.className = 'doelwit' + (i === 0 ? ' aan' : '');
+  b.innerHTML = '<span class="ico">' + d.ico + '</span><span>' + d.naam + '</span>';
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.doelwit').forEach(x => x.classList.remove('aan'));
+    b.classList.add('aan');
+    gekozenDoel = d.naam;
+    piep(880, 0.06, 0.06, 'triangle');
+  });
+  doelBak.appendChild(b);
+});
+
+$('geluidKnop').addEventListener('click', () => {
+  geluidAan = !geluidAan;
+  $('geluidKnop').textContent = geluidAan ? '🔊 Geluid: aan' : '🔇 Geluid: uit';
+  if (geluidAan) piep(700, 0.08, 0.07, 'triangle');
+});
+
+$('startKnop').addEventListener('click', () => startHack(false));
+$('startVol').addEventListener('click', () => startHack(true));
+
+/* ---------------- hackscherm ---------------- */
+
+const scherm = $('hackscherm');
+const codeVak = $('code');
+let actief = false;
+let codePos = 0;
+let pakketten = 0;
+let startTijd = 0;
+let lussen = [];
+
+function startHack(volScherm) {
+  actief = true;
+  codePos = 0;
+  pakketten = 0;
+  allesKlaar = false;
+  startTijd = Date.now();
+  codeVak.textContent = '';
+  $('balkDoel').textContent = gekozenDoel.toUpperCase();
+  scherm.classList.add('aan');
+  document.body.style.overflow = 'hidden';
+  if (volScherm && scherm.requestFullscreen) scherm.requestFullscreen().catch(() => {});
+  maakRegen();
+  maakBalkjes();
+  maakKaart();
+  nieuwWachtwoord();
+  bootTekst();
+  startLussen();
+  audio();
+}
+
+function stopHack() {
+  actief = false;
+  scherm.classList.remove('aan');
+  document.body.style.overflow = '';
+  verbergPopup();
+  $('alarmlicht').classList.remove('aan');
+  lussen.forEach(clearInterval);
+  lussen = [];
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+}
+$('sluit').addEventListener('click', stopHack);
+
+/* --- opstarttekst --- */
+function bootTekst() {
+  const regels = [
+    '> verbinding maken met ' + gekozenDoel + '...',
+    '> route via knooppunt 7 ... 12 ... 44   [ANONIEM]',
+    '> firewall onderzoeken .......... zwakke plek gevonden',
+    '> schaduw-agent starten ......... ACTIEF',
+    '> klaar. begin met typen.',
+    '',
+  ];
+  let i = 0;
+  const t = setInterval(() => {
+    if (!actief) { clearInterval(t); return; }
+    codeVak.textContent += regels[i] + '\n';
+    piep(320 + i * 60, 0.05, 0.05, 'triangle');
+    i++;
+    if (i >= regels.length) clearInterval(t);
+  }, 260);
+}
+
+/* --- typen --- */
+function typStap() {
+  if (!actief) return;
+  if (allesKlaar) { allesKlaar = false; nieuwWachtwoord(); balkWaarden = balkWaarden.map(() => 3 + Math.random() * 18); }
+  const hap = 5 + Math.floor(Math.random() * 5);
+  let stuk = CODE.slice(codePos, codePos + hap);
+  codePos += hap;
+  if (codePos >= CODE.length) codePos = 0;
+  codeVak.textContent += stuk;
+  const t = codeVak.textContent;
+  if (t.length > 4200) codeVak.textContent = t.slice(t.length - 3400);
+  codeVak.scrollTop = codeVak.scrollHeight;
+  pakketten += 8 + Math.floor(Math.random() * 60);
+  $('balkPakket').textContent = pakketten.toLocaleString('nl-NL');
+  tik();
+}
+
+/* --- wachtwoordkraker --- */
+const TEKENS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*';
+let ww = [], wwVast = [];
+function nieuwWachtwoord() {
+  const lengte = 14;
+  ww = [];
+  wwVast = [];
+  for (let i = 0; i < lengte; i++) {
+    ww.push(TEKENS[Math.floor(Math.random() * TEKENS.length)]);
+    wwVast.push(false);
+  }
+  toonWachtwoord();
+}
+function toonWachtwoord() {
+  $('wachtwoord').innerHTML = ww.map((c, i) =>
+    wwVast[i] ? '<span class="vast">' + c + '</span>' : c
+  ).join('');
+}
+function wachtwoordStap() {
+  if (!actief || allesKlaar) return;
+  for (let i = 0; i < ww.length; i++) {
+    if (!wwVast[i]) ww[i] = TEKENS[Math.floor(Math.random() * TEKENS.length)];
+  }
+  if (Math.random() < 0.035) {
+    const vrij = ww.map((_, i) => i).filter(i => !wwVast[i]);
+    if (vrij.length) {
+      wwVast[vrij[Math.floor(Math.random() * vrij.length)]] = true;
+      piep(1100, 0.05, 0.05, 'triangle');
+    } else {
+      setTimeout(nieuwWachtwoord, 900);
+    }
+  }
+  toonWachtwoord();
+}
+
+/* --- voortgangsbalken --- */
+const BALKNAMEN = ['Beveiliging', 'Databank', "Camera's", 'Hoofdsysteem'];
+let balkWaarden = [];
+let allesKlaar = false;
+function maakBalkjes() {
+  const bak = $('balkjes');
+  bak.innerHTML = '<h4>SYSTEMEN OVERNEMEN</h4>';
+  balkWaarden = [];
+  BALKNAMEN.forEach((n, i) => {
+    balkWaarden.push(Math.random() * 40);
+    const d = document.createElement('div');
+    d.className = 'bar';
+    d.innerHTML = '<div class="naam"><span>' + n + '</span><span id="bp' + i + '">0%</span></div>' +
+                  '<div class="baan"><div class="vul" id="bv' + i + '"></div></div>';
+    bak.appendChild(d);
+  });
+}
+function balkStap() {
+  if (!actief || allesKlaar) return;
+  balkWaarden.forEach((v, i) => {
+    let n = v + Math.random() * 2.4;
+    if (n >= 100) n = 4 + Math.random() * 20;
+    balkWaarden[i] = n;
+    $('bv' + i).style.width = n.toFixed(1) + '%';
+    $('bp' + i).textContent = Math.floor(n) + '%';
+  });
+}
+
+/* --- netwerkkaart --- */
+function maakKaart() {
+  const k = $('kaart');
+  k.innerHTML = '';
+  for (let i = 0; i < 26 * 8; i++) {
+    const d = document.createElement('i');
+    d.textContent = '·';
+    k.appendChild(d);
+  }
+}
+function kaartStap() {
+  if (!actief) return;
+  const punten = $('kaart').children;
+  for (let n = 0; n < 6; n++) {
+    const p = punten[Math.floor(Math.random() * punten.length)];
+    p.className = Math.random() < 0.12 ? 'doel' : 'aan';
+    p.textContent = p.className === 'doel' ? '◉' : '•';
+    setTimeout(() => { p.className = ''; p.textContent = '·'; }, 700 + Math.random() * 1400);
+  }
+}
+
+/* --- bestandenlijst --- */
+function bestandStap() {
+  if (!actief) return;
+  const naam = BESTANDSNAMEN[Math.floor(Math.random() * BESTANDSNAMEN.length)];
+  const mb = (Math.random() * 40 + 0.4).toFixed(1);
+  const r = document.createElement('div');
+  r.innerHTML = '<b>&#8595;</b> ' + naam + ' <span style="opacity:.6">(' + mb + ' MB)</span> OK';
+  const bak = $('bestanden');
+  bak.insertBefore(r, bak.firstChild);
+  while (bak.children.length > 8) bak.removeChild(bak.lastChild);
+}
+
+/* --- commandoregel --- */
+let cmdTekst = '', cmdDoel = '', cmdIndex = 0;
+function commandoStap() {
+  if (!actief) return;
+  if (cmdIndex >= cmdDoel.length) {
+    cmdDoel = COMMANDOS[Math.floor(Math.random() * COMMANDOS.length)];
+    cmdIndex = 0;
+    cmdTekst = '';
+  }
+  cmdTekst += cmdDoel[cmdIndex++];
+  $('commando').textContent = '> ' + cmdTekst + '_';
+}
+
+/* --- klok --- */
+function klokStap() {
+  if (!actief) return;
+  const s = Math.floor((Date.now() - startTijd) / 1000);
+  const m = String(Math.floor(s / 60)).padStart(2, '0');
+  $('balkKlok').textContent = m + ':' + String(s % 60).padStart(2, '0');
+}
+
+function startLussen() {
+  lussen.forEach(clearInterval);
+  lussen = [
+    setInterval(wachtwoordStap, 90),
+    setInterval(balkStap, 160),
+    setInterval(kaartStap, 320),
+    setInterval(bestandStap, 1400),
+    setInterval(commandoStap, 70),
+    setInterval(klokStap, 500),
+  ];
+}
+
+/* --- matrixregen --- */
+let regenLus = null;
+function maakRegen() {
+  const c = $('regen');
+  const ctx = c.getContext('2d');
+  function maat() { c.width = window.innerWidth; c.height = window.innerHeight; }
+  maat();
+  window.addEventListener('resize', maat);
+  const kolomBreed = 14;
+  let druppels = [];
+  function reset() {
+    druppels = new Array(Math.ceil(c.width / kolomBreed)).fill(0).map(() => Math.random() * -50);
+  }
+  reset();
+  if (regenLus) clearInterval(regenLus);
+  regenLus = setInterval(() => {
+    if (!actief) return;
+    ctx.fillStyle = 'rgba(2,6,23,0.09)';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = '#22c55e';
+    ctx.font = '13px monospace';
+    for (let i = 0; i < druppels.length; i++) {
+      const t = String.fromCharCode(0x30a0 + Math.random() * 96);
+      ctx.fillText(t, i * kolomBreed, druppels[i] * 14);
+      if (druppels[i] * 14 > c.height && Math.random() > 0.975) druppels[i] = 0;
+      druppels[i]++;
+    }
+  }, 55);
+}
+
+/* --- popups & geheime toetsen --- */
+let popTimer = null;
+function toonPopup(groot, klein, fout) {
+  $('popGroot').textContent = groot;
+  $('popKlein').textContent = klein;
+  $('popup').classList.toggle('fout', !!fout);
+  $('popup').classList.add('aan');
+  clearTimeout(popTimer);
+  popTimer = setTimeout(verbergPopup, 4500);
+}
+function verbergPopup() {
+  $('popup').classList.remove('aan');
+  $('alarmlicht').classList.remove('aan');
+}
+
+function toegangVerleend() {
+  toonPopup('TOEGANG VERLEEND', gekozenDoel.toUpperCase() + ' — VOLLEDIGE CONTROLE', false);
+  piep(523, 0.12, 0.09, 'triangle');
+  setTimeout(() => piep(659, 0.12, 0.09, 'triangle'), 120);
+  setTimeout(() => piep(1046, 0.28, 0.09, 'triangle'), 240);
+}
+function toegangGeweigerd() {
+  toonPopup('TOEGANG GEWEIGERD', 'PROBEER EEN ANDERE SLEUTEL', true);
+  piep(200, 0.25, 0.09, 'sawtooth');
+}
+function alarm() {
+  toonPopup('ALARM! ONTDEKT', 'VERBINDING WORDT OPGESPOORD — 00:09', true);
+  $('alarmlicht').classList.add('aan');
+  sirene();
+}
+function voltooid() {
+  allesKlaar = true;
+  balkWaarden = balkWaarden.map(() => 100);
+  balkWaarden.forEach((v, i) => { $('bv' + i).style.width = '100%'; $('bp' + i).textContent = '100%'; });
+  wwVast = wwVast.map(() => true);
+  toonWachtwoord();
+  toonPopup('HACK VOLTOOID', '100% — ALLE SYSTEMEN OVERGENOMEN', false);
+  [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => piep(f, 0.16, 0.09, 'triangle'), i * 130));
+}
+
+document.addEventListener('keydown', (e) => {
+  if (!actief) return;
+  if (e.key === 'Escape') {
+    if ($('popup').classList.contains('aan')) verbergPopup();
+    else stopHack();
+    return;
+  }
+  if (e.key === 'F12' || (e.ctrlKey && e.key.toLowerCase() === 'r') || (e.metaKey)) return;
+  e.preventDefault();
+
+  if (e.key === '+') { toegangVerleend(); return; }
+  if (e.key === '-') { toegangGeweigerd(); return; }
+  if (e.key === '*') { alarm(); return; }
+  if (e.key === '/') { voltooid(); return; }
+
+  typStap();
+});
+
+/* tikken op telefoon/tablet */
+scherm.addEventListener('pointerdown', (e) => {
+  if (!actief) return;
+  if (e.target.id === 'sluit') return;
+  if (e.target.id === 'zoneLinks') { toegangVerleend(); return; }
+  if (e.target.id === 'zoneRechts') { alarm(); return; }
+  if ($('popup').classList.contains('aan')) { verbergPopup(); return; }
+  for (let i = 0; i < 4; i++) typStap();
+});
+
+/* ---------------- vriend-scanner ---------------- */
+
+const SCANFEITEN = [
+  ['Aantal geheime snoepjes onder het bed', () => (2 + Math.floor(Math.random() * 40))],
+  ['Laatste zoekopdracht', () => kies(['"hoe word ik onzichtbaar"', '"kan een hamster zwemmen"', '"is de leraar een robot"', '"gratis pizza voor altijd"', '"hoe hack ik een koelkast"'])],
+  ['Sokkenniveau', () => (12 + Math.floor(Math.random() * 88)) + '% schoon'],
+  ['Geheime bijnaam', () => kies(['Kapitein Kaassoufflé', 'Turbo-Teen', 'Doctor Drop', 'Mega-Muis', 'Sir Snurk'])],
+  ['Aantal keer gelachen vandaag', () => (7 + Math.floor(Math.random() * 90))],
+  ['Favoriete stiekeme hobby', () => kies(['zingen onder de douche', 'praten tegen de plant', 'dansen voor de spiegel', 'stiekem koekjes tellen', 'de kat interviewen'])],
+  ['Batterij van de telefoon', () => (3 + Math.floor(Math.random() * 96)) + '%'],
+  ['Huiswerk-status', () => kies(['"ligt nog in de tas"', '"opgegeten door de hond"', 'AF (verdacht)', '"morgen echt waar"'])],
+  ['Geheim talent', () => kies(['kan met de oren wiebelen', 'onthoudt alle pokémonnamen', 'burpt het alfabet', 'slaapt met open ogen', 'ruikt regen van 3 km'])],
+  ['Aantal keer "nog 5 minuutjes" gezegd', () => (100 + Math.floor(Math.random() * 900))],
+];
+function kies(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+$('scanKnop').addEventListener('click', () => {
+  const naam = ($('vriendNaam').value || 'Onbekend Persoon').trim().slice(0, 18);
+  startScan(naam);
+});
+$('vriendNaam').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('scanKnop').click(); });
+$('scanuit').addEventListener('click', () => {
+  $('scanscherm').classList.remove('aan');
+  document.body.style.overflow = '';
+});
+
+function startScan(naam) {
+  const bak = $('scanregels');
+  bak.innerHTML = '';
+  $('scanscherm').classList.add('aan');
+  document.body.style.overflow = 'hidden';
+  audio();
+
+  const feiten = SCANFEITEN.slice().sort(() => Math.random() - 0.5).slice(0, 7);
+  const regels = [
+    '> persoonsscan starten...',
+    '> doelwit: <span class="goud">' + ontsnap(naam) + '</span>',
+    '> databank doorzoeken .......... <span class="wit">4.812 treffers</span>',
+    '> hersenen uitlezen ............ <span class="wit">gelukt</span>',
+    '',
+    '<span class="goud">===== GEHEIM DOSSIER: ' + ontsnap(naam.toUpperCase()) + ' =====</span>',
+  ];
+  feiten.forEach(f => regels.push('  ' + f[0] + ': <span class="wit">' + f[1]() + '</span>'));
+  regels.push('');
+  regels.push('<span class="rood">! Dossier is streng geheim.</span>');
+  regels.push('<span class="goud">(grapje — dit spel verzint alles 😄)</span>');
+
+  let i = 0;
+  const t = setInterval(() => {
+    if (!$('scanscherm').classList.contains('aan')) { clearInterval(t); return; }
+    const d = document.createElement('div');
+    d.innerHTML = regels[i] || '&nbsp;';
+    bak.appendChild(d);
+    piep(500 + Math.random() * 400, 0.04, 0.05);
+    i++;
+    if (i >= regels.length) clearInterval(t);
+  }, 320);
+}
+
+function ontsnap(s) {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+</script>
+</body>
+</html>

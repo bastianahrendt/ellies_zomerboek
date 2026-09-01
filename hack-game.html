@@ -290,6 +290,7 @@
   .tikzones div { position: absolute; bottom: 0; width: 78px; height: 78px; pointer-events: auto; }
   .tikzones .lo { left: 0; }
   .tikzones .ro { right: 0; }
+  .tikzones .mi { left: 50%; transform: translateX(-50%); width: 120px; }
 
   @media (max-width: 900px) {
     .balk { font-size: 0.68rem; gap: 4px 10px; flex-wrap: nowrap; align-items: center; }
@@ -304,6 +305,60 @@
     .paneel { min-width: 190px; flex: 0 0 auto; }
     #bestanden { height: 60px; }
   }
+
+  /* ============ DE ONTHULLING ============ */
+  #onthulling {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 18px;
+    padding: 20px;
+    text-align: center;
+    background: #052e16;
+    font-family: ui-monospace, 'Courier New', monospace;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  #onthulling.aan { display: flex; }
+  #onthulling.aan::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: #dcfce7;
+    animation: wegflits 0.55s ease-out forwards;
+    pointer-events: none;
+    z-index: 2;
+  }
+  @keyframes wegflits { from { opacity: 1; } 70% { opacity: 0.15; } to { opacity: 0; } }
+  #onthulling .tekst, #onthulling .smiley, #onthulling .verder, #onthulling .snipper { position: relative; z-index: 1; }
+
+  #onthulling .tekst {
+    position: relative;
+    font-size: clamp(30px, 9vw, 96px);
+    font-weight: 900;
+    line-height: 1.06;
+    color: #4ade80;
+    letter-spacing: 2px;
+    text-shadow: 0 0 24px rgba(74,222,128,0.8);
+    animation: glitch 2.2s infinite;
+    max-width: 100%;
+  }
+  #onthulling .tekst .naam { color: #fde68a; text-shadow: 0 0 26px rgba(253,230,138,0.9); display: block; }
+  @keyframes glitch {
+    0%, 82%, 100% { transform: translate(0, 0); text-shadow: 0 0 24px rgba(74,222,128,0.8); }
+    84% { transform: translate(-4px, 2px); text-shadow: 4px 0 0 #f87171, -4px 0 0 #38bdf8; }
+    86% { transform: translate(4px, -2px); text-shadow: -4px 0 0 #f87171, 4px 0 0 #38bdf8; }
+    88% { transform: translate(-2px, -1px); text-shadow: 3px 0 0 #38bdf8, -3px 0 0 #f87171; }
+    90% { transform: translate(0, 0); }
+  }
+  #onthulling .smiley { font-size: clamp(50px, 15vw, 130px); animation: stuiter 1s ease-in-out infinite; }
+  @keyframes stuiter { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-18px) rotate(6deg); } }
+  #onthulling .verder { color: #86efac; font-size: 0.9rem; letter-spacing: 2px; animation: knip 1.2s steps(1) infinite; }
+  #onthulling .snipper { position: absolute; font-size: 22px; animation: val linear forwards; pointer-events: none; }
+  @keyframes val { from { transform: translateY(-40px) rotate(0deg); opacity: 1; } to { transform: translateY(105vh) rotate(700deg); opacity: 0.9; } }
 
   /* ============ VRIEND-SCANNER ============ */
   #scanscherm {
@@ -346,13 +401,17 @@
     <h3>1. Kies je doelwit</h3>
     <div class="doelwitten" id="doelwitten"></div>
 
-    <h3>2. Zet 'm op vol scherm (dan lijkt het echter)</h3>
+    <h3>2. Hoe heet de hacker?</h3>
+    <input class="veld" id="hackerNaam" maxlength="14" value="Ellie" placeholder="Jouw naam" />
+    <p style="font-size:.85rem;color:#64748b;margin-top:6px;">Deze naam staat straks in het grote bericht: "JE BENT GEHACKT DOOR …"</p>
+
+    <h3>3. Zet 'm op vol scherm (dan lijkt het echter)</h3>
     <div class="knoppen">
       <button class="knop" id="startKnop">▶ Start het hacken</button>
       <button class="knop blauw" id="startVol">⛶ Start op vol scherm</button>
     </div>
 
-    <h3>3. Of… hack een vriend 😈</h3>
+    <h3>4. Of… hack een vriend 😈</h3>
     <input class="veld" id="vriendNaam" maxlength="18" placeholder="Typ de naam van je vriend" />
     <div class="knoppen">
       <button class="knop grijs" id="scanKnop">🔍 Scan deze persoon</button>
@@ -367,6 +426,7 @@
         <li><kbd>*</kbd> <span>ALARM! Rood knipperlicht (of tik rechtsonder in de hoek)</span></li>
         <li><kbd>-</kbd> <span>TOEGANG GEWEIGERD ✘</span></li>
         <li><kbd>/</kbd> <span>HACK VOLTOOID — alle balken springen naar 100%</span></li>
+        <li><kbd>=</kbd> <span>🎉 <b>DE KLAPPER:</b> "JE BENT GEHACKT DOOR ELLIE 😄" over het hele scherm (of tik onderaan in het midden)</span></li>
         <li><kbd>esc</kbd> <span>Popup weg. Nog een keer esc = stoppen en terug hierheen.</span></li>
       </ul>
     </details>
@@ -417,9 +477,17 @@
   <div class="tikzones">
     <div class="lo" id="zoneLinks"></div>
     <div class="ro" id="zoneRechts"></div>
+    <div class="mi" id="zoneMidden"></div>
   </div>
   <div id="alarmlicht"></div>
   <div id="popup"><div class="doos"><div class="groot" id="popGroot"></div><div class="klein" id="popKlein"></div></div></div>
+</div>
+
+<!-- ===================== DE ONTHULLING ===================== -->
+<div id="onthulling">
+  <div class="tekst">JE BENT GEHACKT DOOR<span class="naam" id="onthulNaam">ELLIE</span></div>
+  <div class="smiley">😄</div>
+  <div class="verder">tik of druk op een toets om verder te gaan</div>
 </div>
 
 <!-- ===================== VRIEND-SCANNER ===================== -->
@@ -557,6 +625,10 @@ function sirene() {
 
 const $ = (id) => document.getElementById(id);
 let gekozenDoel = DOELWITTEN[0].naam;
+function hackerNaam() {
+  const n = ($('hackerNaam').value || '').trim();
+  return (n || 'Ellie').slice(0, 14);
+}
 
 const doelBak = $('doelwitten');
 DOELWITTEN.forEach((d, i) => {
@@ -616,6 +688,7 @@ function stopHack() {
   scherm.classList.remove('aan');
   document.body.style.overflow = '';
   verbergPopup();
+  sluitOnthulling();
   $('alarmlicht').classList.remove('aan');
   lussen.forEach(clearInterval);
   lussen = [];
@@ -819,6 +892,44 @@ function maakRegen() {
   }, 55);
 }
 
+/* --- DE KLAPPER: je bent gehackt door ... --- */
+let onthulTimer = null;
+function onthul() {
+  const o = $('onthulling');
+  if (o.classList.contains('aan')) return;
+  $('onthulNaam').textContent = hackerNaam().toUpperCase();
+  o.classList.add('aan');
+  verbergPopup();
+  snippers();
+  fanfare();
+  clearTimeout(onthulTimer);
+  onthulTimer = setTimeout(sluitOnthulling, 12000);
+}
+function sluitOnthulling() {
+  clearTimeout(onthulTimer);
+  $('onthulling').classList.remove('aan');
+  $('onthulling').querySelectorAll('.snipper').forEach(x => x.remove());
+}
+function snippers() {
+  const o = $('onthulling');
+  const tekens = ['💚', '🎉', '😄', '💻', '1', '0', '✔', '🔓'];
+  for (let i = 0; i < 40; i++) {
+    const d = document.createElement('div');
+    d.className = 'snipper';
+    d.textContent = tekens[Math.floor(Math.random() * tekens.length)];
+    d.style.left = Math.random() * 96 + 'vw';
+    d.style.top = '-40px';
+    d.style.animationDuration = (2.2 + Math.random() * 2.6) + 's';
+    d.style.animationDelay = (Math.random() * 1.6) + 's';
+    o.appendChild(d);
+  }
+}
+function fanfare() {
+  [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) =>
+    setTimeout(() => piep(f, 0.18, 0.1, 'triangle'), i * 150));
+}
+$('onthulling').addEventListener('pointerdown', sluitOnthulling);
+
 /* --- popups & geheime toetsen --- */
 let popTimer = null;
 function toonPopup(groot, klein, fout) {
@@ -860,9 +971,11 @@ function voltooid() {
 }
 
 document.addEventListener('keydown', (e) => {
+  if ($('onthulling').classList.contains('aan')) { e.preventDefault(); sluitOnthulling(); return; }
   if (!actief) return;
   if (e.key === 'Escape') {
-    if ($('popup').classList.contains('aan')) verbergPopup();
+    if ($('onthulling').classList.contains('aan')) sluitOnthulling();
+    else if ($('popup').classList.contains('aan')) verbergPopup();
     else stopHack();
     return;
   }
@@ -873,6 +986,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === '-') { toegangGeweigerd(); return; }
   if (e.key === '*') { alarm(); return; }
   if (e.key === '/') { voltooid(); return; }
+  if (e.key === '=') { onthul(); return; }
 
   typStap();
 });
@@ -883,6 +997,7 @@ scherm.addEventListener('pointerdown', (e) => {
   if (e.target.id === 'sluit') return;
   if (e.target.id === 'zoneLinks') { toegangVerleend(); return; }
   if (e.target.id === 'zoneRechts') { alarm(); return; }
+  if (e.target.id === 'zoneMidden') { onthul(); return; }
   if ($('popup').classList.contains('aan')) { verbergPopup(); return; }
   for (let i = 0; i < 4; i++) typStap();
 });
@@ -932,7 +1047,6 @@ function startScan(naam) {
   feiten.forEach(f => regels.push('  ' + f[0] + ': <span class="wit">' + f[1]() + '</span>'));
   regels.push('');
   regels.push('<span class="rood">! Dossier is streng geheim.</span>');
-  regels.push('<span class="goud">(grapje — dit spel verzint alles 😄)</span>');
 
   let i = 0;
   const t = setInterval(() => {
@@ -942,7 +1056,7 @@ function startScan(naam) {
     bak.appendChild(d);
     piep(500 + Math.random() * 400, 0.04, 0.05);
     i++;
-    if (i >= regels.length) clearInterval(t);
+    if (i >= regels.length) { clearInterval(t); setTimeout(onthul, 600); }
   }, 320);
 }
 

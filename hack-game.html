@@ -164,7 +164,8 @@
   }
   details.spiek summary { cursor: pointer; font-weight: bold; color: var(--k-fel); }
   details.spiek ul { margin: 10px 0 0 4px; list-style: none; line-height: 1.75; }
-  details.spiek li { display: flex; gap: 10px; align-items: baseline; }
+  details.spiek li { display: flex; gap: 6px; align-items: baseline; }
+  details.spiek li span { margin-left: 4px; }
   kbd {
     display: inline-block;
     min-width: 26px;
@@ -177,6 +178,18 @@
     font-weight: bold;
     font-size: 0.85rem;
   }
+
+  .toetstest { margin-top: 14px; border-top: 1px solid #1e293b; padding-top: 12px; line-height: 1.6; }
+  .toetstest input {
+    display: block; width: 100%; margin-top: 8px;
+    background: #020617; border: 2px solid var(--k-rand); color: var(--k-licht);
+    border-radius: 10px; padding: 9px 12px;
+    font-family: ui-monospace, 'Courier New', monospace; font-size: 0.9rem;
+  }
+  .toetstest input:focus { outline: none; border-color: var(--k); }
+  #toetsUitslag { margin-top: 8px; font-family: ui-monospace, 'Courier New', monospace; font-size: 0.85rem; color: var(--k-fel); }
+  #toetsUitslag .goed { color: #4ade80; }
+  #toetsUitslag .slecht { color: #f87171; }
 
   .voet { text-align: center; color: #fff; font-weight: bold; margin-top: 22px; text-shadow: 0 2px 6px rgba(0,0,0,0.45); }
 
@@ -193,6 +206,7 @@
     cursor: default;
   }
   #hackscherm.aan { display: grid; }
+  #hackscherm:focus { outline: none; }
 
   #regen { position: absolute; inset: 0; opacity: 0.16; pointer-events: none; }
 
@@ -461,14 +475,21 @@
       <summary>🤫 Spiekbriefje — alleen voor Ellie</summary>
       <ul>
         <li><kbd>alles</kbd> <span>Ram op willekeurige toetsen → er verschijnt code. Tik op je telefoon.</span></li>
-        <li><kbd>+</kbd> <span>TOEGANG VERLEEND ✔ (of tik linksonder in de hoek)</span></li>
-        <li><kbd>*</kbd> <span>ALARM! Rood knipperlicht (of tik rechtsonder in de hoek)</span></li>
-        <li><kbd>-</kbd> <span>TOEGANG GEWEIGERD ✘</span></li>
-        <li><kbd>/</kbd> <span>HACK VOLTOOID — alle balken springen naar 100%</span></li>
-        <li><kbd>=</kbd> <span>🎉 <b>DE KLAPPER:</b> "JE BENT GEHACKT DOOR ELLIE 😄" over het hele scherm (of tik onderaan in het midden)</span></li>
-        <li><kbd>←</kbd><kbd>→</kbd> <span>🌈 Van kleur wisselen terwijl je hackt (of tik linksboven in de hoek)</span></li>
+        <li><kbd>+</kbd><kbd>⇧1</kbd> <span>TOEGANG VERLEEND ✔ — of <b>klik linksonder in de hoek</b></span></li>
+        <li><kbd>*</kbd><kbd>⇧2</kbd> <span>ALARM! Rood knipperlicht — of <b>klik rechtsonder in de hoek</b></span></li>
+        <li><kbd>-</kbd><kbd>⇧3</kbd> <span>TOEGANG GEWEIGERD ✘</span></li>
+        <li><kbd>/</kbd><kbd>⇧4</kbd> <span>HACK VOLTOOID — alle balken springen naar 100%</span></li>
+        <li><kbd>=</kbd><kbd>⇧5</kbd> <span>🎉 <b>DE KLAPPER:</b> "JE BENT GEHACKT DOOR ELLIE 😄" — of <b>klik onderaan in het midden</b></span></li>
+        <li><kbd>←</kbd><kbd>→</kbd> <span>🌈 Van kleur wisselen — of <b>klik linksboven in de hoek</b></span></li>
         <li><kbd>esc</kbd> <span>Popup weg. Nog een keer esc = stoppen en terug hierheen.</span></li>
       </ul>
+
+      <div class="toetstest">
+        <b>Doen je geheime toetsen het niet?</b> Klik in het vakje en druk op de toets.
+        Hier zie je precies wat het spel van jouw toetsenbord binnenkrijgt:
+        <input id="toetsTest" readonly value="klik hier en druk op een toets" />
+        <div id="toetsUitslag">nog niets ingedrukt</div>
+      </div>
     </details>
 
   </div>
@@ -477,7 +498,7 @@
 <div class="voet">gemaakt door Ellie 💖</div>
 
 <!-- ===================== HACKSCHERM ===================== -->
-<div id="hackscherm">
+<div id="hackscherm" tabindex="-1">
   <canvas id="regen"></canvas>
 
   <div class="balk">
@@ -768,6 +789,7 @@ function startHack(volScherm) {
   bootTekst();
   startLussen();
   audio();
+  scherm.focus();
 }
 
 function stopHack() {
@@ -979,6 +1001,22 @@ function maakRegen() {
   }, 55);
 }
 
+/* --- welke geheime toets is dit? ---
+   e.key is het teken dat je toetsenbord maakt (verschilt per land),
+   e.code is de plek van de toets (overal hetzelfde). We kijken naar allebei,
+   zodat de geheime toetsen op ieder toetsenbord werken. */
+function geheimeActie(e) {
+  const k = e.key, c = e.code, sh = e.shiftKey;
+  if (k === '+' || c === 'NumpadAdd'      || (sh && c === 'Digit1')) return toegangVerleend;
+  if (k === '*' || c === 'NumpadMultiply' || (sh && c === 'Digit2')) return alarm;
+  if (k === '-' || c === 'NumpadSubtract' || (sh && c === 'Digit3')) return toegangGeweigerd;
+  if (k === '/' || c === 'NumpadDivide'   || (sh && c === 'Digit4')) return voltooid;
+  if (k === '=' || c === 'NumpadEqual'    || (sh && c === 'Digit5')) return onthul;
+  if (k === 'ArrowRight' || k === 'ArrowDown') return () => volgendeKleur(1);
+  if (k === 'ArrowLeft'  || k === 'ArrowUp')   return () => volgendeKleur(-1);
+  return null;
+}
+
 /* --- DE KLAPPER: je bent gehackt door ... --- */
 let onthulTimer = null;
 function onthul() {
@@ -1069,13 +1107,8 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'F12' || (e.ctrlKey && e.key.toLowerCase() === 'r') || (e.metaKey)) return;
   e.preventDefault();
 
-  if (e.key === '+') { toegangVerleend(); return; }
-  if (e.key === '-') { toegangGeweigerd(); return; }
-  if (e.key === '*') { alarm(); return; }
-  if (e.key === '/') { voltooid(); return; }
-  if (e.key === '=') { onthul(); return; }
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { volgendeKleur(1); return; }
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { volgendeKleur(-1); return; }
+  const doe = geheimeActie(e);
+  if (doe) { doe(); return; }
 
   typStap();
 });
@@ -1090,6 +1123,31 @@ scherm.addEventListener('pointerdown', (e) => {
   if (e.target.id === 'zoneKleur') { volgendeKleur(1); return; }
   if ($('popup').classList.contains('aan')) { verbergPopup(); return; }
   for (let i = 0; i < 4; i++) typStap();
+});
+
+/* ---------------- toetsentest ---------------- */
+
+const WATDOET = new Map([
+  [toegangVerleend, 'TOEGANG VERLEEND ✔'],
+  [alarm, 'ALARM 🚨'],
+  [toegangGeweigerd, 'TOEGANG GEWEIGERD ✘'],
+  [voltooid, 'HACK VOLTOOID 🏆'],
+  [onthul, 'DE KLAPPER 🎉'],
+]);
+
+$('toetsTest').addEventListener('keydown', (e) => {
+  e.preventDefault();
+  const doe = geheimeActie(e);
+  const wat = WATDOET.get(doe);
+  const pijl = !wat && doe ? 'van kleur wisselen 🌈' : null;
+  const uit = $('toetsUitslag');
+  const teken = e.key === ' ' ? 'spatie' : e.key;
+  if (wat || pijl) {
+    uit.innerHTML = 'Je drukte op <b>' + ontsnap(teken) + '</b> — <span class="goed">dit doet: ' + (wat || pijl) + '</span>';
+  } else {
+    uit.innerHTML = 'Je drukte op <b>' + ontsnap(teken) + '</b> (code: ' + ontsnap(e.code) + ') — ' +
+      '<span class="slecht">dit is geen geheime toets</span>, hiermee typ je gewoon code.';
+  }
 });
 
 /* ---------------- vriend-scanner ---------------- */

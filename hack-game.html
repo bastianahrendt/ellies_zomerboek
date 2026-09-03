@@ -474,17 +474,13 @@
     <h3>2. Kies je hackerkleur 🌈</h3>
     <div class="kleuren" id="kleuren"></div>
 
-    <h3>3. Hoe heet de hacker?</h3>
-    <input class="veld" id="hackerNaam" maxlength="14" value="Ellie" placeholder="Jouw naam" />
-    <p style="font-size:.85rem;color:#64748b;margin-top:6px;">Deze naam staat straks in het grote bericht: "JE BENT GEHACKT DOOR …"</p>
-
-    <h3>4. Zet 'm op vol scherm (dan lijkt het echter)</h3>
+    <h3>3. Zet 'm op vol scherm (dan lijkt het echter)</h3>
     <div class="knoppen">
       <button class="knop" id="startKnop">▶ Start het hacken</button>
       <button class="knop blauw" id="startVol">⛶ Start op vol scherm</button>
     </div>
 
-    <h3>5. Of… hack een vriend 😈</h3>
+    <h3>4. Of… hack een vriend 😈</h3>
     <input class="veld" id="vriendNaam" maxlength="18" placeholder="Typ de naam van je vriend" />
     <div class="knoppen">
       <button class="knop grijs" id="scanKnop">🔍 Scan deze persoon</button>
@@ -581,7 +577,7 @@
 
 <!-- ===================== DE ONTHULLING ===================== -->
 <div id="onthulling">
-  <div class="tekst">JE BENT GEHACKT DOOR<span class="naam" id="onthulNaam">ELLIE</span></div>
+  <div class="tekst">JE BENT GEHACKT DOOR<span class="naam" id="onthulNaam"></span></div>
   <div class="smiley">😄</div>
   <div class="verder">tik of druk op een toets om verder te gaan</div>
 </div>
@@ -782,10 +778,9 @@ function sirene() {
 
 const $ = (id) => document.getElementById(id);
 let gekozenDoel = DOELWITTEN[0].naam;
-function hackerNaam() {
-  const n = ($('hackerNaam').value || '').trim();
-  return (n || 'Ellie').slice(0, 14);
-}
+/* Het grote bericht is altijd van Ellie; hier wordt nooit een andere naam
+   overgenomen, ook niet die van een vriend die het spel gebruikt. */
+const HACKER = 'ELLIE';
 
 const doelBak = $('doelwitten');
 DOELWITTEN.forEach((d, i) => {
@@ -800,6 +795,8 @@ DOELWITTEN.forEach((d, i) => {
   });
   doelBak.appendChild(b);
 });
+
+$('onthulNaam').textContent = HACKER;
 
 const kleurBak = $('kleuren');
 THEMAS.forEach((t, i) => {
@@ -1113,7 +1110,6 @@ function magOnthullingSluiten() { return Date.now() - onthulTijd > 900; }
 function onthul(luid) {
   const o = $('onthulling');
   if (o.classList.contains('aan')) return;
-  $('onthulNaam').textContent = hackerNaam().toUpperCase();
   o.classList.add('aan');
   onthulTijd = Date.now();
   verbergPopup();

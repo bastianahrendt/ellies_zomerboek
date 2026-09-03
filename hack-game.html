@@ -514,6 +514,7 @@
         <li><kbd>=</kbd><kbd>⇧5</kbd> <span>🎉 <b>DE KLAPPER:</b> "JE BENT GEHACKT DOOR ELLIE 😄" — of <b>klik onderaan in het midden</b></span></li>
         <li><kbd>←</kbd><kbd>→</kbd> <span>🌈 Van kleur wisselen — of <b>klik linksboven in de hoek</b></span></li>
         <li><kbd>esc</kbd> <span>Popup weg. Nog een keer esc = stoppen en terug hierheen.</span></li>
+        <li><kbd>⏱</kbd> <span>⏰ <b>Tijdbom:</b> na 2 minuten hacken gaat vanzelf het alarm loeien en komt de klapper. Kijk op de klok rechtsboven: bij 02:00 is het zover.</span></li>
       </ul>
 
       <div class="toetstest">
@@ -732,6 +733,36 @@ function piep(freq, duur, vol, vorm) {
   o.start(); o.stop(c.currentTime + duur);
 }
 function tik() { piep(620 + Math.random() * 500, 0.035, 0.05); }
+
+/* Een flinke loeiende sirene: twee stemmen die net naast elkaar liggen,
+   zes keer op en neer. Veel luider dan de gewone piepjes. */
+function luidAlarm() {
+  if (!geluidAan) return;
+  const c = audio(); if (!c) return;
+  const nu = c.currentTime;
+  const eind = nu + 5.2;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, nu);
+  g.gain.exponentialRampToValueAtTime(0.15, nu + 0.06);
+  g.gain.setValueAtTime(0.15, eind - 0.5);
+  g.gain.exponentialRampToValueAtTime(0.0001, eind);
+  g.connect(c.destination);
+  [-7, 7].forEach((verstemming) => {
+    const o = c.createOscillator();
+    o.type = 'sawtooth';
+    o.detune.value = verstemming;
+    let t = nu;
+    for (let i = 0; i < 6; i++) {
+      o.frequency.setValueAtTime(520, t);
+      o.frequency.linearRampToValueAtTime(1180, t + 0.42);
+      o.frequency.linearRampToValueAtTime(520, t + 0.84);
+      t += 0.84;
+    }
+    o.connect(g);
+    o.start(nu);
+    o.stop(eind);
+  });
+}
 function sirene() {
   if (!geluidAan) return;
   const c = audio(); if (!c) return;
@@ -823,6 +854,7 @@ function startHack(volScherm) {
   startLussen();
   audio();
   scherm.focus();
+  startTijdbom();
 }
 
 function stopHack() {
@@ -834,6 +866,7 @@ function stopHack() {
   $('alarmlicht').classList.remove('aan');
   lussen.forEach(clearInterval);
   lussen = [];
+  stopTijdbom();
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
 }
 $('sluit').addEventListener('click', stopHack);
@@ -1034,6 +1067,24 @@ function maakRegen() {
   }, 55);
 }
 
+/* --- de tijdbom: na 2 minuten hacken gaat het alarm af en komt de klapper --- */
+const AUTO_MINUTEN = 2;
+let autoMs = AUTO_MINUTEN * 60 * 1000;
+let autoTimer = null;
+
+function startTijdbom() {
+  clearTimeout(autoTimer);
+  autoTimer = setTimeout(tijdbomAf, autoMs);
+}
+function stopTijdbom() { clearTimeout(autoTimer); autoTimer = null; }
+
+function tijdbomAf() {
+  luidAlarm();
+  if (actief) $('alarmlicht').classList.add('aan');
+  setTimeout(() => onthul(true), 1400);
+  startTijdbom();  // en daarna gaat de klok gewoon opnieuw lopen
+}
+
 /* --- welke geheime toets is dit? ---
    e.key is het teken dat je toetsenbord maakt (verschilt per land),
    e.code is de plek van de toets (overal hetzelfde). We kijken naar allebei,
@@ -1059,7 +1110,7 @@ let onthulTijd = 0;
    en dat tweede signaal klikte het scherm direct weg. */
 function magOnthullingSluiten() { return Date.now() - onthulTijd > 900; }
 
-function onthul() {
+function onthul(luid) {
   const o = $('onthulling');
   if (o.classList.contains('aan')) return;
   $('onthulNaam').textContent = hackerNaam().toUpperCase();
@@ -1067,7 +1118,7 @@ function onthul() {
   onthulTijd = Date.now();
   verbergPopup();
   snippers();
-  fanfare();
+  if (!luid) fanfare();
   clearTimeout(onthulTimer);
   onthulTimer = setTimeout(sluitOnthulling, 12000);
 }
@@ -1261,6 +1312,7 @@ $('vriendNaam').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('s
 $('scanuit').addEventListener('click', () => {
   $('scanscherm').classList.remove('aan');
   document.body.style.overflow = '';
+  if (!actief) stopTijdbom();
 });
 
 function startScan(naam) {
@@ -1269,6 +1321,7 @@ function startScan(naam) {
   $('scanscherm').classList.add('aan');
   document.body.style.overflow = 'hidden';
   audio();
+  startTijdbom();
 
   const feiten = SCANFEITEN.slice().sort(() => Math.random() - 0.5).slice(0, 7);
   const regels = [

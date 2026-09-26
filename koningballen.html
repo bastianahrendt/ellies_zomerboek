@@ -288,7 +288,8 @@
       Rol zo ver mogelijk! Ga naar links en rechts met de pijltjes,
       de knoppen onderin of door te slepen.<br />
       Pas op voor de <b style="color:#f472b6">roze muren</b> en val niet van de baan.<br />
-      Van een <b style="color:#fde68a">schans</b> vlieg je door de lucht, en op de
+      Van een <b style="color:#fde68a">schans</b> vlieg je door de lucht — hoe sneller
+      je gaat, hoe verder je vliegt! Op de
       <b style="color:#c7d2fe">hoge weg</b> kan je er aan de zijkant weer af springen.<br />
       Elke <b style="color:#c084fc">tunnel</b> maakt je sneller — en zo snel blijf je!
     </div>
@@ -412,9 +413,12 @@ var BAAN = 3.0;        // halve breedte van de baan
 var STRAAL = 0.62;     // straal van de bal
 var CAM_ACHTER = 5.0;  // camera staat achter de bal
 var CAM_HOOG = 2.4;    // camera staat boven de baan
-var ZICHT = 72;        // hoe ver je vooruit kijkt
+var ZICHT = 72;        // hoe ver je vooruit kijkt (verder als je door de lucht vliegt)
+var ZICHT_GROND = 72;
+var ZICHT_LUCHT = 135;
 var NABIJ = 0.6;       // niets tekenen dat dichterbij is dan dit
 var MUUR_H = 1.7;      // hoe hoog een roze muur is
+var ZWAARTEKRACHT = 16;// vast, dus met meer snelheid vlieg je verder
 var VAL_DIEPTE = -7;   // zo diep val je voor het game over is
 
 var cam = { x: 0, y: CAM_HOOG, z: -CAM_ACHTER };
@@ -555,12 +559,23 @@ function plaatsPatroon() {
       soort: 'schans', x0: -BAAN, x1: BAAN,
       z0: z, zTop: z + op, z1: na, hoogte: 1.5 + Math.random() * 0.45
     });
-    // iets om overheen te vliegen
+    // iets om overheen te vliegen; er blijft altijd een smalle doorgang voor
+    // wie de schans mist, zodat het nooit een onvermijdelijke crash wordt
     var watNa = Math.random();
+    var vrij = 1.6;                                  // deze strook blijft open
+    var links = Math.random() < 0.5;
     if (watNa < 0.4) {
-      obstakels.push({ type: 'gat', x0: -BAAN, x1: BAAN, z0: Math.round(na + 2), z1: Math.round(na + 2) + 3 });
+      obstakels.push({
+        type: 'gat',
+        x0: links ? -BAAN : -BAAN + vrij, x1: links ? BAAN - vrij : BAAN,
+        z0: Math.round(na + 2), z1: Math.round(na + 2) + 3
+      });
     } else if (watNa < 0.8) {
-      obstakels.push({ type: 'muur', x0: -BAAN, x1: BAAN, z0: na + 3, z1: na + 3.9, y: 0, hoog: 1.1 });
+      obstakels.push({
+        type: 'muur',
+        x0: links ? -BAAN : -BAAN + vrij, x1: links ? BAAN - vrij : BAAN,
+        z0: na + 3, z1: na + 3.9, y: 0, hoog: 1.1
+      });
     }
     volgendeZ = na + 15 + ruimte * 0.4;
     return;
@@ -688,7 +703,7 @@ function tekenLucht() {
 function tekenGebouwen() {
   var stap = 5;
   var k0 = Math.floor((cam.z + NABIJ) / stap);
-  var k1 = Math.floor((cam.z + ZICHT + 25) / stap);
+  var k1 = Math.floor((cam.z + Math.min(ZICHT, 95) + 25) / stap);
   for (var k = k1; k >= k0; k--) {
     for (var s = 0; s < 2; s++) {
       var kant = s === 0 ? -1 : 1;
@@ -966,24 +981,53 @@ function tekenLanding() {
   if (!speler.vliegt || speler.reden) return;
   var g0 = grondOp(speler.x, speler.z);
   if (g0 !== null && speler.y - g0 < 0.7) return;
-  var G = Math.max(12, Math.min(90, snelheid * snelheid / 9));
-  var z = speler.z, y = speler.y, vy = speler.vy, stap = 0.04, i, g;
-  for (i = 0; i < 80; i++) {
-    vy -= G * stap;
+  var z = speler.z, y = speler.y, vy = speler.vy, stap = 0.03, i, g;
+  for (i = 0; i < 200; i++) {
+    vy -= ZWAARTEKRACHT * stap;
     y += vy * stap;
     z += snelheid * stap;
     g = grondOp(speler.x, z);
-    if (g !== null && vy < 0 && y <= g) {
-      if (z - cam.z < NABIJ + 0.5) return;
-      var p = proj(speler.x, g + 0.03, z);
-      var r = STRAAL * p.s;
-      ctx.beginPath();
-      ctx.ellipse(p.x, p.y, r * 1.15, r * 0.42, 0, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(253,230,138,0.85)';
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-      return;
+    if (g === null) {
+      if (y < 0.1 && vy < 0) { ringetje(z, 0, false); return; }   // hier val je erin
+      continue;
     }
+    if (vy < 0 && y <= g) { ringetje(z, g, !muurOp(speler.x, z, g)); return; }
+  }
+}
+
+/* Staat er iets in de weg waar je op zou landen? */
+function muurOp(x, z, g) {
+  for (var i = 0; i < obstakels.length; i++) {
+    var o = obstakels[i];
+    if (z < o.z0 - STRAAL || z > o.z1 + STRAAL) continue;
+    if (o.type === 'muur') {
+      if (x + STRAAL * 0.8 < o.x0 || x - STRAAL * 0.8 > o.x1) continue;
+      if ((o.y || 0) + (o.hoog || MUUR_H) > g + 0.1) return true;
+    } else if (o.type === 'tunnel') {
+      if (x - STRAAL * 0.7 < o.ox0 || x + STRAAL * 0.7 > o.ox1) return true;
+    }
+  }
+  return false;
+}
+
+function ringetje(z, y, veilig) {
+  if (z - cam.z < NABIJ + 0.5) return;
+  var p = proj(speler.x, y + 0.03, z);
+  var r = Math.max(9, STRAAL * p.s);               // ook van heel ver nog te zien
+  ctx.beginPath();
+  ctx.ellipse(p.x, p.y, r * 1.15, r * 0.42, 0, 0, Math.PI * 2);
+  ctx.moveTo(p.x, p.y - r * 0.42);                 // baken omhoog
+  ctx.lineTo(p.x, p.y - r * 2.1);
+  ctx.strokeStyle = veilig ? 'rgba(253,230,138,0.85)' : 'rgba(255,79,190,0.95)';
+  ctx.lineWidth = veilig ? 2.5 : 3.5;
+  ctx.stroke();
+  if (!veilig) {                                   // kruisje: hier moet je niet landen
+    ctx.beginPath();
+    ctx.moveTo(p.x - r * 0.6, p.y - r * 0.32);
+    ctx.lineTo(p.x + r * 0.6, p.y + r * 0.32);
+    ctx.moveTo(p.x + r * 0.6, p.y - r * 0.32);
+    ctx.lineTo(p.x - r * 0.6, p.y + r * 0.32);
+    ctx.stroke();
   }
 }
 
@@ -1150,7 +1194,6 @@ function update(dt) {
   // ---- vooruit rollen; elke tunnel geeft snelheid die je houdt ----
   var basis = mode.speed + Math.min(8, speler.z / 100 * mode.groei * 2.5) + turbo;
   snelheid = basis * (speler.reden ? 0.5 : 1);
-  var G = Math.max(12, Math.min(90, snelheid * snelheid / 9));   // zo blijft elke sprong even ver
 
   var vorigeZ = speler.z;
   speler.z += snelheid * dt;
@@ -1167,14 +1210,18 @@ function update(dt) {
   // ---- 1. van een schans vlieg je, de zwaartekracht haalt je weer omlaag ----
   var grond = grondOp(speler.x, speler.z);
   if (speler.vliegt) {
-    speler.vy -= G * dt;
+    speler.vy -= ZWAARTEKRACHT * dt;
     speler.y += speler.vy * dt;
-    if (grond !== null && speler.vy <= 0 && speler.y <= grond) {
+    if (grond === null) {
+      // onder de baan gezakt terwijl er hier niets is: dan val je er echt in
+      if (!speler.reden && speler.y < 0) speler.reden = Math.abs(speler.x) > BAAN ? 'rand' : 'gat';
+    } else if (!speler.reden && speler.vy <= 0 && speler.y <= grond) {
       speler.y = grond;
       speler.vliegt = false;
       if (speler.vy < -5) { schud = Math.min(0.2, -speler.vy * 0.015); piep(150, 70, 0.12, 'sine', 0.1); }
       speler.vy = 0;
-    } else if (speler.y < VAL_DIEPTE) {
+    }
+    if (speler.y < VAL_DIEPTE) {
       gameOver(speler.reden || 'rand');
       return;
     }
@@ -1200,7 +1247,7 @@ function update(dt) {
   }
 
   // de camera gaat rustig met je mee omhoog en omlaag
-  camY += (CAM_HOOG + speler.y - camY) * Math.min(1, dt * 6);
+  camY += (CAM_HOOG + speler.y - camY) * Math.min(1, dt * (speler.vliegt ? 9 : 6));
 
   // ---- botsingen ----
   for (var i = 0; i < obstakels.length; i++) {
@@ -1213,7 +1260,7 @@ function update(dt) {
           speler.y < top - 0.08 && speler.y + STRAAL * 2 > (o.y || 0) + 0.15) { raak('muur'); return; }
     } else if (o.type === 'tunnel') {
       if (speler.y < 3.2 && (speler.x - STRAAL * 0.7 < o.ox0 || speler.x + STRAAL * 0.7 > o.ox1)) { raak('tunnel'); return; }
-      if (!o.gebruikt && vorigeZ <= o.z1 && speler.z > (o.z0 + o.z1) / 2) {
+      if (!o.gebruikt && speler.y < 3.2 && vorigeZ <= o.z1 && speler.z > (o.z0 + o.z1) / 2) {
         o.gebruikt = true;
         turbo = Math.min(15, turbo + 2.4);         // 2. deze snelheid blijf je houden
         turboAantal++;
@@ -1243,6 +1290,8 @@ function teken() {
     ctx.translate((Math.random() - 0.5) * schud * 26, (Math.random() - 0.5) * schud * 26);
   }
 
+  // in de lucht kijk je verder vooruit, anders zie je je landing niet
+  ZICHT = speler.vliegt ? ZICHT_LUCHT : ZICHT_GROND;
   cam.x = speler.x * 0.55;
   cam.y = camY;
   cam.z = speler.z - CAM_ACHTER;

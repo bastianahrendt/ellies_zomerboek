@@ -58,7 +58,16 @@
     box-shadow: 0 4px 14px rgba(0,0,0,0.4);
   }
   .round-btn:active { transform: scale(0.92); }
+  .hud-midden { display: flex; flex-direction: column; align-items: center; gap: 6px; }
   .hud-scores { display: flex; gap: 26px; padding-top: 4px; }
+  .turbo-pil {
+    font-size: 12px; font-weight: bold; letter-spacing: 1px;
+    color: #3b1d00; background: #fde68a;
+    padding: 3px 12px; border-radius: 999px;
+    opacity: 0; transition: opacity 0.25s;
+    box-shadow: 0 0 14px rgba(253,230,138,0.7);
+  }
+  .turbo-pil.aan { opacity: 1; }
   .hud-score { text-align: center; }
   .hud-score .label {
     font-size: 11px; letter-spacing: 2px; font-weight: bold;
@@ -241,20 +250,23 @@
 
   <div id="hud" class="hidden">
     <button class="round-btn" id="btnBack" title="Terug naar het menu">‹</button>
-    <div class="hud-scores">
-      <div class="hud-score">
-        <div class="label" id="hudMode">MAKKELIJK</div>
-        <div class="value" id="hudScore">0</div>
+    <div class="hud-midden">
+      <div class="hud-scores">
+        <div class="hud-score">
+          <div class="label" id="hudMode">MAKKELIJK</div>
+          <div class="value" id="hudScore">0</div>
+        </div>
+        <div class="hud-score best">
+          <div class="label">RECORD</div>
+          <div class="value" id="hudBest">0</div>
+        </div>
       </div>
-      <div class="hud-score best">
-        <div class="label">RECORD</div>
-        <div class="value" id="hudBest">0</div>
-      </div>
+      <div class="turbo-pil" id="hudTurbo"></div>
     </div>
     <button class="round-btn" id="btnPause" title="Pauze">❚❚</button>
   </div>
 
-  <div id="boostFlash">SNELLER! 🚀</div>
+  <div id="boostFlash">VOOR ALTIJD SNELLER! 🚀</div>
   <div id="countdown"></div>
 
   <div id="touch" class="hidden">
@@ -275,8 +287,10 @@
     <div class="hint">
       Rol zo ver mogelijk! Ga naar links en rechts met de pijltjes,
       de knoppen onderin of door te slepen.<br />
-      Pas op voor de <b style="color:#f472b6">roze muren</b> en val niet van de baan.
-      Door een <b style="color:#c084fc">tunnel</b> ga je sneller!
+      Pas op voor de <b style="color:#f472b6">roze muren</b> en val niet van de baan.<br />
+      Van een <b style="color:#fde68a">schans</b> vlieg je door de lucht, en op de
+      <b style="color:#c7d2fe">hoge weg</b> kan je er aan de zijkant weer af springen.<br />
+      Elke <b style="color:#c084fc">tunnel</b> maakt je sneller — en zo snel blijf je!
     </div>
     <button class="btn link" id="btnBook">🏠 Terug naar het startscherm</button>
   </div>
@@ -400,6 +414,8 @@ var CAM_ACHTER = 5.0;  // camera staat achter de bal
 var CAM_HOOG = 2.4;    // camera staat boven de baan
 var ZICHT = 72;        // hoe ver je vooruit kijkt
 var NABIJ = 0.6;       // niets tekenen dat dichterbij is dan dit
+var MUUR_H = 1.7;      // hoe hoog een roze muur is
+var VAL_DIEPTE = -7;   // zo diep val je voor het game over is
 
 var cam = { x: 0, y: CAM_HOOG, z: -CAM_ACHTER };
 
@@ -486,8 +502,27 @@ function tekenBlok(x0, x1, y0, y1, z0, z1, kleurVoor, kleurBoven, kleurZij, rand
    De wereld: baan, gebouwen, muren, gaten en tunnels
    ========================================================= */
 var obstakels = [];
+var verhogingen = [];         // schansen en hoge wegen
 var volgendeZ = 0;
 var demo = true;              // in het menu rolt de baan leeg door
+
+/* Hoe hoog ligt de baan hier? null = hier is geen baan (gat of naast de baan) */
+function grondOp(x, z) {
+  var i, h = 0, v, o, hv;
+  if (x < -BAAN || x > BAAN) return null;
+  for (i = 0; i < verhogingen.length; i++) {
+    v = verhogingen[i];
+    if (z < v.z0 || z > v.z1 || x < v.x0 || x > v.x1) continue;
+    hv = z < v.zTop ? v.hoogte * (z - v.z0) / (v.zTop - v.z0) : v.hoogte;
+    if (hv > h) h = hv;
+  }
+  if (h > 0) return h;
+  for (i = 0; i < obstakels.length; i++) {
+    o = obstakels[i];
+    if (o.type === 'gat' && z > o.z0 && z < o.z1 && x > o.x0 - 0.15 && x < o.x1 + 0.15) return null;
+  }
+  return 0;
+}
 
 function ruis(i) {
   var x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
@@ -496,6 +531,7 @@ function ruis(i) {
 
 function nieuweWereld() {
   obstakels = [];
+  verhogingen = [];
   volgendeZ = 26;               // de eerste meters zijn altijd vrij
   genereerTot(volgendeZ + 120);
 }
@@ -511,8 +547,48 @@ function plaatsPatroon() {
   var ruimte = mode.ruimte - moeilijk * 4;
   var kans = Math.random();
 
-  if (z > 60 && kans < 0.18) {
-    // ---- tunnel: hier ga je doorheen en daarna ga je sneller ----
+  // ---- schans: je vliegt door de lucht en valt daarna weer naar beneden ----
+  if (z > 40 && kans < 0.17) {
+    var op = 3.2;
+    var na = z + op + 0.9;
+    verhogingen.push({
+      soort: 'schans', x0: -BAAN, x1: BAAN,
+      z0: z, zTop: z + op, z1: na, hoogte: 1.5 + Math.random() * 0.45
+    });
+    // iets om overheen te vliegen
+    var watNa = Math.random();
+    if (watNa < 0.4) {
+      obstakels.push({ type: 'gat', x0: -BAAN, x1: BAAN, z0: Math.round(na + 2), z1: Math.round(na + 2) + 3 });
+    } else if (watNa < 0.8) {
+      obstakels.push({ type: 'muur', x0: -BAAN, x1: BAAN, z0: na + 3, z1: na + 3.9, y: 0, hoog: 1.1 });
+    }
+    volgendeZ = na + 15 + ruimte * 0.4;
+    return;
+  }
+
+  // ---- hoge weg: rijd omhoog, blijf boven, en spring er weer af ----
+  if (z > 90 && kans < 0.30) {
+    var links = Math.random() < 0.5;
+    var lang = 18 + Math.random() * 10;
+    var op2 = 4.5;
+    verhogingen.push({
+      soort: 'weg',
+      x0: links ? -BAAN : 0.25, x1: links ? -0.25 : BAAN,
+      z0: z, zTop: z + op2, z1: z + lang, hoogte: 2.3
+    });
+    // beneden moet je slalommen, boven heb je vrij baan
+    var lx0 = links ? 0.25 : -BAAN, lx1 = links ? BAAN : -0.25;
+    var zz = z + op2 + 1.5;
+    while (zz < z + lang - 3) {
+      zetMuur(zz, lx0, lx1, moeilijk, 0);
+      zz += 6.5 + Math.random() * 4;
+    }
+    volgendeZ = z + lang + 9 + ruimte * 0.5;
+    return;
+  }
+
+  // ---- tunnel: hier ga je doorheen en daarna blijf je sneller ----
+  if (z > 60 && kans < 0.42) {
     var opening = 1.5;                               // halve breedte van de opening
     var mid = (Math.random() * 2 - 1) * (BAAN - opening - 0.15);
     obstakels.push({
@@ -523,45 +599,69 @@ function plaatsPatroon() {
     return;
   }
 
-  if (kans < 0.42) {
-    // ---- gat in de baan: val je erin, dan ben je af ----
-    var links = Math.random() < 0.5;
+  // ---- gat in de baan: val je erin, dan ben je af ----
+  if (kans < 0.62) {
+    var gatLinks = Math.random() < 0.5;
     var breed = 1.6 + Math.random() * 1.4;
     obstakels.push({
       type: 'gat',
-      x0: links ? -BAAN : BAAN - breed,
-      x1: links ? -BAAN + breed : BAAN,
+      x0: gatLinks ? -BAAN : BAAN - breed,
+      x1: gatLinks ? -BAAN + breed : BAAN,
       z0: Math.round(z), z1: Math.round(z) + 4
     });
     volgendeZ = z + 4 + ruimte;
     return;
   }
 
-  // ---- roze muren, er blijft altijd een gat om langs te rollen ----
-  var vorm = Math.floor(Math.random() * 3);
+  // ---- roze muren ----
+  zetMuur(z, -BAAN, BAAN, moeilijk, 0);
+  volgendeZ = z + 0.9 + ruimte;
+}
+
+/* Zet muren tussen x0 en x1, met altijd een gat om langs te rollen */
+function zetMuur(z, wx0, wx1, moeilijk, y) {
+  var breedte = wx1 - wx0;
   var dikte = 0.9;
-  if (vorm === 0) {
-    var b = 1.8 + moeilijk * 1.0 + Math.random() * 0.8;
-    var rechts = Math.random() < 0.5;
-    obstakels.push({ type: 'muur', x0: rechts ? BAAN - b : -BAAN, x1: rechts ? BAAN : -BAAN + b, z0: z, z1: z + dikte });
-  } else if (vorm === 1) {
-    var half = 0.9 + moeilijk * 0.7;
-    var m = (Math.random() * 2 - 1) * 1.0;
-    obstakels.push({ type: 'muur', x0: m - half, x1: m + half, z0: z, z1: z + dikte });
-  } else {
+  var minGat = 1.45 + moeilijk * 0.2;               // zoveel ruimte blijft er altijd over
+  if (breedte < minGat + 0.7) return;               // te smal voor een muur
+  var vorm = Math.floor(Math.random() * 3);
+
+  if (vorm === 2 && breedte > minGat + 2.2) {
     // twee muren met een doorgang ertussen
-    var gatBreed = 2.5 - moeilijk * 0.6;
-    var g = (Math.random() * 2 - 1) * (BAAN - gatBreed / 2 - 0.3);
-    obstakels.push({ type: 'muur', x0: -BAAN, x1: g - gatBreed / 2, z0: z, z1: z + dikte });
-    obstakels.push({ type: 'muur', x0: g + gatBreed / 2, x1: BAAN, z0: z, z1: z + dikte });
+    var gatBreed = Math.min(2.5 - moeilijk * 0.6, breedte - 1.4);
+    gatBreed = Math.max(minGat, gatBreed);
+    var g = wx0 + gatBreed / 2 + 0.2 + Math.random() * Math.max(0, breedte - gatBreed - 0.4);
+    obstakels.push({ type: 'muur', x0: wx0, x1: g - gatBreed / 2, z0: z, z1: z + dikte, y: y, hoog: MUUR_H });
+    obstakels.push({ type: 'muur', x0: g + gatBreed / 2, x1: wx1, z0: z, z1: z + dikte, y: y, hoog: MUUR_H });
+    return;
   }
-  volgendeZ = z + dikte + ruimte;
+
+  var muurBreed = Math.min(1.8 + moeilijk * 1.0 + Math.random() * 0.8, breedte - minGat);
+  if (vorm === 1 && breedte > minGat * 2 + 1.2) {
+    // muur in het midden, ruimte aan beide kanten
+    var half = Math.min(muurBreed, breedte - minGat * 2) / 2;
+    var m = wx0 + minGat + half + Math.random() * Math.max(0, breedte - minGat * 2 - half * 2);
+    obstakels.push({ type: 'muur', x0: m - half, x1: m + half, z0: z, z1: z + dikte, y: y, hoog: MUUR_H });
+    return;
+  }
+
+  // muur tegen één kant aan
+  var rechts = Math.random() < 0.5;
+  obstakels.push({
+    type: 'muur',
+    x0: rechts ? wx1 - muurBreed : wx0,
+    x1: rechts ? wx1 : wx0 + muurBreed,
+    z0: z, z1: z + dikte, y: y, hoog: MUUR_H
+  });
 }
 
 function opruimen(z) {
   var i = 0;
   while (i < obstakels.length && obstakels[i].z1 < z - 12) i++;
   if (i > 0) obstakels.splice(0, i);
+  i = 0;
+  while (i < verhogingen.length && verhogingen[i].z1 < z - 12) i++;
+  if (i > 0) verhogingen.splice(0, i);
 }
 
 /* ---------- De sterrenhemel ---------- */
@@ -697,17 +797,87 @@ function tekenBaan() {
   ctx.stroke();
 }
 
-/* ---------- Muren, gaten en tunnels ---------- */
-function tekenObstakels() {
-  for (var i = obstakels.length - 1; i >= 0; i--) {
-    var o = obstakels[i];
-    if (o.z1 < cam.z + NABIJ || o.z0 > cam.z + ZICHT) continue;
-    if (o.type === 'muur') {
-      tekenBlok(o.x0, o.x1, 0, 1.7, o.z0, o.z1, '#ff4fbe', '#ffa8e0', '#d81f92', '#ffd6f2');
-    } else if (o.type === 'tunnel') {
-      tekenTunnel(o);
+/* ---------- Muren, tunnels, schansen en hoge wegen ---------- */
+function tekenDingen() {
+  var lijst = [], i;
+  for (i = 0; i < obstakels.length; i++) if (obstakels[i].type !== 'gat') lijst.push(obstakels[i]);
+  for (i = 0; i < verhogingen.length; i++) lijst.push(verhogingen[i]);
+  lijst.sort(function (a, b) { return b.z0 - a.z0; });      // van ver naar dichtbij
+
+  for (i = 0; i < lijst.length; i++) {
+    var d = lijst[i];
+    if (d.z1 < cam.z + NABIJ || d.z0 > cam.z + ZICHT) continue;
+    if (d.soort) tekenVerhoging(d);
+    else if (d.type === 'muur') {
+      var y = d.y || 0, h = d.hoog || MUUR_H;
+      tekenBlok(d.x0, d.x1, y, y + h, d.z0, d.z1, '#ff4fbe', '#ffa8e0', '#d81f92', '#ffd6f2');
+    } else if (d.type === 'tunnel') {
+      tekenTunnel(d);
     }
   }
+}
+
+/* Een schans of een hoge weg: helling omhoog, vlak stuk, en er weer af */
+function tekenVerhoging(v) {
+  var schans = v.soort === 'schans';
+  var i, x, z;
+
+  // de zijkanten, zodat je ziet hoe hoog het is
+  for (i = 0; i < 2; i++) {
+    x = i === 0 ? v.x0 : v.x1;
+    if (x <= -BAAN + 0.02 || x >= BAAN - 0.02) continue;     // die kant zit tegen de rand
+    if (i === 0 ? cam.x > x : cam.x < x) continue;           // die kant zie je niet
+    ctx.beginPath();
+    padVlak([[x, 0, v.z0], [x, v.hoogte, v.zTop], [x, v.hoogte, v.z1], [x, 0, v.z1]]);
+    ctx.fillStyle = '#222a63';
+    ctx.fill();
+  }
+
+  // de helling waar je tegenop rijdt
+  ctx.beginPath();
+  padVlak([[v.x0, 0, v.z0], [v.x1, 0, v.z0], [v.x1, v.hoogte, v.zTop], [v.x0, v.hoogte, v.zTop]]);
+  ctx.fillStyle = schans ? '#7b4bf5' : '#4d5ab6';
+  ctx.fill();
+
+  // het vlakke stuk bovenop
+  if (v.z1 > v.zTop + 0.01) {
+    ctx.beginPath();
+    padVlak([[v.x0, v.hoogte, v.zTop], [v.x1, v.hoogte, v.zTop], [v.x1, v.hoogte, v.z1], [v.x0, v.hoogte, v.z1]]);
+    ctx.fillStyle = '#5763c2';
+    ctx.fill();
+
+    // ruitjes bovenop
+    ctx.beginPath();
+    for (z = Math.ceil(v.zTop); z <= v.z1; z++) padLijn([v.x0, v.hoogte, z], [v.x1, v.hoogte, z]);
+    for (x = Math.ceil(v.x0 / 1.2) * 1.2; x <= v.x1; x += 1.2) padLijn([x, v.hoogte, v.zTop], [x, v.hoogte, v.z1]);
+    ctx.strokeStyle = 'rgba(178,190,255,0.75)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // pijlen op de helling: hier vlieg je
+  var mx = (v.x0 + v.x1) / 2, br = Math.min(0.95, (v.x1 - v.x0) * 0.3);
+  ctx.beginPath();
+  for (i = 1; i <= 3; i++) {
+    var t = i / 4, t2 = t + 0.14;
+    var za = v.z0 + (v.zTop - v.z0) * t, ya = v.hoogte * t + 0.03;
+    var zb = v.z0 + (v.zTop - v.z0) * t2, yb = v.hoogte * t2 + 0.03;
+    padLijn([mx - br, ya, za], [mx, yb, zb]);
+    padLijn([mx + br, ya, za], [mx, yb, zb]);
+  }
+  ctx.strokeStyle = schans ? '#fde68a' : '#c7d2fe';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // gloeiende randen: de lip van de schans en de kant waar je eraf gaat
+  ctx.beginPath();
+  padLijn([v.x0, v.hoogte, v.zTop], [v.x1, v.hoogte, v.zTop]);
+  padLijn([v.x0, v.hoogte, v.z1], [v.x1, v.hoogte, v.z1]);
+  padLijn([v.x0, v.hoogte, v.zTop], [v.x0, v.hoogte, v.z1]);
+  padLijn([v.x1, v.hoogte, v.zTop], [v.x1, v.hoogte, v.z1]);
+  ctx.strokeStyle = schans ? '#fff0a8' : '#dbe3ff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
 }
 
 function tekenTunnel(t) {
@@ -791,16 +961,45 @@ function tekenBolletje(x, y, r, rol) {
   ctx.fill();
 }
 
+/* Ringetje waar je gaat landen, zodat je weet waar je uitkomt */
+function tekenLanding() {
+  if (!speler.vliegt || speler.reden) return;
+  var g0 = grondOp(speler.x, speler.z);
+  if (g0 !== null && speler.y - g0 < 0.7) return;
+  var G = Math.max(12, Math.min(90, snelheid * snelheid / 9));
+  var z = speler.z, y = speler.y, vy = speler.vy, stap = 0.04, i, g;
+  for (i = 0; i < 80; i++) {
+    vy -= G * stap;
+    y += vy * stap;
+    z += snelheid * stap;
+    g = grondOp(speler.x, z);
+    if (g !== null && vy < 0 && y <= g) {
+      if (z - cam.z < NABIJ + 0.5) return;
+      var p = proj(speler.x, g + 0.03, z);
+      var r = STRAAL * p.s;
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, r * 1.15, r * 0.42, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(253,230,138,0.85)';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      return;
+    }
+  }
+}
+
 function tekenSpeler() {
   var p = proj(speler.x, STRAAL + speler.y, speler.z);
   var r = STRAAL * p.s;
 
-  // schaduw op de baan
-  if (!speler.valt) {
-    var sc = proj(speler.x, 0.01, speler.z + 0.1);
+  // schaduw op de baan onder je: hoe hoger je vliegt, hoe kleiner
+  var g = grondOp(speler.x, speler.z);
+  if (g !== null && speler.y >= g - 0.05) {
+    var boven = Math.max(0, speler.y - g);
+    var f = Math.max(0.3, 1 - boven * 0.16);
+    var sc = proj(speler.x, g + 0.02, speler.z + 0.1);
     ctx.beginPath();
-    ctx.ellipse(sc.x, sc.y, r * 0.85, r * 0.3, 0, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.ellipse(sc.x, sc.y, r * 0.85 * f, r * 0.3 * f, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,' + (0.45 * f) + ')';
     ctx.fill();
   }
   tekenBolletje(p.x, p.y, r, speler.rol);
@@ -844,13 +1043,14 @@ function piep(van, naar, duur, vorm, vol) {
    Het spel zelf
    ========================================================= */
 var staat = 'menu';                    // menu | aftellen | spelen | pauze | over
-var speler = { x: 0, doel: 0, z: 0, y: 0, vy: 0, valt: false, rol: 0 };
+var speler = { x: 0, doel: 0, z: 0, y: 0, vy: 0, vliegt: false, reden: null, rol: 0 };
 var snelheid = 0, boostTijd = 0, aftelTijd = 0, schud = 0, flitser = 0;
-var score = 0, richting = 0, laatsteTik = 0;
-var BOOST_DUUR = 3.5;
+var score = 0, richting = 0, camY = CAM_HOOG;
+var turbo = 0, turboAantal = 0;      // de tunnels: deze snelheid houd je
+var BOOST_DUUR = 1.6;                // alleen nog voor het flitsje op het scherm
 
 var el = {};
-['hud', 'hudMode', 'hudScore', 'hudBest', 'touch', 'countdown', 'boostFlash',
+['hud', 'hudMode', 'hudScore', 'hudBest', 'hudTurbo', 'touch', 'countdown', 'boostFlash',
  'overReason', 'overScore', 'overBest', 'startBest'].forEach(function (id) {
   el[id] = document.getElementById(id);
 });
@@ -866,8 +1066,11 @@ function toonScherm(naam) {
 
 function startSpel() {
   demo = false;
-  speler = { x: 0, doel: 0, z: 0, y: 0, vy: 0, valt: false, rol: 0 };
+  speler = { x: 0, doel: 0, z: 0, y: 0, vy: 0, vliegt: false, reden: null, rol: 0 };
   boostTijd = 0; schud = 0; flitser = 0; score = 0; richting = 0;
+  turbo = 0; turboAantal = 0; camY = CAM_HOOG;
+  el.hudTurbo.textContent = '';
+  el.hudTurbo.classList.remove('aan');
   nieuweWereld();
   el.hudMode.textContent = mode.label;
   el.hudBest.textContent = bestOf(mode);
@@ -914,6 +1117,8 @@ function update(dt) {
     speler.rol += (7 * dt) / STRAAL;
     speler.x = Math.sin(speler.z * 0.06) * 1.7;
     speler.doel = speler.x;
+    speler.y = 0;
+    camY = CAM_HOOG;
     genereerTot(speler.z + 130);
     opruimen(speler.z);
     return;
@@ -932,22 +1137,25 @@ function update(dt) {
   if (staat !== 'spelen') return;
 
   // ---- 5. naar links en naar rechts ----
-  if (!speler.valt) {
-    if (richting !== 0) speler.doel += richting * 7.5 * dt;
-    speler.doel = Math.max(-BAAN - 0.8, Math.min(BAAN + 0.8, speler.doel));
-    speler.x += (speler.doel - speler.x) * Math.min(1, dt * 13);
+  if (richting !== 0) speler.doel += richting * 7.5 * dt;
+  speler.doel = Math.max(-BAAN - 0.8, Math.min(BAAN + 0.8, speler.doel));
+  var wilX = speler.x + (speler.doel - speler.x) * Math.min(1, dt * 13);
+  var grondDaar = grondOp(wilX, speler.z);
+  if (!speler.vliegt && grondDaar !== null && grondDaar > speler.y + 0.4) {
+    speler.doel = speler.x;                       // tegen een hoge rand kan je niet op
+  } else {
+    speler.x = wilX;
   }
 
-  // ---- vooruit rollen, door een tunnel ga je sneller ----
-  var basis = mode.speed + Math.min(8, speler.z / 100 * mode.groei * 2.5);
-  var boost = boostTijd > 0 ? 1 + 0.55 * Math.min(1, boostTijd / BOOST_DUUR + 0.25) : 1;
-  snelheid = basis * boost * (speler.valt ? 0.35 : 1);
-  if (boostTijd > 0) boostTijd -= dt;
+  // ---- vooruit rollen; elke tunnel geeft snelheid die je houdt ----
+  var basis = mode.speed + Math.min(8, speler.z / 100 * mode.groei * 2.5) + turbo;
+  snelheid = basis * (speler.reden ? 0.5 : 1);
+  var G = Math.max(12, Math.min(90, snelheid * snelheid / 9));   // zo blijft elke sprong even ver
 
   var vorigeZ = speler.z;
   speler.z += snelheid * dt;
   speler.rol += (snelheid * dt) / STRAAL;
-  genereerTot(speler.z + 130);
+  genereerTot(speler.z + Math.max(130, snelheid * 10));
   opruimen(speler.z);
 
   score = Math.floor(speler.z / 2);
@@ -956,54 +1164,74 @@ function update(dt) {
     if (score > 0 && score % 25 === 0) piep(880, 1200, 0.08, 'triangle', 0.07);
   }
 
-  // ---- 4. van de baan vallen ----
-  if (!speler.valt && Math.abs(speler.x) > BAAN + 0.05) valBegin('rand');
+  // ---- 1. van een schans vlieg je, de zwaartekracht haalt je weer omlaag ----
+  var grond = grondOp(speler.x, speler.z);
+  if (speler.vliegt) {
+    speler.vy -= G * dt;
+    speler.y += speler.vy * dt;
+    if (grond !== null && speler.vy <= 0 && speler.y <= grond) {
+      speler.y = grond;
+      speler.vliegt = false;
+      if (speler.vy < -5) { schud = Math.min(0.2, -speler.vy * 0.015); piep(150, 70, 0.12, 'sine', 0.1); }
+      speler.vy = 0;
+    } else if (speler.y < VAL_DIEPTE) {
+      gameOver(speler.reden || 'rand');
+      return;
+    }
+  } else if (grond === null) {
+    // ---- 4. geen baan meer onder je: je valt eraf ----
+    speler.vliegt = true;
+    speler.vy = 0;
+    speler.reden = Math.abs(speler.x) > BAAN ? 'rand' : 'gat';
+    piep(500, 90, 0.6, 'sine', 0.16);
+  } else {
+    var vorigeGrond = grondOp(speler.x, vorigeZ);
+    var stap = Math.max(0.0001, speler.z - vorigeZ);
+    var helling = vorigeGrond === null ? 0 : (grond - vorigeGrond) / stap;
+    speler.y = grond;
+    var kijkZ = speler.z + Math.max(0.4, snelheid * dt);
+    var kijk = grondOp(speler.x, kijkZ);
+    var hellingVoor = kijk === null ? -99 : (kijk - grond) / (kijkZ - speler.z);
+    if (hellingVoor < helling - 0.1) {
+      speler.vliegt = true;                        // de baan buigt weg: je komt los
+      speler.vy = Math.max(0, helling * snelheid);
+      if (speler.vy > 2) piep(320, 820, 0.18, 'triangle', 0.1);
+    }
+  }
+
+  // de camera gaat rustig met je mee omhoog en omlaag
+  camY += (CAM_HOOG + speler.y - camY) * Math.min(1, dt * 6);
 
   // ---- botsingen ----
-  if (!speler.valt) {
-    for (var i = 0; i < obstakels.length; i++) {
-      var o = obstakels[i];
-      if (o.type === 'gat') {
-        if (speler.z > o.z0 && speler.z < o.z1 && speler.x > o.x0 - 0.15 && speler.x < o.x1 + 0.15) {
-          valBegin('gat');
-          break;
-        }
-        continue;
-      }
-      if (speler.z + STRAAL < o.z0 || speler.z - STRAAL > o.z1) continue;
-      if (o.type === 'muur') {
-        if (speler.x + STRAAL * 0.8 > o.x0 && speler.x - STRAAL * 0.8 < o.x1) { raak('muur'); return; }
-      } else if (o.type === 'tunnel') {
-        if (speler.x - STRAAL * 0.7 < o.ox0 || speler.x + STRAAL * 0.7 > o.ox1) { raak('tunnel'); return; }
-        if (!o.gebruikt && vorigeZ <= o.z1 && speler.z > (o.z0 + o.z1) / 2) {
-          o.gebruikt = true;
-          boostTijd = BOOST_DUUR;
-          flitser = 1;
-          el.boostFlash.classList.remove('show');
-          void el.boostFlash.offsetWidth;
-          el.boostFlash.classList.add('show');
-          piep(400, 1400, 0.35, 'sawtooth', 0.12);
-        }
+  for (var i = 0; i < obstakels.length; i++) {
+    var o = obstakels[i];
+    if (o.type === 'gat') continue;                // gaten zitten al in grondOp
+    if (speler.z + STRAAL < o.z0 || speler.z - STRAAL > o.z1) continue;
+    if (o.type === 'muur') {
+      var top = (o.y || 0) + (o.hoog || MUUR_H);
+      if (speler.x + STRAAL * 0.8 > o.x0 && speler.x - STRAAL * 0.8 < o.x1 &&
+          speler.y < top - 0.08 && speler.y + STRAAL * 2 > (o.y || 0) + 0.15) { raak('muur'); return; }
+    } else if (o.type === 'tunnel') {
+      if (speler.y < 3.2 && (speler.x - STRAAL * 0.7 < o.ox0 || speler.x + STRAAL * 0.7 > o.ox1)) { raak('tunnel'); return; }
+      if (!o.gebruikt && vorigeZ <= o.z1 && speler.z > (o.z0 + o.z1) / 2) {
+        o.gebruikt = true;
+        turbo = Math.min(15, turbo + 2.4);         // 2. deze snelheid blijf je houden
+        turboAantal++;
+        el.hudTurbo.textContent = '🚀 +' + turboAantal;
+        el.hudTurbo.classList.add('aan');
+        boostTijd = BOOST_DUUR;
+        flitser = 1;
+        el.boostFlash.classList.remove('show');
+        void el.boostFlash.offsetWidth;
+        el.boostFlash.classList.add('show');
+        piep(400, 1400, 0.35, 'sawtooth', 0.12);
       }
     }
   }
 
-  // ---- het vallen zelf ----
-  if (speler.valt) {
-    speler.vy -= 22 * dt;
-    speler.y += speler.vy * dt;
-    if (speler.y < -9) gameOver(speler.reden);
-  }
-
+  if (boostTijd > 0) boostTijd -= dt;
   if (schud > 0) schud = Math.max(0, schud - dt);
   if (flitser > 0) flitser = Math.max(0, flitser - dt * 1.5);
-}
-
-function valBegin(reden) {
-  speler.valt = true;
-  speler.vy = -1.5;
-  speler.reden = reden;
-  piep(500, 90, 0.6, 'sine', 0.16);
 }
 
 /* =========================================================
@@ -1016,18 +1244,19 @@ function teken() {
   }
 
   cam.x = speler.x * 0.55;
-  cam.y = CAM_HOOG + speler.y * 0.35;
+  cam.y = camY;
   cam.z = speler.z - CAM_ACHTER;
 
   tekenLucht();
   tekenGebouwen();
   tekenBaan();
-  tekenObstakels();
+  tekenDingen();
+  tekenLanding();
   if (staat !== 'menu' && staat !== 'shop') tekenSpeler();
 
-  // vaartstrepen als je door een tunnel bent gegaan
-  if (boostTijd > 0) {
-    var a = Math.min(0.5, boostTijd / BOOST_DUUR);
+  // vaartstrepen zolang je turbo hebt, extra fel net na een tunnel
+  if (boostTijd > 0 || turbo > 0) {
+    var a = Math.min(0.5, turbo * 0.022 + Math.max(0, boostTijd) * 0.18);
     ctx.strokeStyle = 'rgba(255,255,255,' + a + ')';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -1123,7 +1352,7 @@ function hervat() {
 function naarMenu() {
   staat = 'menu';
   demo = true;
-  speler = { x: 0, doel: 0, z: 0, y: 0, vy: 0, valt: false, rol: 0 };
+  speler = { x: 0, doel: 0, z: 0, y: 0, vy: 0, vliegt: false, reden: null, rol: 0 };
   nieuweWereld();
   el.countdown.classList.remove('show');
   el.startBest.textContent = 'Record: ' + bestOf(mode);

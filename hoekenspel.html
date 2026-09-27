@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#f59e0b" />
+<title>Hoekenspel 🔢</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='50' height='50' fill='%23f87171'/%3E%3Crect x='50' width='50' height='50' fill='%2360a5fa'/%3E%3Crect y='50' width='50' height='50' fill='%234ade80'/%3E%3Crect x='50' y='50' width='50' height='50' fill='%23facc15'/%3E%3C/svg%3E" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #fde68a 0%, #fbbf24 55%, #f59e0b 100%);
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 16px 24px;
+    overflow-x: hidden;
+  }
+
+  .terug {
+    display: inline-block;
+    margin: 6px 0 8px;
+    color: #92400e;
+    background: rgba(255,255,255,0.8);
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  .terug:hover { background: #fff; }
+
+  h1 {
+    font-size: clamp(28px, 7vw, 42px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 3px 0 #b45309, 0 6px 16px rgba(180,83,9,0.5);
+    margin-bottom: 8px;
+  }
+
+  /* ===== statusbalk ===== */
+  .status {
+    width: min(94vw, 64vh, 600px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 16px;
+    padding: 8px 14px;
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 12px rgba(146,64,14,0.2);
+  }
+  .levens { font-size: 20px; letter-spacing: 2px; }
+  .levens .weg { filter: grayscale(1); opacity: 0.35; }
+  .geluid {
+    border: none; background: #fef3c7; border-radius: 999px;
+    font-size: 18px; width: 36px; height: 36px; cursor: pointer;
+  }
+
+  /* ===== de klas ===== */
+  .klas {
+    position: relative;
+    width: min(94vw, 64vh, 600px);
+    aspect-ratio: 1;
+    container-type: size;
+    border: 10px solid #78350f;
+    border-radius: 14px;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0 2px, transparent 2px 12.5%),
+      linear-gradient(180deg, #e8c48f, #d9a866);
+    box-shadow: 0 12px 30px rgba(120,53,15,0.45), inset 0 0 30px rgba(120,53,15,0.35);
+    user-select: none;
+    overflow: hidden;
+  }
+
+  .hoek {
+    position: absolute;
+    width: 34%;
+    height: 34%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20cqw;
+    font-weight: 900;
+    color: rgba(255,255,255,0.75);
+    text-shadow: 0 0.6cqw 0 rgba(0,0,0,0.15);
+    border: 0.8cqw dashed rgba(255,255,255,0.7);
+    transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s;
+  }
+  .hoek[data-h="1"] { top: 0; left: 0; background: #f87171; border-radius: 0 0 40% 0; }
+  .hoek[data-h="2"] { top: 0; right: 0; background: #60a5fa; border-radius: 0 0 0 40%; }
+  .hoek[data-h="3"] { bottom: 0; left: 0; background: #4ade80; border-radius: 0 40% 0 0; }
+  .hoek[data-h="4"] { bottom: 0; right: 0; background: #facc15; border-radius: 40% 0 0 0; }
+
+  .klas.klikbaar .hoek { cursor: pointer; }
+  .klas.klikbaar .hoek:hover { filter: brightness(1.12); }
+  .hoek.gekozen {
+    animation: flits 0.5s ease-in-out 3;
+    box-shadow: inset 0 0 0 1.4cqw #dc2626, 0 0 4cqw #dc2626;
+    z-index: 1;
+  }
+  .hoek.leeg { box-shadow: inset 0 0 0 1.4cqw #fff; }
+  @keyframes flits { 50% { filter: brightness(1.5); } }
+
+  /* ===== de teller in het midden ===== */
+  .teller {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 30%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .scherm {
+    width: 100%;
+    background: #0f172a;
+    color: #4ade80;
+    border: 1.2cqw solid #334155;
+    border-radius: 2cqw;
+    padding: 1.6cqw 1cqw;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    box-shadow: 0 1.4cqw 2.4cqw rgba(0,0,0,0.4);
+    min-height: 15cqw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .scherm .groot { font-size: 8cqw; line-height: 1; }
+  .scherm .klein { font-size: 2.6cqw; margin-top: 0.8cqw; color: #bbf7d0; }
+  .scherm.rood { color: #f87171; }
+  .tellerpop {
+    font-size: 9cqw;
+    line-height: 1;
+    margin-top: -0.6cqw;
+    filter: drop-shadow(0 1cqw 1cqw rgba(0,0,0,0.3));
+  }
+  .tellernaam {
+    font-size: 2.6cqw;
+    font-weight: bold;
+    background: #fff;
+    border-radius: 999px;
+    padding: 0.3cqw 1.6cqw;
+    margin-top: 0.4cqw;
+  }
+
+  /* ===== de spelers ===== */
+  .kind {
+    position: absolute;
+    width: 10cqw;
+    height: 10cqw;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 6.4cqw;
+    border: 0.6cqw solid #fff;
+    box-shadow: 0 0.8cqw 1.4cqw rgba(0,0,0,0.3);
+    transition: left 0.8s ease-in-out, top 0.8s ease-in-out, opacity 0.6s, transform 0.3s;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .kind .label {
+    position: absolute;
+    top: 96%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.5cqw;
+    font-weight: bold;
+    background: rgba(255,255,255,0.9);
+    border-radius: 999px;
+    padding: 0 1cqw;
+    white-space: nowrap;
+  }
+  .kind.mens { border-color: #fde047; box-shadow: 0 0 0 0.6cqw #f59e0b, 0 0.8cqw 1.4cqw rgba(0,0,0,0.3); z-index: 4; }
+  .kind.mens .label { background: #fde047; }
+  .kind.betrapt { animation: schud 0.4s ease-in-out 2; }
+  .kind.betrapt::after {
+    content: '❌';
+    position: absolute;
+    font-size: 7cqw;
+  }
+  .kind.weg { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  @keyframes schud {
+    0%,100% { transform: translate(-50%, -50%) rotate(0); }
+    25% { transform: translate(-50%, -50%) rotate(-14deg); }
+    75% { transform: translate(-50%, -50%) rotate(14deg); }
+  }
+  .klas.blind .kind { opacity: 0; }
+
+  /* ogen-dicht-sluier als Ellie de teller is */
+  .sluier {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,23,42,0.55);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 71cqw;
+    text-align: center;
+    z-index: 1;
+    pointer-events: none;
+    color: #fff;
+    font-weight: 900;
+    font-size: 4.4cqw;
+    line-height: 1.2;
+    text-shadow: 0 0.5cqw 1cqw rgba(0,0,0,0.6);
+  }
+  .klas.dicht .sluier { display: flex; }
+
+  /* ===== berichten en knoppen ===== */
+  .bericht {
+    width: min(94vw, 600px);
+    min-height: 54px;
+    margin-top: 10px;
+    text-align: center;
+    font-size: clamp(16px, 4.2vw, 20px);
+    font-weight: bold;
+    color: #78350f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .knop {
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    font-weight: bold;
+    font-size: 17px;
+    color: #fff;
+    background: #ea580c;
+    padding: 12px 26px;
+    border-radius: 999px;
+    box-shadow: 0 5px 0 #9a3412;
+    transition: transform 0.1s;
+  }
+  .knop:active { transform: translateY(3px); box-shadow: 0 2px 0 #9a3412; }
+  .knop.blauw { background: #0284c7; box-shadow: 0 5px 0 #075985; }
+  .knop.grijs { background: #64748b; box-shadow: 0 5px 0 #334155; }
+  .verborgen { display: none !important; }
+
+  .bank {
+    width: min(94vw, 600px);
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #78350f;
+  }
+  .bank .chip {
+    background: rgba(255,255,255,0.7);
+    border-radius: 999px;
+    padding: 3px 10px;
+    text-decoration: line-through;
+  }
+
+  /* ===== start- en eindscherm ===== */
+  .laag {
+    position: fixed;
+    inset: 0;
+    background: rgba(120,53,15,0.55);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 20;
+  }
+  .kaart {
+    background: #fffdf7;
+    border-radius: 22px;
+    padding: 22px 20px;
+    width: 100%;
+    max-width: 460px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+    text-align: center;
+  }
+  .kaart h2 { font-size: 26px; margin-bottom: 8px; }
+  .kaart p { color: #475569; line-height: 1.45; margin-bottom: 12px; }
+  .regels {
+    text-align: left;
+    background: #fef3c7;
+    border-radius: 14px;
+    padding: 12px 14px 12px 32px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #78350f;
+    margin-bottom: 14px;
+  }
+  .kies-titel { font-weight: bold; margin: 10px 0 6px; }
+  .rij { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .keuze {
+    border: 3px solid #fcd34d;
+    background: #fff;
+    border-radius: 14px;
+    padding: 10px 14px;
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    min-width: 64px;
+  }
+  .keuze.aan { background: #fde68a; border-color: #ea580c; }
+  .keuze .emo { display: block; font-size: 30px; }
+  .kaart .knoppen { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+
+  .confetti {
+    position: fixed;
+    top: -40px;
+    font-size: 26px;
+    z-index: 30;
+    pointer-events: none;
+    animation: val linear forwards;
+  }
+  @keyframes val { to { transform: translateY(110vh) rotate(540deg); } }
+</style>
+</head>
+<body>
+
+<a class="terug" href="index.html">← Terug naar het startscherm</a>
+<h1>Hoekenspel</h1>
+
+<div class="status">
+  <span>Ronde <span id="ronde">0</span></span>
+  <span title="Levens van de teller">Teller: <span class="levens" id="levens"></span></span>
+  <span>👥 <span id="over">0</span></span>
+  <button class="geluid" id="geluid" title="Geluid aan/uit">🔊</button>
+</div>
+
+<div class="klas" id="klas">
+  <div class="hoek" data-h="1">1</div>
+  <div class="hoek" data-h="2">2</div>
+  <div class="hoek" data-h="3">3</div>
+  <div class="hoek" data-h="4">4</div>
+  <div class="sluier"><span style="max-width:30cqw">🙈 Ogen<br>dicht!</span></div>
+  <div class="teller">
+    <div class="scherm" id="scherm"><div class="groot">10</div><div class="klein">klaar?</div></div>
+    <div class="tellerpop" id="tellerpop">🧑‍🏫</div>
+    <div class="tellernaam" id="tellernaam">Teller</div>
+  </div>
+</div>
+
+<div class="bericht" id="bericht"></div>
+<button class="knop verborgen" id="volgende">Volgende ronde →</button>
+<div class="bank" id="bank"></div>
+
+<!-- startscherm -->
+<div class="laag" id="startlaag">
+  <div class="kaart">
+    <h2>🔢 Hoekenspel</h2>
+    <p>Een spel bedacht door Ellie!</p>
+    <ol class="regels">
+      <li>Er zijn vier hoeken: hoek 1, 2, 3 en 4.</li>
+      <li>In het midden zit de teller. Die ziet de spelers niet. Na tien seconden kiest de teller een hoek.</li>
+      <li>Sta jij in die hoek? Dan ben je af!</li>
+      <li>Kiest de teller een lege hoek? Dan verliest de teller een leven. De teller heeft er 3.</li>
+    </ol>
+    <div class="kies-titel">Wat ben jij?</div>
+    <div class="rij" id="rolkeuze">
+      <button class="keuze aan" data-rol="speler"><span class="emo">🙈</span>Ik verstop me</button>
+      <button class="keuze" data-rol="teller"><span class="emo">👀</span>Ik ben de teller</button>
+    </div>
+    <div class="kies-titel" id="aantaltitel">Hoeveel kinderen spelen mee?</div>
+    <div class="rij" id="aantalkeuze">
+      <button class="keuze" data-n="4">4</button>
+      <button class="keuze aan" data-n="6">6</button>
+      <button class="keuze" data-n="8">8</button>
+    </div>
+    <div class="knoppen">
+      <button class="knop" id="startknop">Start! ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- tussen- en eindscherm -->
+<div class="laag verborgen" id="eindlaag">
+  <div class="kaart">
+    <h2 id="eindtitel"></h2>
+    <p id="eindtekst"></p>
+    <div class="knoppen" id="eindknoppen"></div>
+  </div>
+</div>
+
+<script>
+  // ===== gegevens =====
+  const KINDEREN = [
+    { naam: 'Sem',   emoji: '👦',   kleur: '#93c5fd' },
+    { naam: 'Noor',  emoji: '👧🏽', kleur: '#c4b5fd' },
+    { naam: 'Daan',  emoji: '🧒',   kleur: '#86efac' },
+    { naam: 'Lotte', emoji: '👱‍♀️', kleur: '#fdba74' },
+    { naam: 'Finn',  emoji: '👦🏼', kleur: '#5eead4' },
+    { naam: 'Julia', emoji: '👧🏻', kleur: '#fda4af' },
+    { naam: 'Mees',  emoji: '🧑',   kleur: '#fcd34d' },
+    { naam: 'Sara',  emoji: '👧🏾', kleur: '#a5b4fc' },
+  ];
+  const ELLIE = { naam: 'Ellie', emoji: '👧', kleur: '#f9a8d4' };
+  const TELTIJD = 10;
+  const MAX_LEVENS = 3;
+
+  // midden van elke hoek (in % van de klas) en plekjes daarbinnen
+  const HOEKMIDDEN = { 1: [17, 17], 2: [83, 17], 3: [17, 83], 4: [83, 83] };
+  const PLEKJES = [[0,0],[-1,-1],[1,1],[1,-1],[-1,1],[0,-1],[0,1],[-1,0],[1,0]];
+  // startplekken in het midden, tussen de hoeken in
+  const STARTPLEK = [[42,9],[58,91],[91,42],[9,58],[58,9],[42,91],[91,58],[9,42]];
+
+  const $ = id => document.getElementById(id);
+  const klas = $('klas');
+
+  let S = {};
+  let timers = [];
+  let rol = 'speler';
+  let aantal = 6;
+  let geluidAan = true;
+
+  function later(fn, ms) { const t = setTimeout(fn, ms); timers.push(t); return t; }
+  function stopTimers() { timers.forEach(clearTimeout); timers.forEach(clearInterval); timers = []; }
+  const willekeurig = n => Math.floor(Math.random() * n);
+
+  // ===== geluid =====
+  let ac = null;
+  function piep(freq, duur = 0.12, type = 'sine', vol = 0.15, start = 0) {
+    if (!geluidAan) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const t = ac.currentTime + start;
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + duur);
+      o.connect(g).connect(ac.destination);
+      o.start(t);
+      o.stop(t + duur);
+    } catch (e) {}
+  }
+  const geluiden = {
+    tik: () => piep(660, 0.08, 'square', 0.06),
+    laatste: () => piep(880, 0.12, 'square', 0.09),
+    stap: () => piep(180 + willekeurig(60), 0.05, 'triangle', 0.05),
+    rol: () => piep(400 + willekeurig(300), 0.05, 'square', 0.05),
+    af: () => { piep(520, 0.15, 'sawtooth', 0.1); piep(330, 0.3, 'sawtooth', 0.1, 0.15); },
+    mis: () => { piep(300, 0.2, 'triangle', 0.14); piep(220, 0.35, 'triangle', 0.14, 0.2); },
+    hoera: () => [523, 659, 784, 1047].forEach((f, i) => piep(f, 0.2, 'triangle', 0.13, i * 0.12)),
+    jammer: () => [392, 330, 262].forEach((f, i) => piep(f, 0.3, 'triangle', 0.13, i * 0.2)),
+  };
+
+  // ===== startscherm =====
+  function kiesKnop(groep, knop) {
+    groep.querySelectorAll('.keuze').forEach(k => k.classList.toggle('aan', k === knop));
+  }
+  $('rolkeuze').addEventListener('click', e => {
+    const k = e.target.closest('.keuze'); if (!k) return;
+    rol = k.dataset.rol; kiesKnop($('rolkeuze'), k);
+    $('aantaltitel').textContent = rol === 'speler' ? 'Hoeveel kinderen spelen mee (met jou erbij)?' : 'Hoeveel kinderen moet jij vangen?';
+  });
+  $('aantalkeuze').addEventListener('click', e => {
+    const k = e.target.closest('.keuze'); if (!k) return;
+    aantal = +k.dataset.n; kiesKnop($('aantalkeuze'), k);
+  });
+  $('startknop').addEventListener('click', startSpel);
+  $('geluid').addEventListener('click', () => {
+    geluidAan = !geluidAan;
+    $('geluid').textContent = geluidAan ? '🔊' : '🔇';
+  });
+
+  // ===== spel opzetten =====
+  function startSpel() {
+    stopTimers();
+    $('startlaag').classList.add('verborgen');
+    $('eindlaag').classList.add('verborgen');
+    klas.querySelectorAll('.kind').forEach(k => k.remove());
+    $('bank').innerHTML = '';
+
+    const lijst = [];
+    const computer = rol === 'speler' ? aantal - 1 : aantal;
+    if (rol === 'speler') lijst.push({ ...ELLIE, mens: true });
+    [...KINDEREN].sort(() => Math.random() - 0.5).slice(0, computer)
+      .forEach(k => lijst.push({ ...k, mens: false }));
+
+    S = {
+      spelers: lijst.map((k, i) => ({
+        ...k,
+        id: i,
+        hoek: 0,
+        af: false,
+        fav: 1 + willekeurig(4),   // elk kind heeft een lievelingshoek
+        start: STARTPLEK[i],
+        el: maakKind(k),
+      })),
+      levens: MAX_LEVENS,
+      ronde: 0,
+      fase: 'start',
+      kijken: false,
+    };
+    S.spelers.forEach(p => zet(p.el, p.start));
+
+    $('tellerpop').textContent = rol === 'teller' ? '👧' : '🧑‍🏫';
+    $('tellernaam').textContent = rol === 'teller' ? 'Ellie (teller)' : 'Teller';
+    nieuweRonde();
+  }
+
+  function maakKind(k) {
+    const el = document.createElement('div');
+    el.className = 'kind' + (k.mens ? ' mens' : '');
+    el.style.background = k.kleur;
+    el.innerHTML = `${k.emoji}<span class="label">${k.mens ? 'Jij' : k.naam}</span>`;
+    klas.appendChild(el);
+    return el;
+  }
+  function zet(el, [x, y]) { el.style.left = x + '%'; el.style.top = y + '%'; }
+
+  const actief = () => S.spelers.filter(p => !p.af);
+  const mens = () => S.spelers.find(p => p.mens);
+
+  // alle kinderen in een hoek netjes naast elkaar zetten
+  function schikHoek(h) {
+    const [mx, my] = HOEKMIDDEN[h];
+    actief().filter(p => p.hoek === h).forEach((p, i) => {
+      const [dx, dy] = PLEKJES[i % PLEKJES.length];
+      zet(p.el, [mx + dx * 10.5, my + dy * 10.5]);
+    });
+  }
+  function loopNaar(p, h) {
+    if (p.af || p.hoek === h) return;
+    const oud = p.hoek;
+    p.hoek = h;
+    if (oud) schikHoek(oud);
+    schikHoek(h);
+    if (rol === 'teller') geluiden.stap();
+  }
+
+  // ===== een ronde =====
+  function nieuweRonde() {
+    S.ronde++;
+    S.fase = 'verstoppen';
+    klas.querySelectorAll('.hoek').forEach(h => h.classList.remove('gekozen', 'leeg'));
+    $('volgende').classList.add('verborgen');
+    klas.classList.toggle('blind', rol === 'teller');
+    klas.classList.toggle('dicht', rol === 'teller');
+    klas.classList.toggle('klikbaar', rol === 'speler' && !mens().af);
+    updateStatus();
+
+    if (rol === 'teller') bericht('🙈 Ogen dicht! De kinderen zoeken een hoek…');
+    else if (mens().af) bericht('👀 Je kijkt mee…');
+    else if (mens().hoek === 0) bericht('🏃‍♀️ Snel! Tik op een hoek om erheen te lopen.');
+    else bericht(`Je staat in hoek ${mens().hoek}. Blijf staan of loop naar een andere hoek!`);
+
+    planComputerKinderen();
+
+    let t = TELTIJD;
+    toonScherm(t, 'aan het tellen…');
+    const iv = setInterval(() => {
+      t--;
+      if (t > 0) {
+        toonScherm(t, 'aan het tellen…');
+        t <= 3 ? geluiden.laatste() : geluiden.tik();
+        if (t === 3 && rol === 'speler' && !mens().af && mens().hoek === 0) {
+          bericht('⚠️ Nog 3 seconden! Kies een hoek!');
+        }
+      } else {
+        clearInterval(iv);
+        klaarMetVerstoppen();
+      }
+    }, S.kijken ? 450 : 1000);
+    timers.push(iv);
+  }
+
+  function planComputerKinderen() {
+    const duur = (S.kijken ? 0.45 : 1) * TELTIJD * 1000;
+    actief().filter(p => !p.mens).forEach(p => {
+      const kies = () => Math.random() < 0.4 ? p.fav : 1 + willekeurig(4);
+      // wie al in een hoek staat blijft soms gewoon staan
+      if (p.hoek && Math.random() < 0.35) return;
+      later(() => loopNaar(p, kies()), duur * (0.1 + Math.random() * 0.7));
+      if (Math.random() < 0.25) later(() => loopNaar(p, kies()), duur * (0.82 + Math.random() * 0.1));
+    });
+  }
+
+  function klaarMetVerstoppen() {
+    S.fase = 'kiezen';
+    klas.classList.remove('dicht');
+    if (rol === 'teller') {
+      klas.classList.add('klikbaar');
+      toonScherm('?', 'welke hoek kies jij?');
+      bericht('👉 Welke hoek kies jij? Tik op 1, 2, 3 of 4.');
+    } else {
+      klas.classList.remove('klikbaar');
+      computerKiest();
+    }
+  }
+
+  function computerKiest() {
+    toonScherm('?', 'welke hoek kies jij?');
+    bericht('🤔 De teller kiest een hoek…');
+    const keuze = 1 + willekeurig(4);
+    let n = 0;
+    const stappen = S.kijken ? 6 : 12;
+    const iv = setInterval(() => {
+      n++;
+      const h = n >= stappen ? keuze : 1 + willekeurig(4);
+      toonScherm(h, 'welke hoek kies jij?');
+      geluiden.rol();
+      if (n >= stappen) { clearInterval(iv); later(() => kiesHoek(keuze), 300); }
+    }, 110);
+    timers.push(iv);
+  }
+
+  function kiesHoek(h) {
+    if (S.fase !== 'kiezen') return;
+    S.fase = 'uitslag';
+    klas.classList.remove('klikbaar', 'blind');
+    toonScherm(h, 'hoek ' + h + '!', true);
+
+    const hoekEl = klas.querySelector(`.hoek[data-h="${h}"]`);
+    const inHoek = actief().filter(p => p.hoek === h);
+    const nietInHoek = actief().filter(p => p.hoek === 0); // wie niet op tijd was
+
+    later(() => {
+      if (inHoek.length) {
+        hoekEl.classList.add('gekozen');
+        geluiden.af();
+        const namen = inHoek.map(p => p.mens ? 'jij' : p.naam);
+        bericht(`😱 Hoek ${h}: ${lijstje(namen)} ${inHoek.length === 1 ? 'is' : 'zijn'} af!`);
+      } else {
+        hoekEl.classList.add('leeg');
+        S.levens--;
+        geluiden.mis();
+        bericht(`😅 Niemand in hoek ${h}! De teller verliest een leven.`);
+      }
+      const betrapt = [...inHoek, ...nietInHoek];
+      if (nietInHoek.length) later(() => bericht('⏰ Je stond niet in een hoek, dus je bent af!'), 1300);
+      betrapt.forEach(p => { p.af = true; p.el.classList.add('betrapt'); });
+      updateStatus();
+
+      later(() => {
+        betrapt.forEach(p => {
+          p.el.classList.add('weg');
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.textContent = `${p.emoji} ${p.mens ? 'Jij' : p.naam}`;
+          $('bank').appendChild(chip);
+        });
+        if (!$('bank').querySelector('.titel')) {
+          const t = document.createElement('span');
+          t.className = 'titel';
+          t.textContent = 'Af:';
+          $('bank').prepend(t);
+        }
+        naRonde();
+      }, nietInHoek.length ? 2400 : 1400);
+    }, 500);
+  }
+
+  function naRonde() {
+    const over = actief().length;
+    if (over === 0) return einde('teller');
+    if (S.levens <= 0) return einde('spelers');
+
+    if (rol === 'speler' && mens().af && !S.kijken) {
+      geluiden.jammer();
+      return toonLaag('😱 Je bent af!', `Je hield het ${S.ronde} ${S.ronde === 1 ? 'ronde' : 'rondes'} vol. Er zijn nog ${over} kinderen over.`, [
+        ['👀 Kijk hoe het afloopt', 'blauw', () => { S.kijken = true; verbergLaag(); nieuweRonde(); }],
+        ['🔁 Nog een keer', '', startSpel],
+        ['⚙️ Andere rol', 'grijs', naarStart],
+      ]);
+    }
+    if (S.kijken) { later(nieuweRonde, 900); return; }
+    $('volgende').classList.remove('verborgen');
+  }
+
+  function einde(winnaar) {
+    S.fase = 'einde';
+    const over = actief().length;
+    let titel, tekst, blij;
+    if (rol === 'teller') {
+      blij = winnaar === 'teller';
+      titel = blij ? '🎉 Jij wint!' : '😅 De kinderen winnen!';
+      tekst = blij
+        ? `Iedereen is af in ${S.ronde} rondes, en je had nog ${S.levens} ${S.levens === 1 ? 'leven' : 'levens'} over. Knap geteld!`
+        : `Je levens zijn op. Er ${over === 1 ? 'was' : 'waren'} nog ${over} ${over === 1 ? 'kind' : 'kinderen'} over. Hadden de kinderen een lievelingshoek?`;
+    } else if (!mens().af) {
+      blij = true;
+      titel = '🎉 Jullie winnen!';
+      tekst = `De teller heeft geen levens meer en jij bent er nog! Je hield het ${S.ronde} rondes vol.`;
+    } else {
+      blij = false;
+      titel = winnaar === 'teller' ? '🧑‍🏫 De teller wint!' : '🙌 De spelers winnen!';
+      tekst = winnaar === 'teller'
+        ? 'Iedereen is af. Volgende keer beter!'
+        : `De teller heeft geen levens meer. Er ${over === 1 ? 'was' : 'waren'} nog ${over} ${over === 1 ? 'kind' : 'kinderen'} over.`;
+    }
+    later(() => {
+      blij ? (geluiden.hoera(), confetti()) : geluiden.jammer();
+      toonLaag(titel, tekst, [
+        ['🔁 Nog een keer', '', startSpel],
+        ['⚙️ Andere rol', 'grijs', naarStart],
+      ]);
+    }, 400);
+  }
+
+  // ===== klikken en toetsen =====
+  function hoekGeklikt(h) {
+    if (rol === 'speler' && S.fase === 'verstoppen' && !mens().af) {
+      loopNaar(mens(), h);
+      bericht(`Je staat in hoek ${h}. Hopelijk kiest de teller die niet!`);
+    } else if (rol === 'teller' && S.fase === 'kiezen') {
+      kiesHoek(h);
+    }
+  }
+  klas.addEventListener('click', e => {
+    const h = e.target.closest('.hoek');
+    if (h) hoekGeklikt(+h.dataset.h);
+  });
+  $('volgende').addEventListener('click', () => { if (S.fase === 'uitslag') nieuweRonde(); });
+  document.addEventListener('keydown', e => {
+    if (['1', '2', '3', '4'].includes(e.key)) hoekGeklikt(+e.key);
+    if ((e.key === 'Enter' || e.key === ' ') && !$('volgende').classList.contains('verborgen')) {
+      e.preventDefault();
+      $('volgende').click();
+    }
+  });
+
+  // ===== hulpjes voor het scherm =====
+  function toonScherm(groot, klein, rood = false) {
+    const s = $('scherm');
+    s.classList.toggle('rood', rood);
+    s.innerHTML = `<div class="groot">${groot}</div><div class="klein">${klein}</div>`;
+  }
+  function bericht(t) { $('bericht').textContent = t; }
+  function lijstje(namen) {
+    return namen.length === 1 ? namen[0] : namen.slice(0, -1).join(', ') + ' en ' + namen[namen.length - 1];
+  }
+  function updateStatus() {
+    $('ronde').textContent = S.ronde;
+    $('over').textContent = actief().length;
+    $('levens').innerHTML = Array.from({ length: MAX_LEVENS }, (_, i) =>
+      `<span class="${i < S.levens ? '' : 'weg'}">❤️</span>`).join('');
+  }
+  function toonLaag(titel, tekst, knoppen) {
+    $('eindtitel').textContent = titel;
+    $('eindtekst').textContent = tekst;
+    const box = $('eindknoppen');
+    box.innerHTML = '';
+    knoppen.forEach(([label, kleur, fn]) => {
+      const b = document.createElement('button');
+      b.className = 'knop ' + kleur;
+      b.textContent = label;
+      b.addEventListener('click', fn);
+      box.appendChild(b);
+    });
+    $('eindlaag').classList.remove('verborgen');
+  }
+  function verbergLaag() { $('eindlaag').classList.add('verborgen'); }
+  function naarStart() {
+    stopTimers();
+    verbergLaag();
+    $('startlaag').classList.remove('verborgen');
+  }
+  function confetti() {
+    const dingen = ['🎉', '⭐', '🎊', '💖', '✨'];
+    for (let i = 0; i < 40; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.textContent = dingen[willekeurig(dingen.length)];
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.animationDuration = 2 + Math.random() * 2.5 + 's';
+      c.style.animationDelay = Math.random() * 0.8 + 's';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 5500);
+    }
+  }
+
+  // beginstand achter het startscherm
+  S = { spelers: [], levens: MAX_LEVENS, ronde: 0, fase: 'start' };
+  updateStatus();
+</script>
+</body>
+</html>

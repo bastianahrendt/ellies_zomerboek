@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#6d28d9" />
+<title>Mordenaartje 😉</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23fcd7b6'/%3E%3Ccircle cx='33' cy='42' r='8' fill='%231e293b'/%3E%3Crect x='56' y='40' width='20' height='5' rx='2' fill='%231e293b'/%3E%3Cpath d='M30 66 Q50 80 70 66' stroke='%237f1d1d' stroke-width='5' fill='none'/%3E%3C/svg%3E" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #4c1d95 0%, #7c3aed 50%, #db2777 100%);
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 16px 24px;
+    overflow-x: hidden;
+  }
+
+  .terug {
+    display: inline-block;
+    margin: 6px 0 8px;
+    color: #5b21b6;
+    background: rgba(255,255,255,0.85);
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  .terug:hover { background: #fff; }
+
+  h1 {
+    font-size: clamp(28px, 7vw, 42px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 3px 0 #9d174d, 0 6px 16px rgba(157,23,77,0.5);
+    margin-bottom: 8px;
+  }
+
+  /* ===== statusbalk ===== */
+  .status {
+    width: min(94vw, 66vh, 620px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.88);
+    border-radius: 16px;
+    padding: 8px 14px;
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 12px rgba(76,29,149,0.3);
+  }
+  .beurten { letter-spacing: 2px; }
+  .beurten .weg { filter: grayscale(1); opacity: 0.3; }
+  .geluid {
+    border: none; background: #ede9fe; border-radius: 999px;
+    font-size: 18px; width: 36px; height: 36px; cursor: pointer;
+  }
+
+  /* ===== het klaslokaal ===== */
+  .klas {
+    position: relative;
+    width: min(94vw, 66vh, 620px);
+    aspect-ratio: 1;
+    container-type: size;
+    border: 10px solid #57534e;
+    border-left-color: #44403c;
+    border-radius: 14px;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0 2px, transparent 2px 10%),
+      linear-gradient(180deg, #fef3c7, #fde68a);
+    box-shadow: 0 12px 30px rgba(30,10,60,0.5);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    overflow: hidden;
+  }
+
+  .bord {
+    position: absolute;
+    left: 22%; right: 22%; top: 1.5%;
+    height: 8%;
+    background: #14532d;
+    border: 0.9cqw solid #a16207;
+    border-radius: 1cqw;
+    color: rgba(255,255,255,0.85);
+    font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+    font-size: 3.6cqw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .raam {
+    position: absolute;
+    left: 0;
+    width: 5.5%;
+    height: 15%;
+    transform: translateY(-50%);
+    background: linear-gradient(180deg, #7dd3fc, #bae6fd);
+    border: 0.8cqw solid #fff;
+    border-left: none;
+    box-shadow: inset 0 0 0 0.4cqw #94a3b8;
+    z-index: 2;
+  }
+  .raam::before {
+    content: '';
+    position: absolute; left: 0; right: 0; top: 50%;
+    border-top: 0.6cqw solid #fff;
+  }
+  .raam.open { animation: raamOpen 1.2s ease-out; }
+  @keyframes raamOpen {
+    0% { background: #fff; }
+    20% { background: #e0f2fe; transform: translateY(-50%) scaleX(0.3); transform-origin: left; }
+    70% { transform: translateY(-50%) scaleX(0.3); transform-origin: left; }
+    100% { transform: translateY(-50%) scaleX(1); transform-origin: left; }
+  }
+
+  .tafel {
+    position: absolute;
+    transform: translate(-50%, 0);
+    background: linear-gradient(180deg, #b45309, #92400e);
+    border-radius: 0.8cqw;
+    box-shadow: 0 0.6cqw 0.8cqw rgba(0,0,0,0.2);
+    z-index: 1;
+  }
+
+  /* ===== kinderen ===== */
+  .kind {
+    position: absolute;
+    width: var(--s);
+    height: var(--s);
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    transition: left 0.9s ease-in-out, top 0.9s ease-in-out;
+  }
+  .klas.klikbaar .kind:not(.uit):not(.zoeker) { cursor: pointer; }
+  .klas.klikbaar .kind:not(.uit):not(.zoeker):not(.onschuldig):hover .hoofd {
+    box-shadow: 0 0 0 0.6cqw #fde047, 0 0.6cqw 1cqw rgba(0,0,0,0.3);
+  }
+  .hoofd {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--huid);
+    box-shadow: 0 0.6cqw 1cqw rgba(0,0,0,0.3);
+  }
+  .hoofd::before {
+    content: '';
+    position: absolute;
+    left: -5%; right: -5%; top: -8%;
+    height: 44%;
+    background: var(--haar);
+    border-radius: 50% 50% 30% 30% / 80% 80% 20% 20%;
+  }
+  .hoofd.lang::after {
+    content: '';
+    position: absolute;
+    left: -12%; right: -12%; top: 5%;
+    height: 80%;
+    background: var(--haar);
+    border-radius: 45%;
+    z-index: -1;
+  }
+  .oog {
+    position: absolute;
+    top: 40%;
+    width: 22%;
+    height: 22%;
+    background: #fff;
+    border-radius: 50%;
+    overflow: hidden;
+    transition: transform 0.06s;
+  }
+  .oog.l { left: 21%; }
+  .oog.r { right: 21%; }
+  .pupil {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 58%; height: 58%;
+    border-radius: 50%;
+    background: #1e293b;
+    transform: translate(calc(-50% + var(--kx, 0%)), calc(-50% + var(--ky, 0%)));
+    transition: transform 0.25s;
+  }
+  .kind.knipper .oog,
+  .kind.knipoog .oog.r { transform: scaleY(0.1); background: #1e293b; }
+  .mond {
+    position: absolute;
+    left: 35%; top: 68%;
+    width: 30%; height: 12%;
+    border-bottom: 0.5cqw solid #9f1239;
+    border-radius: 0 0 50% 50%;
+    transition: all 0.15s;
+  }
+  .kind.knipoog .mond { left: 42%; }
+  .kind.schrik .mond {
+    left: 38%; top: 66%;
+    width: 24%; height: 20%;
+    border: none;
+    border-radius: 50%;
+    background: #7f1d1d;
+  }
+  .kind.schrik .oog { transform: scale(1.2); }
+  .kind.schrik { animation: bibber 0.12s linear infinite; }
+  @keyframes bibber {
+    0%,100% { transform: translate(-50%, -50%); }
+    50% { transform: translate(-46%, -50%); }
+  }
+  .kind.loopt { z-index: 9; }
+  .kind.vlieg { z-index: 9; animation: eruit 1s ease-in forwards; transition: none; }
+  @keyframes eruit {
+    0%   { transform: translate(-50%, -50%) rotate(0) scale(1); }
+    30%  { transform: translate(-80%, -120%) rotate(-120deg) scale(1.1); }
+    100% { transform: translate(-500%, 40%) rotate(-620deg) scale(0.5); opacity: 0.2; }
+  }
+  .kind.uit { display: none; }
+
+  .kind.onschuldig .hoofd { filter: grayscale(0.6); opacity: 0.8; }
+  .kind.onschuldig::after {
+    content: '✔️';
+    position: absolute;
+    right: -18%; bottom: -12%;
+    font-size: calc(var(--s) * 0.45);
+  }
+  .kind.ontmaskerd::after {
+    content: '😈';
+    position: absolute;
+    right: -25%; top: -30%;
+    font-size: calc(var(--s) * 0.6);
+  }
+  .kind.ontmaskerd .hoofd { box-shadow: 0 0 0 0.7cqw #dc2626, 0 0 3cqw #dc2626; }
+
+  .kind .naam {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.3cqw;
+    font-weight: bold;
+    background: #fde047;
+    border-radius: 999px;
+    padding: 0 1cqw;
+    white-space: nowrap;
+    z-index: 2;
+  }
+  .kind.zoeker .naam { background: #fff; }
+  .kind.jij .hoofd { box-shadow: 0 0 0 0.6cqw #fde047, 0 0 0 1.1cqw #f59e0b; }
+
+  .ballon {
+    position: absolute;
+    bottom: 108%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border: 0.4cqw solid #1e293b;
+    border-radius: 2cqw;
+    padding: 0.4cqw 1.4cqw;
+    font-size: 2.8cqw;
+    font-weight: bold;
+    white-space: nowrap;
+    z-index: 10;
+    animation: plop 0.2s ease-out;
+  }
+  .kind.zoeker .ballon { bottom: auto; top: 150%; }
+  @keyframes plop { from { transform: translateX(-50%) scale(0.4); } }
+
+  /* ===== waar kijken de zoekers? ===== */
+  .schemer {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    display: none;
+    background: rgba(30,20,60,0.45);
+    backdrop-filter: blur(1.3px);
+    -webkit-backdrop-filter: blur(1.3px);
+    --gx: 50%; --gy: 55%; --r: 100px;
+    -webkit-mask-image: radial-gradient(circle var(--r) at var(--gx) var(--gy), transparent 88%, #000 100%);
+    mask-image: radial-gradient(circle var(--r) at var(--gx) var(--gy), transparent 88%, #000 100%);
+  }
+  .klas.zoekmodus .schemer { display: block; }
+
+  .ring {
+    position: absolute;
+    width: calc(var(--R) * 2%);
+    height: calc(var(--R) * 2%);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 0.6cqw dashed #f97316;
+    background: rgba(249,115,22,0.1);
+    z-index: 6;
+    pointer-events: none;
+    transition: left 0.06s linear, top 0.06s linear;
+  }
+  .ring .wie {
+    position: absolute;
+    top: -2.6cqw;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.4cqw;
+    font-weight: bold;
+    color: #fff;
+    background: #f97316;
+    border-radius: 999px;
+    padding: 0 1cqw;
+    white-space: nowrap;
+  }
+  .ring.mijn { border: 0.4cqw solid rgba(255,255,255,0.9); background: none; }
+  .ring.mijn .wie { background: #7c3aed; }
+  .ring.blauw { border-color: #0ea5e9; background: rgba(14,165,233,0.1); }
+  .ring.blauw .wie { background: #0ea5e9; }
+
+  /* ogen dicht aan het begin */
+  .sluier {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,10,40,0.92);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2cqw;
+    text-align: center;
+    z-index: 12;
+    color: #fff;
+    font-weight: 900;
+    padding: 6cqw;
+  }
+  .klas.dicht .sluier { display: flex; }
+  .sluier .groot { font-size: 18cqw; line-height: 1; }
+  .sluier .uitleg { font-size: 4.2cqw; line-height: 1.3; }
+  .sluier button {
+    margin-top: 2cqw;
+    border: none;
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font: inherit;
+    font-size: 3.2cqw;
+    padding: 1.2cqw 3.4cqw;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  /* ===== berichten en knoppen ===== */
+  .bericht {
+    width: min(94vw, 620px);
+    min-height: 54px;
+    margin-top: 10px;
+    text-align: center;
+    font-size: clamp(15px, 4vw, 19px);
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .knop {
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    font-weight: bold;
+    font-size: 17px;
+    color: #fff;
+    background: #db2777;
+    padding: 12px 26px;
+    border-radius: 999px;
+    box-shadow: 0 5px 0 #9d174d;
+    transition: transform 0.1s;
+  }
+  .knop:active { transform: translateY(3px); box-shadow: 0 2px 0 #9d174d; }
+  .knop.aan { background: #fde047; color: #9d174d; box-shadow: 0 5px 0 #ca8a04; }
+  .knop.blauw { background: #0284c7; box-shadow: 0 5px 0 #075985; }
+  .knop.grijs { background: #64748b; box-shadow: 0 5px 0 #334155; }
+  .verborgen { display: none !important; }
+
+  .bank {
+    width: min(94vw, 620px);
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+  }
+  .bank .chip {
+    background: rgba(255,255,255,0.85);
+    color: #166534;
+    border-radius: 999px;
+    padding: 3px 10px;
+  }
+
+  /* ===== start- en eindscherm ===== */
+  .laag {
+    position: fixed;
+    inset: 0;
+    background: rgba(46,16,101,0.6);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 20;
+  }
+  .kaart {
+    background: #fffdf7;
+    border-radius: 22px;
+    padding: 22px 20px;
+    width: 100%;
+    max-width: 470px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+    text-align: center;
+  }
+  .kaart h2 { font-size: 26px; margin-bottom: 8px; }
+  .kaart p { color: #475569; line-height: 1.45; margin-bottom: 12px; }
+  .regels {
+    text-align: left;
+    background: #fce7f3;
+    border-radius: 14px;
+    padding: 12px 14px 12px 32px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #831843;
+    margin-bottom: 14px;
+  }
+  .regels small { color: #9d174d; }
+  .kies-titel { font-weight: bold; margin: 10px 0 6px; }
+  .rij { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .keuze {
+    border: 3px solid #f9a8d4;
+    background: #fff;
+    border-radius: 14px;
+    padding: 10px 14px;
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    min-width: 72px;
+  }
+  .keuze.aan { background: #fce7f3; border-color: #db2777; }
+  .keuze .emo { display: block; font-size: 30px; }
+  .keuze small { display: block; font-weight: normal; font-size: 12px; color: #64748b; }
+  .hulp { font-size: 13px; color: #64748b; margin-top: 10px; }
+  .kaart .knoppen { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+
+  .confetti {
+    position: fixed;
+    top: -40px;
+    font-size: 26px;
+    z-index: 30;
+    pointer-events: none;
+    animation: val linear forwards;
+  }
+  @keyframes val { to { transform: translateY(110vh) rotate(540deg); } }
+</style>
+</head>
+<body>
+
+<a class="terug" href="index.html">← Terug naar het startscherm</a>
+<h1>Mordenaartje</h1>
+
+<div class="status">
+  <span>👥 <span id="over">0</span></span>
+  <span title="Hoe vaak de zoekers nog mogen raden">Raden: <span class="beurten" id="beurten"></span></span>
+  <span title="Gedefenestreerd">🪟 <span id="uitteller">0</span></span>
+  <button class="geluid" id="geluid" title="Geluid aan/uit">🔊</button>
+</div>
+
+<div class="klas" id="klas">
+  <div class="bord">Mordenaartje 😉</div>
+  <div id="lokaal"></div>
+  <div class="schemer" id="schemer"></div>
+  <div id="ringen"></div>
+  <div class="sluier">
+    <div class="groot" id="aftel">10</div>
+    <div class="uitleg" id="sluiertekst"></div>
+    <button id="overslaan">Overslaan ⏭</button>
+  </div>
+</div>
+
+<div class="bericht" id="bericht"></div>
+<button class="knop verborgen" id="wijsknop">👉 Ik weet wie het is!</button>
+<div class="bank" id="bank"></div>
+
+<!-- startscherm -->
+<div class="laag" id="startlaag">
+  <div class="kaart">
+    <h2>😉 Mordenaartje</h2>
+    <p>Een spel bedacht door Ellie!</p>
+    <ol class="regels">
+      <li>Twee kinderen zijn de zoekers. Ze mogen 10 seconden niks zien.</li>
+      <li>Dan wordt stiekem de moordenaar gekozen. Die moet heel slim zijn: als de zoekers niet kijken, knipoogt de moordenaar naar iemand.</li>
+      <li>Ben je geknipoogd? Dan word je gedefenestreerd!<br><small>(Een ander woord voor iemand uit het raam gooien. Geen zorgen, je landt in de struiken 🌳)</small></li>
+      <li>Zien de zoekers wie er knipoogt? Dan winnen zij. Zijn er nog maar 4 kinderen over? Dan wint de moordenaar.</li>
+    </ol>
+    <div class="kies-titel">Wat ben jij?</div>
+    <div class="rij" id="rolkeuze">
+      <button class="keuze aan" data-rol="zoeker"><span class="emo">🔍</span>Ik ben de zoeker</button>
+      <button class="keuze" data-rol="moordenaar"><span class="emo">😉</span>Ik ben de moordenaar</button>
+    </div>
+    <div class="kies-titel">Hoe groot is de klas?</div>
+    <div class="rij" id="aantalkeuze">
+      <button class="keuze" data-n="12">14<small>klein</small></button>
+      <button class="keuze" data-n="20">22<small>half</small></button>
+      <button class="keuze aan" data-n="30">32<small>hele klas</small></button>
+    </div>
+    <p class="hulp" id="hulp"></p>
+    <div class="knoppen">
+      <button class="knop" id="startknop">Start! ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- eindscherm -->
+<div class="laag verborgen" id="eindlaag">
+  <div class="kaart">
+    <h2 id="eindtitel"></h2>
+    <p id="eindtekst"></p>
+    <div class="knoppen">
+      <button class="knop" id="nogeens">Nog een keer ↻</button>
+      <button class="knop blauw" id="anderrol">Andere rol</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== gegevens =====
+  const NAMEN = ['Sem','Noor','Daan','Lotte','Finn','Julia','Mees','Sara','Levi','Emma','Luuk','Tess',
+                 'Bram','Zoë','Jesse','Fleur','Milan','Anna','Thijs','Evi','Ruben','Lieke','Stijn','Isa',
+                 'Gijs','Roos','Jens','Nina','Timo','Yara','Joep','Fenna'];
+  const HUID = ['#fcd7b6', '#f1c27d', '#e0ac69', '#c68642', '#8d5524', '#ffdbac'];
+  const HAAR = ['#2d1b0e', '#6b3e1e', '#e8b94a', '#b5541c', '#111827', '#8b5a2b', '#f2d16b'];
+  const ELLIE = { naam: 'Ellie', huid: '#fcd7b6', haar: '#6b3e1e', lang: true };
+  const AFTELTIJD = 10;
+  const MIN_OVER = 4;     // zijn er nog 4 kinderen, dan wint de moordenaar
+  const BEURTEN = 2;      // twee zoekers, dus twee keer raden
+  const R = 16;           // hoe groot het stukje is waar een zoeker kijkt (in % van de klas)
+  const RAMEN = [32, 56, 80];
+  const ROOSTER = { 12: [4, 3], 20: [5, 4], 30: [6, 5] };
+
+  const $ = id => document.getElementById(id);
+  const klas = $('klas');
+  const schemer = $('schemer');
+
+  let S = {};
+  let timers = [];
+  let loop = null;
+  let rol = 'zoeker';
+  let aantal = 30;
+  let geluidAan = true;
+
+  function later(fn, ms) { const t = setTimeout(fn, ms); timers.push(t); return t; }
+  function stopTimers() { timers.forEach(clearTimeout); timers = []; clearInterval(loop); loop = null; }
+  const willekeurig = n => Math.floor(Math.random() * n);
+  const kies = lijst => lijst[willekeurig(lijst.length)];
+  const afstand = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  function schud(lijst) {
+    const l = lijst.slice();
+    for (let i = l.length - 1; i > 0; i--) { const j = willekeurig(i + 1); [l[i], l[j]] = [l[j], l[i]]; }
+    return l;
+  }
+
+  // ===== geluid =====
+  let ac = null;
+  function piep(freq, duur = 0.12, type = 'sine', vol = 0.15, start = 0, eind = null) {
+    if (!geluidAan) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const t = ac.currentTime + start;
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t);
+      if (eind) o.frequency.exponentialRampToValueAtTime(eind, t + duur);
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + duur);
+      o.connect(g).connect(ac.destination);
+      o.start(t);
+      o.stop(t + duur);
+    } catch (e) {}
+  }
+  const geluiden = {
+    tik: () => piep(660, 0.08, 'square', 0.06),
+    open: () => [523, 784].forEach((f, i) => piep(f, 0.15, 'triangle', 0.12, i * 0.1)),
+    schrik: () => piep(900, 0.25, 'sawtooth', 0.06, 0, 1300),
+    glas: () => [2400, 3100, 2700, 3500].forEach((f, i) => piep(f, 0.08, 'triangle', 0.07, i * 0.04)),
+    val: () => { piep(1200, 0.9, 'sine', 0.1, 0, 200); piep(90, 0.25, 'triangle', 0.25, 0.95); },
+    fout: () => { piep(300, 0.2, 'triangle', 0.14); piep(220, 0.35, 'triangle', 0.14, 0.2); },
+    hmm: () => piep(330, 0.3, 'sine', 0.1, 0, 440),
+    hoera: () => [523, 659, 784, 1047].forEach((f, i) => piep(f, 0.2, 'triangle', 0.13, i * 0.12)),
+    jammer: () => [392, 330, 262].forEach((f, i) => piep(f, 0.3, 'triangle', 0.13, i * 0.2)),
+  };
+
+  // ===== startscherm =====
+  const HULP = {
+    zoeker: '🔍 Beweeg je vinger of muis over de klas om rond te kijken. Alleen waar jij kijkt zie je het goed. Zie je iemand knipogen? Druk op "Ik weet wie het is!" en tik op die persoon.',
+    moordenaar: '😉 De cirkels laten zien waar de zoekers kijken. Tik op een kind om te knipogen, maar alleen als jij niet in een cirkel zit!',
+  };
+  function kiesKnop(groep, knop) {
+    groep.querySelectorAll('.keuze').forEach(k => k.classList.toggle('aan', k === knop));
+  }
+  $('rolkeuze').addEventListener('click', e => {
+    const k = e.target.closest('.keuze'); if (!k) return;
+    rol = k.dataset.rol; kiesKnop($('rolkeuze'), k);
+    $('hulp').textContent = HULP[rol];
+  });
+  $('aantalkeuze').addEventListener('click', e => {
+    const k = e.target.closest('.keuze'); if (!k) return;
+    aantal = +k.dataset.n; kiesKnop($('aantalkeuze'), k);
+  });
+  $('hulp').textContent = HULP[rol];
+  $('startknop').addEventListener('click', startSpel);
+  $('nogeens').addEventListener('click', startSpel);
+  $('anderrol').addEventListener('click', () => {
+    $('eindlaag').classList.add('verborgen');
+    $('startlaag').classList.remove('verborgen');
+  });
+  $('geluid').addEventListener('click', () => {
+    geluidAan = !geluidAan;
+    $('geluid').textContent = geluidAan ? '🔊' : '🔇';
+  });
+  $('overslaan').addEventListener('click', () => { if (S.fase === 'dicht') ogenOpen(); });
+
+  // ===== een kind tekenen =====
+  function maakKind(info, x, y, s, extra = '') {
+    const el = document.createElement('div');
+    el.className = 'kind ' + extra;
+    el.style.left = x + '%';
+    el.style.top = y + '%';
+    el.style.setProperty('--s', s + 'cqw');
+    el.style.setProperty('--huid', info.huid);
+    el.style.setProperty('--haar', info.haar);
+    el.innerHTML =
+      `<div class="hoofd${info.lang ? ' lang' : ''}">` +
+      '<div class="oog l"><div class="pupil"></div></div>' +
+      '<div class="oog r"><div class="pupil"></div></div>' +
+      '<div class="mond"></div></div>';
+    $('lokaal').appendChild(el);
+    return { ...info, x, y, el, levend: true, onschuldig: false, vast: false };
+  }
+
+  function kijkNaar(kind, doel) {
+    const dx = doel.x - kind.x, dy = doel.y - kind.y;
+    const d = Math.hypot(dx, dy) || 1;
+    kind.el.style.setProperty('--kx', (dx / d * 42) + '%');
+    kind.el.style.setProperty('--ky', (dy / d * 42) + '%');
+  }
+
+  function zeg(kind, tekst, ms = 1400) {
+    kind.el.querySelectorAll('.ballon').forEach(b => b.remove());
+    const b = document.createElement('div');
+    b.className = 'ballon';
+    b.textContent = tekst;
+    kind.el.appendChild(b);
+    later(() => b.remove(), ms);
+  }
+
+  function knipper(kind, ms = 150) {
+    kind.el.classList.add('knipper');
+    later(() => kind.el.classList.remove('knipper'), ms);
+  }
+
+  function maakRing(klasse, wie) {
+    const r = document.createElement('div');
+    r.className = 'ring ' + klasse;
+    r.style.setProperty('--R', R);
+    r.innerHTML = `<span class="wie">${wie}</span>`;
+    $('ringen').appendChild(r);
+    return r;
+  }
+  function zetRing(z) {
+    z.ring.style.left = z.x + '%';
+    z.ring.style.top = z.y + '%';
+  }
+
+  // ===== spel opbouwen =====
+  function startSpel() {
+    stopTimers();
+    $('startlaag').classList.add('verborgen');
+    $('eindlaag').classList.add('verborgen');
+    $('lokaal').innerHTML = '';
+    $('ringen').innerHTML = '';
+    $('bank').innerHTML = '';
+
+    const zoekerMode = rol === 'zoeker';
+    const [kol, rij] = ROOSTER[aantal];
+    const plekB = 82 / kol, plekH = 72 / rij;
+    const s = Math.min(12, Math.min(plekB, plekH) * 0.62);
+
+    RAMEN.forEach(y => {
+      const r = document.createElement('div');
+      r.className = 'raam';
+      r.style.top = y + '%';
+      $('lokaal').appendChild(r);
+    });
+
+    const namen = schud(NAMEN);
+    // de twee zoekers staan voor het bord
+    const zoekerInfo = zoekerMode
+      ? [ELLIE, { naam: namen.pop(), huid: kies(HUID), haar: kies(HAAR), lang: Math.random() < 0.5 }]
+      : [0, 1].map(() => ({ naam: namen.pop(), huid: kies(HUID), haar: kies(HAAR), lang: Math.random() < 0.5 }));
+    const zoekers = zoekerInfo.map((info, i) => {
+      const k = maakKind(info, i ? 84 : 14, 6.5, 8.5, 'zoeker' + (zoekerMode && i === 0 ? ' jij' : ''));
+      const label = document.createElement('div');
+      label.className = 'naam';
+      label.textContent = zoekerMode && i === 0 ? 'Jij' : info.naam;
+      k.el.appendChild(label);
+      return k;
+    });
+
+    // de klas zelf
+    const plekken = [];
+    for (let j = 0; j < rij; j++)
+      for (let i = 0; i < kol; i++)
+        plekken.push([14 + (i + 0.5) * plekB, 22 + (j + 0.5) * plekH]);
+
+    const ellieStoel = zoekerMode ? -1 : willekeurig(plekken.length);
+    const kinderen = plekken.map(([x, y], idx) => {
+      const tafel = document.createElement('div');
+      tafel.className = 'tafel';
+      tafel.style.left = x + '%';
+      tafel.style.top = `calc(${y}% + ${s * 0.42}cqw)`;
+      tafel.style.width = (s * 1.35) + 'cqw';
+      tafel.style.height = (s * 0.42) + 'cqw';
+      $('lokaal').appendChild(tafel);
+
+      const info = idx === ellieStoel ? ELLIE
+        : { naam: namen.pop(), huid: kies(HUID), haar: kies(HAAR), lang: Math.random() < 0.5 };
+      const k = maakKind(info, x, y, s, idx === ellieStoel ? 'jij' : '');
+      if (idx === ellieStoel) {
+        const label = document.createElement('div');
+        label.className = 'naam';
+        label.textContent = 'Jij';
+        k.el.appendChild(label);
+      }
+      return k;
+    });
+
+    S = {
+      rol,
+      fase: 'dicht',
+      kinderen,
+      zoekers,
+      moordenaar: zoekerMode ? kies(kinderen) : kinderen[ellieStoel],
+      beurten: BEURTEN,
+      uit: 0,
+      wijzen: false,
+      bezig: false,
+      verdenking: 0,
+      blik: { x: 55, y: 58 },
+      plan: { fase: 'rust', t: 3 },
+      ogen: [],
+    };
+
+    // waar kijken de zoekers?
+    if (zoekerMode) {
+      S.ogen = [{ x: 30, y: 70, tx: 30, ty: 70, wacht: 1, snel: 26, ring: maakRing('', '👀 ' + zoekers[1].naam), wie: zoekers[1] }];
+      S.mijnRing = maakRing('mijn', '👀 Jij');
+    } else {
+      S.ogen = zoekers.map((z, i) => ({
+        x: i ? 70 : 35, y: 55, tx: 50, ty: 55, wacht: 0, snel: 24,
+        ring: maakRing(i ? 'blauw' : '', '👀 ' + z.naam), wie: z,
+      }));
+    }
+    S.ogen.forEach(zetRing);
+
+    klas.classList.toggle('zoekmodus', zoekerMode);
+    klas.classList.toggle('klikbaar', !zoekerMode);
+    $('wijsknop').classList.toggle('verborgen', !zoekerMode);
+    $('wijsknop').classList.remove('aan');
+    $('ringen').style.display = 'none';
+    zetBlik();
+    werkStatusBij();
+
+    // tien seconden niks zien
+    zoekers.forEach(z => z.el.classList.add('knipper'));
+    klas.classList.add('dicht');
+    $('sluiertekst').textContent = zoekerMode
+      ? '🙈 Ogen dicht! Er wordt stiekem een moordenaar gekozen...'
+      : '🤫 De zoekers doen hun ogen dicht... en jij bent gekozen als de moordenaar!';
+    $('bericht').textContent = zoekerMode ? 'Niet spieken!' : 'Sssst... niemand mag het weten.';
+    let n = AFTELTIJD;
+    $('aftel').textContent = n;
+    const aftellen = () => {
+      if (S.fase !== 'dicht') return;
+      n--;
+      if (n <= 0) { ogenOpen(); return; }
+      $('aftel').textContent = n;
+      geluiden.tik();
+      later(aftellen, 1000);
+    };
+    later(aftellen, 1000);
+  }
+
+  function ogenOpen() {
+    S.fase = 'spel';
+    klas.classList.remove('dicht');
+    S.zoekers.forEach(z => z.el.classList.remove('knipper'));
+    $('ringen').style.display = '';
+    geluiden.open();
+    $('bericht').textContent = S.rol === 'zoeker'
+      ? '👀 Ogen open! Kijk goed rond... wie knipoogt er?'
+      : '😉 Tik op een kind om te knipogen, als niemand naar jou kijkt!';
+    loop = setInterval(tik, 50);
+  }
+
+  // ===== elke 50 milliseconden =====
+  function tik() {
+    if (S.fase !== 'spel') return;
+    const dt = 0.05;
+    S.ogen.forEach(z => beweegOgen(z, dt));
+    if (S.rol === 'zoeker') {
+      kijkNaar(S.zoekers[0], S.blik);
+      moordenaarDenkt(dt);
+    }
+    afleiding();
+  }
+
+  // gewone kinderen knipperen met allebei hun ogen en kijken rond
+  function afleiding() {
+    if (Math.random() > 0.14) return;
+    const k = kies(S.kinderen);
+    if (!k.levend || k.vast || S.bezig && k === S.moordenaar) return;
+    if (Math.random() < 0.6) knipper(k);
+    else if (Math.random() < 0.3) { k.el.style.setProperty('--kx', '0%'); k.el.style.setProperty('--ky', '0%'); }
+    else kijkNaar(k, kies(S.kinderen.concat(S.zoekers)));
+  }
+
+  function levenden() { return S.kinderen.filter(k => k.levend); }
+
+  function beweegOgen(z, dt) {
+    if (z.wacht > 0) { z.wacht -= dt; return; }
+    const dx = z.tx - z.x, dy = z.ty - z.y;
+    const d = Math.hypot(dx, dy);
+    const stap = z.snel * dt;
+    if (d <= stap) {
+      z.x = z.tx; z.y = z.ty;
+      z.wacht = 0.7 + Math.random() * 1.6;
+      nieuwDoel(z);
+    } else {
+      z.x += dx / d * stap;
+      z.y += dy / d * stap;
+    }
+    zetRing(z);
+    kijkNaar(z.wie, z);
+  }
+
+  function nieuwDoel(z) {
+    let doel = kies(levenden());
+    // hoe meer de zoekers vermoeden, hoe vaker ze naar Ellie kijken
+    if (S.rol === 'moordenaar' && Math.random() < Math.min(0.6, 0.12 + S.verdenking * 0.1)) doel = S.moordenaar;
+    z.tx = Math.max(12, Math.min(94, doel.x + (Math.random() - 0.5) * 12));
+    z.ty = Math.max(20, Math.min(94, doel.y + (Math.random() - 0.5) * 12));
+  }
+
+  // ===== de computer-moordenaar (als Ellie zoekt) =====
+  function moordenaarDenkt(dt) {
+    const p = S.plan, m = S.moordenaar;
+    if (p.fase === 'rust') {
+      p.t -= dt;
+      if (p.t > 0) return;
+      const kandidaten = levenden().filter(k => k !== m);
+      if (!kandidaten.length) return;
+      p.slachtoffer = kies(kandidaten);
+      p.fase = 'mikken';
+      p.t = 0.9;
+      p.brutaal = Math.random() < 0.25;
+      m.vast = true;
+      kijkNaar(m, p.slachtoffer);
+    } else if (p.fase === 'mikken') {
+      p.t -= dt;
+      if (p.t <= 0) p.fase = 'wachten';
+    } else if (p.fase === 'wachten') {
+      if (!p.slachtoffer.levend) { m.vast = false; p.fase = 'rust'; p.t = 0.5; return; }
+      // alleen knipogen als de zoekers niet kijken
+      const grens = p.brutaal ? R * 0.8 : R + 2;
+      const veilig = afstand(m, S.blik) > grens && S.ogen.every(z => afstand(m, z) > R);
+      if (!veilig) return;
+      m.el.classList.add('knipoog');
+      p.fase = 'knipoog';
+      p.t = 0.65;
+    } else if (p.fase === 'knipoog') {
+      p.t -= dt;
+      if (p.t > 0) return;
+      m.el.classList.remove('knipoog');
+      m.vast = false;
+      geknipoogd(p.slachtoffer);
+      p.fase = 'rust';
+      p.t = 2.5 + Math.random() * 3.5;
+    }
+  }
+
+  // ===== geknipoogd = gedefenestreerd! =====
+  function geknipoogd(k) {
+    k.levend = false;
+    k.vast = true;
+    later(() => {
+      k.el.classList.add('schrik');
+      zeg(k, '😱', 900);
+      geluiden.schrik();
+      later(() => defenestreer(k), 800);
+    }, 900 + Math.random() * 900);
+  }
+
+  function defenestreer(k) {
+    const raamY = RAMEN.reduce((a, b) => Math.abs(b - k.y) < Math.abs(a - k.y) ? b : a);
+    const raam = [...$('lokaal').querySelectorAll('.raam')][RAMEN.indexOf(raamY)];
+    k.el.classList.remove('schrik');
+    k.el.classList.add('loopt');
+    k.el.style.left = '6%';
+    k.el.style.top = raamY + '%';
+    later(() => {
+      raam.classList.remove('open');
+      void raam.offsetWidth;
+      raam.classList.add('open');
+      geluiden.glas();
+      geluiden.val();
+      zeg(k, 'Aaaah!', 1000);
+      k.el.classList.add('vlieg');
+      later(() => {
+        k.el.classList.add('uit');
+        S.uit++;
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = '🌳 ' + k.naam;
+        if (S.uit === 1) $('bank').innerHTML = '<span>Gedefenestreerd:</span>';
+        $('bank').appendChild(chip);
+        $('bericht').textContent = `💥 ${k.naam} is gedefenestreerd! Plof, in de struiken 🌳`;
+        werkStatusBij();
+        naDefenestratie();
+      }, 1000);
+    }, 950);
+  }
+
+  function naDefenestratie() {
+    if (S.fase === 'klaar') return;
+    if (levenden().length <= MIN_OVER) {
+      einde(S.rol === 'zoeker' ? 'vier' : 'gewonnenVier');
+      return;
+    }
+    if (S.rol === 'moordenaar' && S.fase === 'spel') zoekersRaden();
+  }
+
+  // ===== Ellie is de zoeker =====
+  function zetBlik() {
+    schemer.style.setProperty('--gx', S.blik.x + '%');
+    schemer.style.setProperty('--gy', S.blik.y + '%');
+    schemer.style.setProperty('--r', (R / 100 * schemer.clientWidth) + 'px');
+    if (S.mijnRing) {
+      S.mijnRing.style.left = S.blik.x + '%';
+      S.mijnRing.style.top = S.blik.y + '%';
+    }
+  }
+  function kijk(e) {
+    if (S.rol !== 'zoeker' || S.fase !== 'spel') return;
+    const r = schemer.getBoundingClientRect();
+    S.blik.x = Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100));
+    S.blik.y = Math.max(0, Math.min(100, (e.clientY - r.top) / r.height * 100));
+    zetBlik();
+  }
+  klas.addEventListener('pointermove', kijk);
+  klas.addEventListener('pointerdown', kijk);
+  window.addEventListener('resize', () => { if (S.blik) zetBlik(); });
+
+  $('wijsknop').addEventListener('click', () => {
+    if (S.fase !== 'spel') return;
+    S.wijzen = !S.wijzen;
+    $('wijsknop').classList.toggle('aan', S.wijzen);
+    klas.classList.toggle('klikbaar', S.wijzen);
+    $('bericht').textContent = S.wijzen
+      ? '👉 Tik op het kind dat knipoogde!'
+      : '👀 Kijk goed rond... wie knipoogt er?';
+  });
+
+  klas.addEventListener('click', e => {
+    if (S.fase !== 'spel') return;
+    const el = e.target.closest('.kind');
+    const k = el && S.kinderen.find(x => x.el === el);
+    if (!k || !k.levend || k.onschuldig) return;
+    if (S.rol === 'zoeker') { if (S.wijzen) raad(k); }
+    else knipoogNaar(k);
+  });
+
+  function raad(k) {
+    S.wijzen = false;
+    $('wijsknop').classList.remove('aan');
+    klas.classList.remove('klikbaar');
+    if (k === S.moordenaar) { einde('betrapt'); return; }
+    S.beurten--;
+    k.onschuldig = true;
+    k.el.classList.add('onschuldig');
+    zeg(k, 'Ik was het niet!');
+    geluiden.fout();
+    werkStatusBij();
+    if (S.beurten <= 0) { einde('geenBeurten'); return; }
+    $('bericht').textContent = `❌ Het was ${k.naam} niet! Je mag nog ${S.beurten} keer raden.`;
+  }
+
+  // ===== Ellie is de moordenaar =====
+  function knipoogNaar(k) {
+    if (S.bezig || k === S.moordenaar) return;
+    const m = S.moordenaar;
+    S.bezig = true;
+    m.vast = true;
+    kijkNaar(m, k);
+    m.el.classList.add('knipoog');
+    const dichtste = S.ogen.reduce((a, z) => afstand(m, z) < afstand(m, a) ? z : a);
+    const d = afstand(m, dichtste);
+    later(() => {
+      m.el.classList.remove('knipoog');
+      if (S.fase !== 'spel') return;
+      if (d < R) {
+        zeg(dichtste.wie, 'Ik zag het! 😲');
+        S.zoekerDieZag = dichtste.wie.naam;
+        einde('gezien');
+        return;
+      }
+      if (d < R * 1.5) {
+        S.verdenking += 1.5;
+        zeg(dichtste.wie, 'Hmm... 🤨');
+        geluiden.hmm();
+      }
+      m.vast = false;
+      geknipoogd(k);
+      later(() => { S.bezig = false; }, 400);
+    }, 600);
+  }
+
+  function zoekersRaden() {
+    if (S.beurten <= 0) return;
+    const kans = levenden().length <= 6 ? 0.8 : 0.22 + S.verdenking * 0.07;
+    if (Math.random() > kans) return;
+    const kandidaten = levenden().filter(k => !k.onschuldig);
+    const gewicht = k => k === S.moordenaar ? 1 + S.verdenking * 1.5 : 1;
+    let rest = Math.random() * kandidaten.reduce((som, k) => som + gewicht(k), 0);
+    const gok = kandidaten.find(k => (rest -= gewicht(k)) <= 0) || kandidaten[0];
+    const wie = kies(S.zoekers);
+    S.fase = 'raden';
+    zeg(wie, `Is het ${gok.naam}? 🤔`, 1600);
+    $('bericht').textContent = `🔍 ${wie.naam} denkt dat het ${gok === S.moordenaar ? 'jij bent' : gok.naam + ' is'}...`;
+    geluiden.hmm();
+    later(() => {
+      S.fase = 'spel';
+      if (gok === S.moordenaar) { S.zoekerDieZag = wie.naam; einde('geraden'); return; }
+      S.beurten--;
+      gok.onschuldig = true;
+      gok.el.classList.add('onschuldig');
+      zeg(gok, 'Ik was het niet!');
+      S.verdenking = Math.max(0, S.verdenking - 1);
+      werkStatusBij();
+      if (S.beurten <= 0) { einde('zoekersOp'); return; }
+      $('bericht').textContent = `😅 Fout geraden! De zoekers mogen nog ${S.beurten} keer raden.`;
+    }, 1700);
+  }
+
+  // ===== status en einde =====
+  function werkStatusBij() {
+    $('over').textContent = S.kinderen.length - S.uit;
+    $('uitteller').textContent = S.uit;
+    $('beurten').innerHTML = Array.from({ length: BEURTEN },
+      (_, i) => `<span class="${i < S.beurten ? '' : 'weg'}">🔍</span>`).join('');
+  }
+
+  function einde(hoe) {
+    S.fase = 'klaar';
+    stopTimers();
+    const m = S.moordenaar;
+    m.el.classList.add('ontmaskerd');
+    m.el.classList.remove('knipoog');
+    klas.classList.remove('klikbaar', 'zoekmodus');
+    const n = S.uit;
+    const TEKSTEN = {
+      betrapt:       [true,  '🎉 Gevonden!', `Het was ${m.naam}! Jij hebt de moordenaar betrapt. Er ${n === 1 ? 'is 1 kind' : `zijn ${n} kinderen`} gedefenestreerd.`],
+      vier:          [false, '😈 De moordenaar wint!', `Er zijn nog maar ${MIN_OVER} kinderen over. De moordenaar was ${m.naam}!`],
+      geenBeurten:   [false, '😬 Geen beurten meer!', `Jullie hebben twee keer fout geraden. De moordenaar was ${m.naam}!`],
+      gewonnenVier:  [true,  '😈 Jij wint!', `Er zijn nog maar ${MIN_OVER} kinderen over en niemand heeft je betrapt. Wat een slimme moordenaar!`],
+      zoekersOp:     [true,  '😈 Jij wint!', 'De zoekers hebben twee keer fout geraden. Niemand weet dat jij het was!'],
+      gezien:        [false, '👀 Betrapt!', `${S.zoekerDieZag} zag je knipogen! Je zat in de cirkel waar de zoeker keek.`],
+      geraden:       [false, '🔍 Geraden!', `${S.zoekerDieZag} raadde het: jij bent de moordenaar! Je hebt ${n} ${n === 1 ? 'kind' : 'kinderen'} gedefenestreerd.`],
+    };
+    const [blij, titel, tekst] = TEKSTEN[hoe];
+    $('bericht').textContent = titel;
+    later(() => {
+      $('eindtitel').textContent = titel;
+      $('eindtekst').textContent = tekst;
+      $('eindlaag').classList.remove('verborgen');
+      blij ? (geluiden.hoera(), confetti()) : geluiden.jammer();
+    }, 1200);
+  }
+
+  function confetti() {
+    for (let i = 0; i < 30; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.textContent = kies(['🎉', '⭐', '😉', '🌳', '💖', '🪟']);
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.animationDuration = (2 + Math.random() * 2) + 's';
+      c.style.animationDelay = Math.random() * 0.8 + 's';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 5000);
+    }
+  }
+</script>
+</body>
+</html>

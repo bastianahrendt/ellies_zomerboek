@@ -223,6 +223,7 @@
   .ogen   .plaatje { background: linear-gradient(140deg, #4c1d95, #65a30d); }
   .moord  .plaatje { background: linear-gradient(140deg, #4c1d95, #db2777); }
   .paard  .plaatje { background: linear-gradient(140deg, #16a34a, #facc15); }
+  .knuffel .plaatje { background: linear-gradient(140deg, #ec4899, #c084fc); }
 
   .tekst { padding: 14px 16px 18px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
   .tegel h2 { font-size: 19px; color: #0f172a; }
@@ -246,6 +247,7 @@
   .ogen    .speel { background: #6d28d9; }
   .moord   .speel { background: #7c3aed; }
   .paard   .speel { background: #16a34a; }
+  .knuffel .speel { background: #db2777; }
 
   /* ===== duimpjes en ranglijst ===== */
   .onder { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
@@ -331,16 +333,25 @@
   <span>Al <span class="cijfers" id="tellerCijfers"></span> bezoekers!</span>
 </div>
 
-<a class="banner" href="paard-en-hond.html">
+<a class="banner" href="knuffelmachine.html">
   <span class="sticker">NIEUW!</span>
-  <span class="btekst">🐴 Paard &amp; hond — bedacht door Ellie en Olivia
-    <small>Spring over plassen, planken en stenen. Spaar voor de gouden legendary!</small></span>
+  <span class="btekst">🧸 Knuffel machine — bedacht door Ellie
+    <small>Grijp knuffels en speelgoed uit de machine. Vind jij alle 18 legendary knuffels?</small></span>
   <span class="pijl">→</span>
 </a>
 
 <div class="likeuitleg">👍 Geef je lievelingsspel een duim! De spellen met de meeste duimpjes staan bovenaan.</div>
 
 <main class="tegels">
+  <a class="tegel knuffel" href="knuffelmachine.html">
+    <div class="plaatje"><span>🧸</span></div>
+    <div class="tekst">
+      <h2>Knuffel machine</h2>
+      <p>Stuur de grijper en pak knuffels en speelgoed. Er zijn 18 normale en 18 legendary knuffels voor in je kastje!</p>
+      <span class="speel">Grijpen →</span>
+    </div>
+  </a>
+
   <a class="tegel paard" href="paard-en-hond.html">
     <div class="plaatje"><span>🐴</span></div>
     <div class="tekst">

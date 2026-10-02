@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#ec4899" />
+<title>Knuffel machine 🧸</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='10' y='6' width='80' height='88' rx='14' fill='%23ec4899'/%3E%3Crect x='20' y='18' width='60' height='50' rx='6' fill='%23e0f2fe'/%3E%3Ccircle cx='50' cy='56' r='11' fill='%23b45309'/%3E%3Cpath d='M50 18v22M42 46l8-6 8 6' stroke='%23334155' stroke-width='4' fill='none'/%3E%3C/svg%3E" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #fbcfe8 0%, #f9a8d4 50%, #c084fc 100%);
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 16px 32px;
+    overflow-x: hidden;
+  }
+
+  .terug {
+    display: inline-block;
+    margin: 6px 0 8px;
+    color: #9d174d;
+    background: rgba(255,255,255,0.8);
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  .terug:hover { background: #fff; }
+
+  h1 {
+    font-size: clamp(28px, 7vw, 42px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 3px 0 #be185d, 0 6px 16px rgba(190,24,93,0.5);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .kolom { width: min(100%, 520px); display: flex; flex-direction: column; align-items: center; }
+
+  /* ===== statusbalk ===== */
+  .status {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.88);
+    border-radius: 16px;
+    padding: 8px 14px;
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(157,23,77,0.2);
+  }
+  .geluid {
+    flex-shrink: 0;
+    border: none; background: #fce7f3; border-radius: 999px;
+    font-size: 18px; width: 36px; height: 36px; cursor: pointer;
+  }
+
+  /* ===== de machine ===== */
+  .kast-machine {
+    width: 100%;
+    background: linear-gradient(180deg, #f472b6, #db2777);
+    border-radius: 26px 26px 14px 14px;
+    padding: 10px 12px 14px;
+    box-shadow: 0 14px 30px rgba(131,24,67,0.45), inset 0 -6px 0 rgba(0,0,0,0.15);
+  }
+  .bord {
+    text-align: center;
+    font-weight: 900;
+    font-size: clamp(18px, 5vw, 24px);
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 0 2px 0 #9d174d;
+    margin-bottom: 4px;
+  }
+  .lampjes { display: flex; justify-content: space-between; padding: 0 6px 8px; }
+  .lampjes i {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #fde047;
+    box-shadow: 0 0 8px #fde047;
+    animation: knipper 0.9s steps(1) infinite;
+  }
+  .lampjes i:nth-child(even) { animation-delay: 0.45s; }
+  @keyframes knipper { 50% { background: #fff7; box-shadow: none; } }
+
+  .glas {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1.1;
+    container-type: size;
+    border-radius: 12px;
+    overflow: hidden;
+    background:
+      linear-gradient(115deg, rgba(255,255,255,0.35) 0 8%, transparent 8% 14%, rgba(255,255,255,0.18) 14% 17%, transparent 17%),
+      linear-gradient(180deg, #e0f2fe 0%, #bae6fd 70%, #fbcfe8 100%);
+    box-shadow: inset 0 0 0 4px #9d174d, inset 0 0 24px rgba(0,0,0,0.25);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  .rail {
+    position: absolute; left: 0; right: 0; top: 0; height: 3.5cqh;
+    background: linear-gradient(180deg, #64748b, #334155);
+    z-index: 6;
+  }
+
+  .ding {
+    position: absolute;
+    width: 12cqw; height: 12cqw;
+    margin: -6cqw 0 0 -6cqw;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10cqw;
+    line-height: 1;
+    z-index: 2;
+    filter: drop-shadow(0 0.8cqw 0.8cqw rgba(0,0,0,0.3));
+    pointer-events: none;
+  }
+  .ding.leg::before {
+    content: '';
+    position: absolute; inset: -0.5cqw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(253,224,71,0.95), rgba(253,224,71,0) 70%);
+    z-index: -1;
+    animation: straal 1.4s ease-in-out infinite;
+  }
+  @keyframes straal { 50% { transform: scale(1.25); opacity: 0.7; } }
+  .ding.vast { z-index: 5; }
+  .ding.valt { z-index: 1; }
+
+  /* het gat waar je prijs uit komt */
+  .gat {
+    position: absolute; left: 0; bottom: 0;
+    width: 17cqw; height: 24cqh;
+    z-index: 4;
+    background: linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0.45));
+    border-right: 1.2cqw solid rgba(255,255,255,0.85);
+    border-top: 1.2cqw solid rgba(255,255,255,0.85);
+    border-top-right-radius: 2cqw;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .gat::after {
+    content: 'PRIJS ↓';
+    margin-bottom: 2cqw;
+    font-size: 3cqw; font-weight: 900;
+    color: #9d174d;
+    background: #fde047;
+    padding: 0.6cqw 1.4cqw;
+    border-radius: 999px;
+  }
+
+  .grijper { position: absolute; top: 0; z-index: 6; pointer-events: none; }
+  .touw {
+    position: absolute; left: -0.5cqw; top: 0;
+    width: 1cqw;
+    background: #475569;
+  }
+  .kop {
+    position: absolute;
+    width: 16cqw; height: 13cqw;
+    margin-left: -8cqw;
+  }
+  .kop svg { width: 100%; height: 100%; overflow: visible; }
+  .kop .arm { transition: transform 0.25s ease; }
+  .kop .links  { transform-origin: 32px 22px; }
+  .kop .rechts { transform-origin: 68px 22px; }
+  .kop.dicht .links  { transform: rotate(-22deg); }
+  .kop.dicht .rechts { transform: rotate(22deg); }
+
+  .melding {
+    position: absolute; left: 50%; top: 9cqh;
+    transform: translateX(-50%);
+    z-index: 7;
+    background: rgba(15,23,42,0.82);
+    color: #fff;
+    font-weight: bold;
+    font-size: 4.2cqw;
+    padding: 1.4cqw 3.4cqw;
+    border-radius: 999px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.25s;
+    pointer-events: none;
+  }
+  .melding.aan { opacity: 1; }
+
+  /* ===== knoppen ===== */
+  .bediening {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    margin-top: 12px;
+  }
+  .bediening button {
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-weight: 900;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.3);
+    transition: transform 0.08s, box-shadow 0.08s;
+  }
+  .bediening button:active, .bediening button.ingedrukt { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.3); }
+  .pijlknop {
+    width: 62px; height: 62px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #7dd3fc, #0284c7);
+    font-size: 26px;
+  }
+  .grijpknop {
+    height: 70px; padding: 0 26px; border-radius: 999px;
+    background: radial-gradient(circle at 35% 30%, #fde047, #f59e0b);
+    color: #9a3412 !important;
+    font-size: 22px;
+    letter-spacing: 1px;
+  }
+  .bediening button:disabled { filter: grayscale(0.7) brightness(0.9); cursor: default; }
+  .tip { margin-top: 8px; font-size: 13px; color: #831843; font-weight: bold; text-align: center; }
+
+  /* ===== uitleg ===== */
+  .uitleg {
+    width: 100%;
+    margin-top: 16px;
+    background: rgba(255,255,255,0.88);
+    border-radius: 16px;
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 4px 12px rgba(157,23,77,0.2);
+  }
+  .uitleg h2 { font-size: 16px; color: #9d174d; margin-bottom: 4px; }
+  .uitleg ol { padding-left: 20px; }
+
+  /* ===== het kastje ===== */
+  .kastje {
+    width: 100%;
+    margin-top: 18px;
+    background: linear-gradient(180deg, #b45309, #78350f);
+    border-radius: 18px;
+    padding: 12px;
+    box-shadow: 0 12px 26px rgba(69,26,3,0.45);
+    color: #fff;
+  }
+  .kastje h2 { text-align: center; font-size: 20px; text-shadow: 0 2px 0 rgba(0,0,0,0.3); }
+  .score { text-align: center; font-size: 13px; font-weight: bold; opacity: 0.95; margin: 2px 0 10px; }
+  .plank { margin-bottom: 12px; }
+  .plank h3 { font-size: 14px; margin: 0 0 6px 4px; }
+  .vakjes {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    background: #451a03;
+    padding: 6px;
+    border-radius: 10px;
+    box-shadow: inset 0 3px 8px rgba(0,0,0,0.5);
+  }
+  .vakje {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background: #fef3c7;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(20px, 6vw, 30px);
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.12);
+  }
+  .vakje.leg { background: radial-gradient(circle at 40% 35%, #fef9c3, #facc15); }
+  .vakje.speel { background: #e0f2fe; }
+  .vakje.nog-niet { background: #78350f; }
+  .vakje.nog-niet span { filter: brightness(0); opacity: 0.35; }
+  .vakje .x {
+    position: absolute; right: 2px; bottom: 1px;
+    font-size: 10px; font-weight: 900;
+    color: #9d174d;
+    background: #fff;
+    border-radius: 999px;
+    padding: 0 4px;
+    line-height: 1.4;
+  }
+  .vakje.nieuw { animation: nieuw 0.9s ease 2; }
+  @keyframes nieuw { 50% { transform: scale(1.25); box-shadow: 0 0 14px #fde047; } }
+
+  .geheim {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    background: rgba(0,0,0,0.25);
+    border-radius: 12px;
+    padding: 10px;
+  }
+  .geheim label { font-weight: bold; font-size: 14px; flex-basis: 100%; }
+  .geheim input {
+    flex: 1; min-width: 0;
+    font-family: inherit; font-size: 16px;
+    border: none; border-radius: 999px;
+    padding: 9px 14px;
+  }
+  .geheim button, .leeg {
+    font-family: inherit; font-weight: bold;
+    border: none; border-radius: 999px;
+    padding: 9px 16px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .geheim button { background: #fde047; color: #78350f; }
+  .geheim.fout input { animation: schud 0.4s; background: #fecaca; }
+  @keyframes schud { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+  .geheim .antwoord { flex-basis: 100%; font-size: 13px; font-weight: bold; min-height: 1em; }
+  .leeg { display: block; margin: 12px auto 0; background: rgba(255,255,255,0.2); color: #fff; font-size: 12px; }
+
+  /* ===== prijs-popup ===== */
+  .scherm {
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,0.6);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 20;
+    padding: 16px;
+  }
+  .scherm.aan { display: flex; }
+  .kaart {
+    position: relative;
+    width: min(100%, 340px);
+    background: #fff;
+    border-radius: 24px;
+    padding: 22px 18px 18px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    animation: pop 0.4s cubic-bezier(.2,1.6,.4,1);
+  }
+  .kaart.leg { background: radial-gradient(circle at 50% 30%, #fef9c3, #fde047 60%, #f59e0b); }
+  @keyframes pop { from { transform: scale(0.4); opacity: 0; } }
+  .kaart .soort {
+    display: inline-block;
+    font-size: 13px; font-weight: 900;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: #fce7f3; color: #9d174d;
+  }
+  .kaart.leg .soort { background: #9d174d; color: #fde047; }
+  .kaart .groot { font-size: 96px; line-height: 1.2; margin: 6px 0; animation: wip 1.6s ease-in-out infinite; }
+  @keyframes wip { 0%,100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg) scale(1.06); } }
+  .kaart h2 { font-size: 24px; color: #0f172a; }
+  .kaart p { font-size: 14px; color: #475569; margin: 6px 0 14px; }
+  .kaart button {
+    font-family: inherit; font-weight: 900; font-size: 16px;
+    border: none; border-radius: 999px;
+    padding: 12px 22px;
+    background: #ec4899; color: #fff;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #9d174d;
+  }
+  .confetti {
+    position: fixed; top: -40px; z-index: 21;
+    font-size: 26px;
+    pointer-events: none;
+    animation: vallen linear forwards;
+  }
+  @keyframes vallen { to { transform: translateY(110vh) rotate(540deg); } }
+</style>
+</head>
+<body>
+
+<a class="terug" href="index.html">← Terug naar het startscherm</a>
+<h1>Knuffel machine 🧸</h1>
+
+<div class="kolom">
+  <div class="status">
+    <span id="stand">🧸 0 / 36 knuffels</span>
+    <span id="legStand">⭐ 0 / 18 legendary</span>
+    <button class="geluid" id="geluid" title="Geluid aan/uit">🔊</button>
+  </div>
+
+  <div class="kast-machine">
+    <div class="bord">✨ KNUFFEL MACHINE ✨</div>
+    <div class="lampjes"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="glas" id="glas">
+      <div class="rail"></div>
+      <div class="gat"></div>
+      <div class="grijper" id="grijper">
+        <div class="touw" id="touw"></div>
+        <div class="kop" id="kop">
+          <svg viewBox="0 0 100 80">
+            <rect x="30" y="0" width="40" height="22" rx="6" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+            <circle cx="50" cy="11" r="5" fill="#f472b6"/>
+            <g class="arm links"><path d="M34 20 L18 50 L28 74" stroke="#475569" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+            <g class="arm rechts"><path d="M66 20 L82 50 L72 74" stroke="#475569" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+          </svg>
+        </div>
+      </div>
+      <div class="melding" id="melding"></div>
+    </div>
+
+    <div class="bediening">
+      <button class="pijlknop" id="links" aria-label="Naar links">◀</button>
+      <button class="grijpknop" id="grijp">GRIJP!</button>
+      <button class="pijlknop" id="rechts" aria-label="Naar rechts">▶</button>
+    </div>
+    <div class="tip">Houd ◀ ▶ ingedrukt om te bewegen (of gebruik de pijltjestoetsen en spatie)</div>
+  </div>
+
+  <div class="uitleg">
+    <h2>📜 Zo werkt het</h2>
+    <ol>
+      <li>Er is een machine en daar zitten knuffels en speelgoed in.</li>
+      <li>Je moet ze pakken met de grijper. Dan staan die knuffels en dat speelgoed in je kastje.</li>
+      <li>Er zijn <b>18 legendary knuffels</b> en <b>18 normale</b>. Legendary knuffels glimmen en zijn extra moeilijk te pakken!</li>
+      <li>Wil je de hele kast vol zonder alles uit de machine te halen? Dan heb je het <b>geheime wachtwoord</b> nodig… 🤫</li>
+    </ol>
+  </div>
+
+  <div class="kastje">
+    <h2>🗄️ Mijn kastje</h2>
+    <div class="score" id="score"></div>
+
+    <div class="plank">
+      <h3>⭐ Legendary knuffels</h3>
+      <div class="vakjes" id="plankLeg"></div>
+    </div>
+    <div class="plank">
+      <h3>🧸 Normale knuffels</h3>
+      <div class="vakjes" id="plankNormaal"></div>
+    </div>
+    <div class="plank">
+      <h3>🪀 Speelgoed</h3>
+      <div class="vakjes" id="plankSpeel"></div>
+    </div>
+
+    <form class="geheim" id="geheim" autocomplete="off">
+      <label for="wachtwoord">🔐 Weet jij het geheime wachtwoord?</label>
+      <input id="wachtwoord" type="text" placeholder="Wachtwoord…" autocapitalize="off" spellcheck="false" />
+      <button type="submit">Probeer</button>
+      <div class="antwoord" id="antwoord"></div>
+    </form>
+
+    <button class="leeg" id="leeg" type="button">🧹 Kastje leegmaken</button>
+  </div>
+</div>
+
+<div class="scherm" id="scherm">
+  <div class="kaart" id="kaart">
+    <span class="soort" id="kSoort"></span>
+    <div class="groot" id="kEmoji"></div>
+    <h2 id="kNaam"></h2>
+    <p id="kTekst"></p>
+    <button id="kKnop">Zet in mijn kastje!</button>
+  </div>
+</div>
+
+<script>
+// ===== alle knuffels en speelgoed =====
+const LEGENDARY = [
+  ['🦄', 'Regenboog-eenhoorn'], ['🐉', 'Gouden draak'], ['🦁', 'Leeuwenkoning'], ['🐯', 'Glittertijger'],
+  ['🦚', 'Sterrenpauw'], ['🦩', 'Prinses Flamingo'], ['🐬', 'Toverdolfijn'], ['🐳', 'Reuzenwalvis'],
+  ['🦖', 'Dino Rex'], ['🐙', 'Octo de Achtste'], ['🦉', 'Wijze uil'], ['🦜', 'Kletspapegaai'],
+  ['🐺', 'Maanwolf'], ['🦌', 'Sneeuwhert'], ['🦢', 'Koningszwaan'], ['🐝', 'Bijenkoningin'],
+  ['🦋', 'Feeënvlinder'], ['🐲', 'Babydraakje'],
+].map(([e, n], i) => ({ id: 'l' + i, emoji: e, naam: n, soort: 'leg' }));
+
+const NORMAAL = [
+  ['🧸', 'Teddybeer'], ['🐰', 'Konijntje'], ['🐱', 'Poesje'], ['🐶', 'Hondje'],
+  ['🐼', 'Panda'], ['🐨', 'Koala'], ['🐷', 'Biggetje'], ['🐸', 'Kikker'],
+  ['🐵', 'Aapje'], ['🐧', 'Pinguïn'], ['🦊', 'Vosje'], ['🐮', 'Koetje'],
+  ['🐹', 'Hamster'], ['🐭', 'Muisje'], ['🦆', 'Eendje'], ['🐢', 'Schildpad'],
+  ['🐑', 'Schaapje'], ['🐻', 'Bruine beer'],
+].map(([e, n], i) => ({ id: 'n' + i, emoji: e, naam: n, soort: 'normaal' }));
+
+const SPEELGOED = [
+  ['🪀', 'Jojo'], ['🪁', 'Vlieger'], ['🎈', 'Ballon'], ['⚽', 'Voetbal'],
+  ['🚗', 'Autootje'], ['🎲', 'Dobbelsteen'], ['🧩', 'Puzzelstukje'], ['🪄', 'Toverstaf'],
+  ['🎀', 'Strik'], ['🤖', 'Robotje'], ['🚀', 'Raket'], ['🪅', 'Piñata'],
+].map(([e, n], i) => ({ id: 's' + i, emoji: e, naam: n, soort: 'speel' }));
+
+const ALLES = [...LEGENDARY, ...NORMAAL, ...SPEELGOED];
+const PER_ID = Object.fromEntries(ALLES.map(d => [d.id, d]));
+
+// ===== opslag =====
+const OPSLAG = 'ellie-knuffelmachine';
+let kast = {};      // id → aantal
+let geluidAan = true;
+try {
+  const b = JSON.parse(localStorage.getItem(OPSLAG));
+  if (b && b.kast) kast = b.kast;
+  if (b && b.geluid === false) geluidAan = false;
+} catch (e) {}
+function bewaar() { try { localStorage.setItem(OPSLAG, JSON.stringify({ kast, geluid: geluidAan })); } catch (e) {} }
+
+// ===== geluid =====
+let ac = null;
+function toon(freq, duur, wanneer = 0, type = 'square', vol = 0.06) {
+  if (!geluidAan) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const t = ac.currentTime + wanneer;
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + duur);
+    o.connect(g).connect(ac.destination);
+    o.start(t); o.stop(t + duur);
+  } catch (e) {}
+}
+const geluiden = {
+  klik: () => toon(220, 0.08),
+  mis: () => { toon(330, 0.18, 0, 'sawtooth'); toon(220, 0.3, 0.18, 'sawtooth'); },
+  prijs: () => [523, 659, 784].forEach((f, i) => toon(f, 0.15, i * 0.1)),
+  legendary: () => [523, 659, 784, 1047, 1319].forEach((f, i) => toon(f, 0.22, i * 0.09, 'triangle', 0.09)),
+};
+const geluidKnop = document.getElementById('geluid');
+function zetGeluidKnop() { geluidKnop.textContent = geluidAan ? '🔊' : '🔇'; }
+geluidKnop.addEventListener('click', () => { geluidAan = !geluidAan; zetGeluidKnop(); bewaar(); });
+zetGeluidKnop();
+
+// ===== de machine =====
+const glas = document.getElementById('glas');
+const grijperEl = document.getElementById('grijper');
+const touwEl = document.getElementById('touw');
+const kopEl = document.getElementById('kop');
+const meldingEl = document.getElementById('melding');
+const grijpKnop = document.getElementById('grijp');
+
+// Posities in procenten: x van de breedte, y van de hoogte van het glas.
+const KOLOMMEN = [26, 37, 48, 59, 70, 81, 91];
+const RIJEN = [87, 76.5, 66];     // onderste rij eerst
+const GAT_X = 9;
+const RUST_Y = 4;                 // grijper bovenin
+const KOP_H = 10.8;               // hoogte van de grijperkop (in % van de hoogte)
+const vakken = KOLOMMEN.map(() => RIJEN.map(() => null));
+const dingen = [];
+
+function kies() {
+  const r = Math.random();
+  const lijst = r < 0.16 ? LEGENDARY : r < 0.66 ? NORMAAL : SPEELGOED;
+  return lijst[Math.floor(Math.random() * lijst.length)];
+}
+
+function maakDing(def, kol, rij, vanBoven) {
+  const el = document.createElement('div');
+  el.className = 'ding' + (def.soort === 'leg' ? ' leg' : '');
+  el.innerHTML = `<span>${def.emoji}</span>`;
+  glas.appendChild(el);
+  const d = {
+    def, el, kol, rij,
+    dx: (Math.random() - 0.5) * 3,
+    rot: (Math.random() - 0.5) * 34,
+    x: 0, y: vanBoven ? -10 : RIJEN[rij], vy: 0,
+  };
+  d.x = KOLOMMEN[kol] + d.dx;
+  vakken[kol][rij] = d;
+  dingen.push(d);
+  teken(d);
+  return d;
+}
+
+function teken(d) {
+  d.el.style.left = d.x + '%';
+  d.el.style.top = d.y + '%';
+  d.el.style.transform = `rotate(${d.rot}deg)`;
+}
+
+function bovensteRij(kol) {
+  for (let r = RIJEN.length - 1; r >= 0; r--) if (vakken[kol][r]) return r;
+  return -1;
+}
+
+// Laat dingen naar beneden zakken als er onder ze een gat is.
+function zwaartekracht() {
+  KOLOMMEN.forEach((_, k) => {
+    const rij = vakken[k].filter(Boolean);
+    vakken[k] = RIJEN.map((_, r) => rij[r] || null);
+    vakken[k].forEach((d, r) => { if (d) d.rij = r; });
+  });
+}
+
+function bijvullen() {
+  const vrij = [];
+  KOLOMMEN.forEach((_, k) => { const r = bovensteRij(k) + 1; if (r < RIJEN.length) vrij.push([k, r]); });
+  if (!vrij.length) return;
+  vrij.sort((a, b) => a[1] - b[1]);              // lege plekken onderin eerst
+  const laagste = vrij.filter(v => v[1] === vrij[0][1]);
+  const [k, r] = laagste[Math.floor(Math.random() * laagste.length)];
+  maakDing(kies(), k, r, true);
+}
+
+// Begin: twee volle rijen en een paar bovenop
+KOLOMMEN.forEach((_, k) => { maakDing(kies(), k, 0); maakDing(kies(), k, 1); });
+[0, 2, 4, 6].sort(() => Math.random() - 0.5).slice(0, 3).forEach(k => maakDing(kies(), k, 2));
+
+// ===== grijper =====
+const g = { x: GAT_X, y: RUST_Y, fase: 'klaar', richting: 0, doel: null, stopY: 0, uitkomst: '', vast: null, timer: 0, glipY: 0 };
+const HORIZ = 32, VERT = 42;    // snelheid in % per seconde
+
+let meldTimer = null;
+function meld(tekst, ms = 1600) {
+  meldingEl.textContent = tekst;
+  meldingEl.classList.add('aan');
+  clearTimeout(meldTimer);
+  meldTimer = setTimeout(() => meldingEl.classList.remove('aan'), ms);
+}
+
+function grijp() {
+  if (g.fase !== 'klaar') return;
+  geluiden.klik();
+  // Wat ligt er bovenaan, het dichtst onder de grijper?
+  let beste = null, besteAfstand = 6.5;
+  KOLOMMEN.forEach((_, k) => {
+    const r = bovensteRij(k);
+    if (r < 0) return;
+    const d = vakken[k][r];
+    const afstand = Math.abs(d.x - g.x);
+    if (afstand < besteAfstand) { beste = d; besteAfstand = afstand; }
+  });
+  g.doel = beste;
+  g.stopY = beste ? beste.y - KOP_H + 2 : 100 - KOP_H - 2;
+  if (beste) {
+    let kans = beste.def.soort === 'leg' ? 0.35 : beste.def.soort === 'speel' ? 0.72 : 0.65;
+    if (besteAfstand < 2.5) kans += 0.15;          // precies gemikt? Dan lukt het vaker
+    else if (besteAfstand > 4.5) kans -= 0.2;
+    const r = Math.random();
+    g.uitkomst = r < kans ? 'pakt' : r < kans + (1 - kans) * 0.55 ? 'glipt' : 'mist';
+  } else {
+    g.uitkomst = 'mist';
+  }
+  g.fase = 'zakken';
+  grijpKnop.disabled = true;
+}
+
+function loop(dt) {
+  switch (g.fase) {
+    case 'klaar':
+      g.x = Math.min(91, Math.max(GAT_X, g.x + g.richting * HORIZ * dt));
+      break;
+    case 'zakken':
+      g.y += VERT * dt;
+      if (g.y >= g.stopY) { g.y = g.stopY; g.fase = 'grijpen'; g.timer = 0.45; kopEl.classList.add('dicht'); }
+      break;
+    case 'grijpen':
+      g.timer -= dt;
+      if (g.timer <= 0) {
+        if (g.doel && g.uitkomst !== 'mist') {
+          const d = g.doel;
+          vakken[d.kol][d.rij] = null;
+          d.el.classList.add('vast');
+          g.vast = d;
+          g.glipY = RUST_Y + (g.stopY - RUST_Y) * (0.35 + Math.random() * 0.3);
+        } else {
+          kopEl.classList.remove('dicht');
+          setTimeout(() => kopEl.classList.add('dicht'), 120);
+          meld(g.doel ? '😬 Mis! Net ernaast…' : '😅 Daar lag niks!');
+          geluiden.mis();
+        }
+        g.fase = 'omhoog';
+      }
+      break;
+    case 'omhoog':
+      g.y -= VERT * dt;
+      if (g.vast && g.uitkomst === 'glipt' && g.y <= g.glipY) {
+        const d = g.vast;                      // oei, hij glipt eruit!
+        g.vast = null;
+        d.el.classList.remove('vast');
+        vakken[d.kol][bovensteRij(d.kol) + 1] = d;
+        zwaartekracht();
+        d.x = KOLOMMEN[d.kol] + d.dx;
+        d.vy = 0;
+        meld(d.def.soort === 'leg' ? '😱 De legendary glipt eruit!' : '😩 Oei, hij glipt eruit!');
+        geluiden.mis();
+      }
+      if (g.y <= RUST_Y) { g.y = RUST_Y; g.fase = 'terug'; }
+      break;
+    case 'terug':
+      g.x = Math.max(GAT_X, g.x - HORIZ * 1.3 * dt);
+      if (g.x <= GAT_X) {
+        g.fase = 'loslaten'; g.timer = 0.5;
+        kopEl.classList.remove('dicht');
+        if (g.vast) { g.vast.el.classList.remove('vast'); g.vast.el.classList.add('valt'); g.vast.vy = 0; }
+      }
+      break;
+    case 'loslaten':
+      g.timer -= dt;
+      if (g.vast) {
+        const d = g.vast;
+        d.vy += 160 * dt;
+        d.y += d.vy * dt;
+        d.rot += 300 * dt;
+        teken(d);
+        if (d.y > 115) {
+          g.vast = null;
+          d.el.remove();
+          dingen.splice(dingen.indexOf(d), 1);
+          g.fase = 'prijs';
+          toonPrijs(d.def);
+        }
+      } else if (g.timer <= 0) {
+        g.fase = 'klaar';
+        grijpKnop.disabled = false;
+      }
+      break;
+  }
+
+  // dingen die nog naar beneden vallen (na bijvullen of eruit glippen)
+  dingen.forEach(d => {
+    if (d === g.vast || d.el.classList.contains('valt')) return;
+    const doelY = RIJEN[d.rij];
+    if (d.y < doelY) {
+      d.vy += 160 * dt;
+      d.y = Math.min(doelY, d.y + d.vy * dt);
+      if (d.y >= doelY) d.vy = 0;
+      teken(d);
+    }
+  });
+
+  if (g.vast && g.fase !== 'loslaten') {
+    g.vast.x = g.x;
+    g.vast.y = g.y + KOP_H - 2;
+    teken(g.vast);
+  }
+
+  grijperEl.style.left = g.x + '%';
+  kopEl.style.top = g.y + 'cqh';
+  touwEl.style.height = g.y + 'cqh';
+}
+
+let vorige = performance.now();
+function frame(nu) {
+  const dt = Math.min(0.05, (nu - vorige) / 1000);
+  vorige = nu;
+  loop(dt);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// ===== bediening =====
+function houdVast(knop, richting) {
+  const start = e => { e.preventDefault(); g.richting = richting; knop.classList.add('ingedrukt'); };
+  const stop = () => { if (g.richting === richting) g.richting = 0; knop.classList.remove('ingedrukt'); };
+  knop.addEventListener('pointerdown', start);
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => knop.addEventListener(t, stop));
+  knop.addEventListener('contextmenu', e => e.preventDefault());
+}
+houdVast(document.getElementById('links'), -1);
+houdVast(document.getElementById('rechts'), 1);
+grijpKnop.addEventListener('click', grijp);
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (document.getElementById('scherm').classList.contains('aan')) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('kKnop').click(); }
+    return;
+  }
+  if (e.key === 'ArrowLeft') { g.richting = -1; e.preventDefault(); }
+  else if (e.key === 'ArrowRight') { g.richting = 1; e.preventDefault(); }
+  else if (e.key === ' ' || e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); grijp(); }
+});
+document.addEventListener('keyup', e => {
+  if ((e.key === 'ArrowLeft' && g.richting === -1) || (e.key === 'ArrowRight' && g.richting === 1)) g.richting = 0;
+});
+
+// ===== prijs =====
+const scherm = document.getElementById('scherm');
+const kaart = document.getElementById('kaart');
+let naSluiten = null;
+
+function popup({ soort, emoji, naam, tekst, knop, leg }, klaar) {
+  document.getElementById('kSoort').textContent = soort;
+  document.getElementById('kEmoji').textContent = emoji;
+  document.getElementById('kNaam').textContent = naam;
+  document.getElementById('kTekst').textContent = tekst;
+  document.getElementById('kKnop').textContent = knop;
+  kaart.classList.toggle('leg', !!leg);
+  kaart.style.animation = 'none'; void kaart.offsetWidth; kaart.style.animation = '';
+  scherm.classList.add('aan');
+  naSluiten = klaar;
+  if (leg) confetti();
+}
+
+document.getElementById('kKnop').addEventListener('click', () => {
+  scherm.classList.remove('aan');
+  const f = naSluiten; naSluiten = null;
+  if (f) f();
+});
+
+function toonPrijs(def) {
+  const al = kast[def.id] || 0;
+  const leg = def.soort === 'leg';
+  leg ? geluiden.legendary() : geluiden.prijs();
+  popup({
+    soort: leg ? '⭐ LEGENDARY! ⭐' : def.soort === 'speel' ? '🪀 SPEELGOED' : '🧸 NORMALE KNUFFEL',
+    emoji: def.emoji,
+    naam: def.naam,
+    tekst: al ? `Die had je al! Nu heb je er ${al + 1}.` : leg ? 'Wauw, een hele zeldzame! Hij is nieuw in je kastje.' : 'Nieuw! Die had je nog niet.',
+    knop: 'Zet in mijn kastje!',
+    leg,
+  }, () => {
+    kast[def.id] = al + 1;
+    bewaar();
+    tekenKast(def.id);
+    bijvullen();
+    g.fase = 'klaar';
+    grijpKnop.disabled = false;
+    if (aantal(LEGENDARY) + aantal(NORMAAL) === 36 && !al && def.soort !== 'speel') {
+      setTimeout(() => popup({ soort: '🏆 KAST VOL!', emoji: '🏆', naam: 'Alle 36 knuffels!',
+        tekst: 'Je hebt alle legendary en normale knuffels zelf gepakt. Echte grijperkampioen!', knop: 'Joepie!', leg: true }), 500);
+    }
+  });
+}
+
+function confetti() {
+  const stuk = ['✨', '⭐', '💖', '🌟', '🎉'];
+  for (let i = 0; i < 26; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.textContent = stuk[i % stuk.length];
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.animationDuration = 1.8 + Math.random() * 1.6 + 's';
+    c.style.animationDelay = Math.random() * 0.6 + 's';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 4200);
+  }
+}
+
+// ===== het kastje =====
+function aantal(lijst) { return lijst.filter(d => kast[d.id]).length; }
+
+function tekenKast(nieuwId) {
+  [['plankLeg', LEGENDARY, 'leg'], ['plankNormaal', NORMAAL, ''], ['plankSpeel', SPEELGOED, 'speel']].forEach(([id, lijst, klas]) => {
+    const plank = document.getElementById(id);
+    plank.innerHTML = '';
+    lijst.forEach(d => {
+      const n = kast[d.id] || 0;
+      const v = document.createElement('div');
+      v.className = 'vakje ' + klas + (n ? '' : ' nog-niet') + (d.id === nieuwId ? ' nieuw' : '');
+      v.title = n ? d.naam + (n > 1 ? ` (${n}×)` : '') : 'Nog niet gevonden';
+      v.innerHTML = `<span>${d.emoji}</span>` + (n > 1 ? `<span class="x">${n}×</span>` : '');
+      plank.appendChild(v);
+    });
+  });
+  const leg = aantal(LEGENDARY), norm = aantal(NORMAAL), speel = aantal(SPEELGOED);
+  document.getElementById('stand').textContent = `🧸 ${leg + norm} / 36 knuffels`;
+  document.getElementById('legStand').textContent = `⭐ ${leg} / 18 legendary`;
+  document.getElementById('score').textContent =
+    `${leg} legendary · ${norm} normale · ${speel} / ${SPEELGOED.length} speelgoed`;
+}
+tekenKast();
+
+// ===== het geheime wachtwoord =====
+const geheim = document.getElementById('geheim');
+geheim.addEventListener('submit', e => {
+  e.preventDefault();
+  const invoer = document.getElementById('wachtwoord');
+  const antwoord = document.getElementById('antwoord');
+  if (invoer.value.trim().toLowerCase() === 'knuffels') {
+    [...LEGENDARY, ...NORMAAL].forEach(d => { kast[d.id] = Math.max(1, kast[d.id] || 0); });
+    bewaar();
+    tekenKast();
+    invoer.value = '';
+    antwoord.textContent = '🔓 Goed! Nu heb je alle legendary en normale knuffels.';
+    geluiden.legendary();
+    popup({ soort: '🔓 WACHTWOORD GOED!', emoji: '🗄️', naam: 'De hele kast is vol!',
+      tekst: 'Je hebt nu alle 18 legendary en alle 18 normale knuffels. Het speelgoed moet je nog wel zelf pakken!',
+      knop: 'Super!', leg: true });
+  } else {
+    antwoord.textContent = '❌ Dat is niet het goede wachtwoord…';
+    geheim.classList.remove('fout'); void geheim.offsetWidth; geheim.classList.add('fout');
+    geluiden.mis();
+  }
+});
+
+document.getElementById('leeg').addEventListener('click', () => {
+  if (!confirm('Weet je zeker dat je je hele kastje leeg wilt maken?')) return;
+  kast = {};
+  bewaar();
+  tekenKast();
+  document.getElementById('antwoord').textContent = '';
+});
+</script>
+
+</body>
+</html>

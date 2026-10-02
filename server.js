@@ -5,33 +5,42 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 
-// ===== bezoekersteller =====
+// ===== opslag voor de bezoekersteller en de likes =====
 // Op Railway: koppel een volume, dan zet Railway RAILWAY_VOLUME_MOUNT_PATH en
-// blijft de teller bewaard na een nieuwe deploy. Anders komt hij in ./data.
+// blijft alles bewaard na een nieuwe deploy. Anders komt het in ./data.
 const DATA_DIR = process.env.RAILWAY_VOLUME_MOUNT_PATH || process.env.DATA_DIR || path.join(__dirname, 'data');
 const TELLER_BESTAND = path.join(DATA_DIR, 'bezoekers.json');
+const LIKES_BESTAND = path.join(DATA_DIR, 'likes.json');
 
-let bezoekers = 0;
-try {
-  bezoekers = JSON.parse(fs.readFileSync(TELLER_BESTAND, 'utf8')).aantal || 0;
-} catch (e) {}
+function lees(bestand, standaard) {
+  try { return JSON.parse(fs.readFileSync(bestand, 'utf8')); } catch (e) { return standaard; }
+}
 
-let bezigMetSchrijven = false;
-let nogEenKeer = false;
-function bewaarTeller() {
-  if (bezigMetSchrijven) { nogEenKeer = true; return; }
-  bezigMetSchrijven = true;
-  const tijdelijk = TELLER_BESTAND + '.tmp';
+// Schrijft veilig (eerst naar .tmp, dan hernoemen) en nooit twee keer tegelijk hetzelfde bestand.
+const schrijvers = {};
+function bewaar(bestand, geefInhoud) {
+  const w = schrijvers[bestand] || (schrijvers[bestand] = { bezig: false, nogEenKeer: false });
+  if (w.bezig) { w.nogEenKeer = true; return; }
+  w.bezig = true;
+  const tijdelijk = bestand + '.tmp';
   fs.mkdir(DATA_DIR, { recursive: true }, () => {
-    fs.writeFile(tijdelijk, JSON.stringify({ aantal: bezoekers }), err => {
+    fs.writeFile(tijdelijk, JSON.stringify(geefInhoud()), err => {
       const klaar = () => {
-        bezigMetSchrijven = false;
-        if (nogEenKeer) { nogEenKeer = false; bewaarTeller(); }
+        w.bezig = false;
+        if (w.nogEenKeer) { w.nogEenKeer = false; bewaar(bestand, geefInhoud); }
       };
-      if (err) { console.error('Teller niet bewaard:', err.message); return klaar(); }
-      fs.rename(tijdelijk, TELLER_BESTAND, klaar);
+      if (err) { console.error('Niet bewaard:', bestand, err.message); return klaar(); }
+      fs.rename(tijdelijk, bestand, klaar);
     });
   });
+}
+
+let bezoekers = lees(TELLER_BESTAND, {}).aantal || 0;
+const likes = lees(LIKES_BESTAND, {});
+
+// Alleen spellen die echt bestaan kunnen likes krijgen (bijv. "paard-en-hond" → paard-en-hond.html)
+function bestaatSpel(id) {
+  return /^[a-z0-9-]{1,40}$/.test(id) && id !== 'index' && fs.existsSync(path.join(__dirname, id + '.html'));
 }
 
 function stuurJson(res, obj) {
@@ -56,9 +65,25 @@ const server = http.createServer((req, res) => {
     // POST = er komt iemand binnen (tel +1), GET = alleen kijken
     if (req.method === 'POST') {
       bezoekers++;
-      bewaarTeller();
+      bewaar(TELLER_BESTAND, () => ({ aantal: bezoekers }));
     }
     return stuurJson(res, { aantal: bezoekers });
+  }
+
+  if (urlPath === '/api/likes') {
+    // GET = alle likes, POST ?spel=…&actie=like|weg = één like erbij of eraf
+    if (req.method === 'POST') {
+      const zoek = new URLSearchParams(req.url.split('?')[1] || '');
+      const spel = zoek.get('spel') || '';
+      const actie = zoek.get('actie');
+      if (!bestaatSpel(spel) || (actie !== 'like' && actie !== 'weg')) {
+        res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+        return res.end('Onbekend spel of actie');
+      }
+      likes[spel] = Math.max(0, (likes[spel] || 0) + (actie === 'like' ? 1 : -1));
+      bewaar(LIKES_BESTAND, () => likes);
+    }
+    return stuurJson(res, likes);
   }
 
   if (urlPath === '/') urlPath = '/index.html';

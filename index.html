@@ -247,6 +247,59 @@
   .moord   .speel { background: #7c3aed; }
   .paard   .speel { background: #16a34a; }
 
+  /* ===== duimpjes en ranglijst ===== */
+  .onder { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+  .onder .speel { margin-top: 0; align-self: center; }
+  .like {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    color: #334155;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 4px 12px 4px 9px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  }
+  .met-likes .like { display: inline-flex; }
+  .like:hover { border-color: #fbbf24; }
+  .like .duim { font-size: 18px; filter: grayscale(1); opacity: 0.6; transition: filter 0.15s, opacity 0.15s; }
+  .like.aan { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+  .like.aan .duim { filter: none; opacity: 1; }
+  .like.plop .duim { animation: plop 0.45s ease; }
+  @keyframes plop { 0% { transform: scale(1); } 40% { transform: scale(1.7) rotate(-15deg); } 100% { transform: scale(1); } }
+
+  .plaatje .plek {
+    position: absolute; top: 10px; left: 10px; z-index: 2;
+    animation: none; filter: none;
+    line-height: 1.2;
+    background: rgba(255,255,255,0.92);
+    color: #0f172a;
+    font-size: 14px; font-weight: 900;
+    padding: 4px 10px;
+    border-radius: 999px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+    display: none;
+  }
+  .plaatje .plek.zichtbaar { display: block; }
+
+  .likeuitleg {
+    position: relative; z-index: 1;
+    display: none;
+    margin: -6px 0 16px;
+    font-size: 14px; font-weight: bold;
+    color: #075985;
+    background: rgba(255,255,255,0.75);
+    padding: 6px 16px;
+    border-radius: 999px;
+    text-align: center;
+  }
+  .met-likes .likeuitleg { display: block; }
+
   footer {
     color: #fff;
     font-size: 14px;
@@ -284,6 +337,8 @@
     <small>Spring over plassen, planken en stenen. Spaar voor de gouden legendary!</small></span>
   <span class="pijl">→</span>
 </a>
+
+<div class="likeuitleg">👍 Geef je lievelingsspel een duim! De spellen met de meeste duimpjes staan bovenaan.</div>
 
 <main class="tegels">
   <a class="tegel paard" href="paard-en-hond.html">
@@ -391,6 +446,102 @@
       document.getElementById('teller').classList.add('aan');
     })
     .catch(() => {}); // geen server (bijv. bestand los geopend)? Dan geen teller.
+})();
+
+// Duimpjes: iedereen mag elk spel één keer liken. Spellen met de meeste likes staan bovenaan.
+(function () {
+  const OPSLAG = 'ellie-likes';
+  const tegels = Array.from(document.querySelectorAll('.tegel'));
+  const bak = document.querySelector('.tegels');
+  let mijnLikes = [];
+  try { mijnLikes = JSON.parse(localStorage.getItem(OPSLAG)) || []; } catch (e) {}
+  let likes = {};
+
+  function bewaarMijn() { try { localStorage.setItem(OPSLAG, JSON.stringify(mijnLikes)); } catch (e) {} }
+
+  tegels.forEach((t, i) => {
+    t.dataset.volgorde = i;
+    t.dataset.spel = t.getAttribute('href').replace(/\.html$/, '');
+    const plek = document.createElement('span');
+    plek.className = 'plek';
+    t.querySelector('.plaatje').appendChild(plek);
+    const speel = t.querySelector('.speel');
+    const rij = document.createElement('div');
+    rij.className = 'onder';
+    speel.replaceWith(rij);
+    rij.appendChild(speel);
+    const knop = document.createElement('button');
+    knop.type = 'button';
+    knop.className = 'like';
+    knop.innerHTML = '<span class="duim">👍</span><span class="aantal">0</span>';
+    knop.addEventListener('click', e => {
+      e.preventDefault();          // de knop zit in de tegel-link: niet naar het spel gaan
+      e.stopPropagation();
+      klik(t.dataset.spel, knop);
+    });
+    rij.appendChild(knop);
+  });
+
+  function toon() {
+    tegels.forEach(t => {
+      const knop = t.querySelector('.like');
+      const n = likes[t.dataset.spel] || 0;
+      const aan = mijnLikes.includes(t.dataset.spel);
+      knop.querySelector('.aantal').textContent = n;
+      knop.classList.toggle('aan', aan);
+      knop.setAttribute('aria-pressed', aan);
+      knop.title = aan ? 'Je vindt dit leuk! Klik nog een keer om je duim terug te nemen' : 'Duim omhoog!';
+    });
+  }
+
+  // Sorteer op likes (meeste eerst); bij gelijk aantal blijft de oude volgorde.
+  function sorteer(animeer) {
+    const voor = new Map(tegels.map(t => [t, t.getBoundingClientRect()]));
+    const nieuw = tegels.slice().sort((a, b) =>
+      (likes[b.dataset.spel] || 0) - (likes[a.dataset.spel] || 0) || a.dataset.volgorde - b.dataset.volgorde);
+    nieuw.forEach(t => bak.appendChild(t));
+    const medailles = ['🥇', '🥈', '🥉'];
+    nieuw.forEach((t, i) => {
+      const plek = t.querySelector('.plek');
+      const n = likes[t.dataset.spel] || 0;
+      plek.textContent = (medailles[i] || '') + ' #' + (i + 1);
+      plek.classList.toggle('zichtbaar', n > 0);
+    });
+    if (!animeer) return;
+    nieuw.forEach(t => {               // laat de tegels naar hun nieuwe plek schuiven
+      const a = voor.get(t), b = t.getBoundingClientRect();
+      const dx = a.left - b.left, dy = a.top - b.top;
+      if (!dx && !dy) return;
+      t.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }],
+        { duration: 600, easing: 'ease-in-out' });
+    });
+  }
+
+  let sorteerTimer = null;
+  function klik(spel, knop) {
+    const aan = mijnLikes.includes(spel);
+    mijnLikes = aan ? mijnLikes.filter(s => s !== spel) : mijnLikes.concat(spel);
+    likes[spel] = Math.max(0, (likes[spel] || 0) + (aan ? -1 : 1));
+    bewaarMijn();
+    toon();
+    if (!aan) { knop.classList.remove('plop'); void knop.offsetWidth; knop.classList.add('plop'); }
+    fetch(`/api/likes?spel=${encodeURIComponent(spel)}&actie=${aan ? 'weg' : 'like'}`, { method: 'POST' })
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => { likes = d; toon(); })
+      .catch(() => {});
+    clearTimeout(sorteerTimer);
+    sorteerTimer = setTimeout(() => sorteer(true), 900);
+  }
+
+  fetch('/api/likes')
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(d => {
+      likes = d;
+      document.body.classList.add('met-likes');
+      toon();
+      sorteer(false);
+    })
+    .catch(() => {}); // geen server? Dan geen duimpjes.
 })();
 </script>
 

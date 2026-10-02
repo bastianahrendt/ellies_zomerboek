@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#16a34a" />
+<title>Paard &amp; hond 🐴</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%B4%3C/text%3E%3C/svg%3E" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #7dd3fc 0%, #bae6fd 40%, #bbf7d0 70%, #4ade80 100%);
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 16px 32px;
+    overflow-x: hidden;
+  }
+
+  .terug {
+    display: inline-block;
+    margin: 6px 0 8px;
+    color: #166534;
+    background: rgba(255,255,255,0.8);
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  .terug:hover { background: #fff; }
+
+  h1 {
+    font-size: clamp(28px, 7vw, 42px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 3px 0 #15803d, 0 6px 16px rgba(21,128,61,0.5);
+    text-align: center;
+  }
+  .bedacht { font-size: 14px; font-weight: bold; color: #166534; margin-bottom: 10px; text-align: center; }
+
+  .breed { width: 100%; max-width: 820px; }
+
+  /* ===== statusbalk ===== */
+  .status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.88);
+    border-radius: 16px;
+    padding: 8px 14px;
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(21,128,61,0.2);
+  }
+  .munten { font-size: 18px; color: #a16207; }
+  .geluid {
+    border: none; background: #dcfce7; border-radius: 999px;
+    font-size: 18px; width: 36px; height: 36px; cursor: pointer;
+  }
+
+  /* ===== menu ===== */
+  .kaart {
+    background: rgba(255,255,255,0.92);
+    border-radius: 20px;
+    padding: 14px 16px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 20px rgba(21,128,61,0.2);
+  }
+  .kaart h2 { font-size: 19px; margin-bottom: 10px; color: #14532d; }
+
+  .paarden { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+  .paard {
+    border: 3px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 8px 10px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    text-align: center;
+    background: #f8fafc;
+  }
+  .paard.gekozen { border-color: #16a34a; background: #f0fdf4; }
+  .paard canvas { width: 150px; height: 110px; }
+  .paard h3 { font-size: 16px; }
+  .paard p { font-size: 12.5px; color: #475569; line-height: 1.35; flex: 1; }
+  .knop {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    background: #16a34a;
+    color: #fff;
+    font-family: inherit;
+  }
+  .knop:hover:not(:disabled) { filter: brightness(1.08); }
+  .knop:disabled { background: #cbd5e1; color: #64748b; cursor: default; }
+  .knop.goud { background: linear-gradient(120deg, #f59e0b, #facc15); color: #713f12; }
+  .knop.groot { font-size: 20px; padding: 12px 30px; }
+  .knop.wit { background: #fff; color: #166534; border: 2px solid #16a34a; }
+
+  .wachtwoord { display: flex; gap: 6px; margin-top: 6px; width: 100%; }
+  .wachtwoord input {
+    flex: 1; min-width: 0;
+    border: 2px solid #fcd34d; border-radius: 999px;
+    padding: 6px 10px; font-size: 13px; font-family: inherit;
+  }
+
+  .winkel { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+  .ding {
+    display: flex; align-items: center; gap: 12px;
+    border: 3px solid #e2e8f0; border-radius: 16px; padding: 10px 12px;
+    background: #f8fafc;
+  }
+  .ding .ikoon { font-size: 40px; }
+  .ding .info { flex: 1; font-size: 13px; color: #475569; line-height: 1.35; }
+  .ding .info b { display: block; font-size: 16px; color: #0f172a; }
+  .ding.heb { border-color: #16a34a; background: #f0fdf4; }
+
+  .levels { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .kiezer { display: flex; align-items: center; gap: 14px; font-size: 22px; font-weight: 900; }
+  .kiezer button {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: none; background: #dcfce7; color: #166534;
+    font-size: 22px; font-weight: 900; cursor: pointer;
+  }
+  .kiezer button:disabled { opacity: 0.35; cursor: default; }
+  .levelinfo { font-size: 14px; color: #475569; text-align: center; line-height: 1.45; }
+
+  #stalKaart canvas { width: 100%; height: auto; display: block; border-radius: 14px; }
+
+  .regels { font-size: 14px; line-height: 1.55; color: #334155; padding-left: 20px; }
+
+  /* ===== spel ===== */
+  #spel { display: none; position: relative; }
+  .hud {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.88);
+    border-radius: 16px 16px 0 0;
+    padding: 8px 14px;
+    font-weight: bold; font-size: 15px;
+  }
+  .balk { flex: 1; height: 14px; border-radius: 999px; background: #e2e8f0; position: relative; overflow: hidden; }
+  .balk div { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, #4ade80, #16a34a); border-radius: 999px; }
+  .wereld { position: relative; }
+  canvas#doek {
+    display: block;
+    width: 100%;
+    aspect-ratio: 800 / 360;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 12px 30px rgba(21,128,61,0.35);
+    touch-action: manipulation;
+    user-select: none;
+    cursor: pointer;
+  }
+  .tip { text-align: center; font-size: 13px; color: #166534; font-weight: bold; margin-top: 8px; }
+
+  .einde {
+    display: none;
+    position: absolute; inset: 0;
+    background: rgba(15,23,42,0.55);
+    border-radius: 0 0 16px 16px;
+    align-items: center; justify-content: center;
+    padding: 12px;
+  }
+  .einde.aan { display: flex; }
+  .einde .doos {
+    background: #fff; border-radius: 20px; padding: 16px 20px;
+    text-align: center; max-width: 380px; width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  .einde h2 { font-size: clamp(20px, 5vw, 26px); margin-bottom: 4px; }
+  .einde p { font-size: 15px; color: #475569; margin-bottom: 12px; }
+  .einde .knoppen { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+  .melding {
+    position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 140%);
+    background: #14532d; color: #fff; font-weight: bold;
+    padding: 12px 20px; border-radius: 999px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    transition: transform 0.25s ease;
+    z-index: 10; max-width: 92vw; text-align: center;
+  }
+  .melding.aan { transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<a class="terug" href="index.html">← Terug naar het startscherm</a>
+<h1>🐴 Paard &amp; hond 🐶</h1>
+<div class="bedacht">Bedacht door Ellie en haar vriendin Olivia (want die houdt van paarden!)</div>
+
+<div class="breed">
+  <div class="status">
+    <span class="munten">🪙 <span id="muntTeller">0</span> muntjes</span>
+    <button class="geluid" id="geluidKnop" title="Geluid aan/uit">🔊</button>
+  </div>
+
+  <!-- ===== menu ===== -->
+  <div id="menu">
+    <div class="kaart">
+      <h2>🎮 Level kiezen</h2>
+      <div class="levels">
+        <div class="kiezer">
+          <button id="minder" aria-label="Level lager">−</button>
+          <span>Level <span id="levelNr">1</span></span>
+          <button id="meer" aria-label="Level hoger">+</button>
+        </div>
+        <div class="levelinfo" id="levelInfo"></div>
+        <button class="knop groot" id="speelKnop">Spelen! 🏇</button>
+        <button class="knop goud" id="vrijKnop" style="display:none"></button>
+      </div>
+    </div>
+
+    <div class="kaart">
+      <h2>🐎 Kies je paard</h2>
+      <div class="paarden" id="paarden"></div>
+    </div>
+
+    <div class="kaart">
+      <h2>🛒 Winkel</h2>
+      <div class="winkel" id="winkel"></div>
+    </div>
+
+    <div class="kaart" id="stalKaart" style="display:none">
+      <h2>🏠 Jouw stal</h2>
+      <canvas id="stalDoek" width="760" height="220"></canvas>
+    </div>
+
+    <div class="kaart">
+      <h2>📜 Zo werkt het</h2>
+      <ul class="regels">
+        <li>Spring over de <b>plassen</b>, <b>planken</b> en <b>grote stenen</b>. Tik op het scherm of druk op spatie.</li>
+        <li>Elke meter die je naar voren gaat = <b>1 muntje</b>. Haal je de finish? Dan krijg je <b>10 muntjes</b> extra!</li>
+        <li>Het eerste paard is gratis. Het paard kost 100, het vleugelpaard 1000 en de legendary 10.000 muntjes.</li>
+        <li>Paarden met vleugels kunnen <b>twee keer</b> springen: nog een keer tikken in de lucht!</li>
+        <li>Er zijn <b>1000 levels</b>. Je moet eerst het level halen, en dan kost het volgende level 5 muntjes.</li>
+        <li>Heb je 60 muntjes? Koop een stal! Heb je 80? Dan rijdt er een klein schattig hondje mee.</li>
+        <li>🤫 Ken je het geheime wachtwoord? Dan krijg je de legendary zonder 10.000 muntjes uit te geven!</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== spel ===== -->
+  <div id="spel">
+    <div class="hud">
+      <span>Level <span id="hudLevel">1</span></span>
+      <div class="balk"><div id="hudBalk"></div></div>
+      <span id="hudMeter">0 m</span>
+      <span style="color:#a16207">🪙 +<span id="hudMunt">0</span></span>
+    </div>
+    <div class="wereld">
+      <canvas id="doek"></canvas>
+      <div class="einde" id="einde">
+        <div class="doos">
+          <h2 id="eindeTitel"></h2>
+          <p id="eindeTekst"></p>
+          <div class="knoppen" id="eindeKnoppen"></div>
+        </div>
+      </div>
+    </div>
+    <div class="tip">Tik op het scherm of druk op spatie om te springen</div>
+  </div>
+</div>
+
+<div class="melding" id="melding"></div>
+
+<script>
+// ================= gegevens =================
+const OPSLAG = 'ellie-paard-hond';
+const MAX_LEVEL = 1000;
+const LEVEL_PRIJS = 5;
+const STAL_PRIJS = 60;
+const HOND_PRIJS = 80;
+const FINISH_BONUS = 10;
+
+const PAARDEN = [
+  { naam: 'Veulen', uitleg: 'Een pas geboren paardje. Klein maar dapper!', prijs: 0, snel: 1.0, schaal: 0.78,
+    kleur: '#d6a676', donker: '#b07f52', manen: '#7c4a2a' },
+  { naam: 'Paard', uitleg: 'Een echt groot paard. Sneller dan het veulen!', prijs: 100, snel: 1.12, schaal: 1,
+    kleur: '#8b5a2b', donker: '#6b4220', manen: '#2b1a0e' },
+  { naam: 'Vleugelpaard', uitleg: 'Heeft vleugels: je kan 2× springen. Nog sneller!', prijs: 1000, snel: 1.24, schaal: 1,
+    kleur: '#f8fafc', donker: '#94a3b8', manen: '#a5b4fc', vleugels: true },
+  { naam: 'Legendary', uitleg: 'Helemaal goud, met een hoorn én vleugels. De snelste!', prijs: 10000, snel: 1.38, schaal: 1.05,
+    kleur: '#facc15', donker: '#d4a106', manen: '#f97316', vleugels: true, hoorn: true, goud: true },
+];
+
+function nieuweData() {
+  return { munten: 0, paarden: [true, false, false, false], gekozen: 0, vrij: 1, gehaald: 0, level: 1, stal: false, hond: false, stil: false };
+}
+let data = nieuweData();
+try {
+  const b = JSON.parse(localStorage.getItem(OPSLAG));
+  if (b && typeof b === 'object') data = Object.assign(nieuweData(), b);
+} catch (e) {}
+function bewaar() { try { localStorage.setItem(OPSLAG, JSON.stringify(data)); } catch (e) {} }
+
+const nl = n => n.toLocaleString('nl-NL');
+const $ = id => document.getElementById(id);
+
+function levelLengte(n) { return Math.min(100 + (n - 1) * 20, 1000); } // meters
+
+// ================= geluid =================
+let audio = null;
+function toon(freq, duur, type = 'sine', vol = 0.12, glijNaar) {
+  if (data.stil) return;
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audio.createOscillator(), g = audio.createGain();
+    const t = audio.currentTime;
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    if (glijNaar) o.frequency.exponentialRampToValueAtTime(glijNaar, t + duur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + duur);
+    o.connect(g).connect(audio.destination);
+    o.start(t); o.stop(t + duur);
+  } catch (e) {}
+}
+const geluid = {
+  spring: () => toon(320, 0.18, 'triangle', 0.12, 640),
+  flap:   () => toon(520, 0.15, 'triangle', 0.1, 900),
+  bots:   () => { toon(160, 0.4, 'sawtooth', 0.12, 50); },
+  plons:  () => { toon(600, 0.3, 'sine', 0.12, 120); },
+  klaar:  () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => toon(f, 0.22, 'triangle', 0.12), i * 110)),
+  koop:   () => [784, 1175].forEach((f, i) => setTimeout(() => toon(f, 0.18, 'sine', 0.12), i * 90)),
+  woef:   () => { toon(300, 0.09, 'square', 0.08, 180); setTimeout(() => toon(280, 0.1, 'square', 0.08, 160), 140); },
+};
+function zetGeluidKnop() { $('geluidKnop').textContent = data.stil ? '🔇' : '🔊'; }
+$('geluidKnop').onclick = () => { data.stil = !data.stil; bewaar(); zetGeluidKnop(); };
+zetGeluidKnop();
+
+let meldingTimer = null;
+function meld(tekst) {
+  const m = $('melding');
+  m.textContent = tekst;
+  m.classList.add('aan');
+  clearTimeout(meldingTimer);
+  meldingTimer = setTimeout(() => m.classList.remove('aan'), 2600);
+}
+
+// ================= paard tekenen =================
+// (x, y) = midden onder de hoeven. t = loopfase.
+function tekenPaard(ctx, x, y, p, t, inLucht, metHond, kantel = 0) {
+  const s = p.schaal;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(kantel);
+  ctx.scale(s, s);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // benen: achter (donker) eerst, dan voor
+  const heupen = [[-26, -40, 0], [24, -40, Math.PI], [-18, -40, Math.PI / 2], [32, -40, Math.PI * 1.5]];
+  heupen.forEach(([hx, hy, fase], i) => {
+    let hoek = inLucht ? (hx < 0 ? 0.6 : -0.6) : Math.sin(t + fase) * 0.55;
+    const lengte = 40;
+    const kx = hx + Math.sin(hoek) * lengte * 0.5, ky = hy + Math.cos(hoek) * lengte * 0.5;
+    const knieHoek = inLucht ? hoek * 1.6 : hoek + Math.max(0, Math.sin(t + fase + 1)) * 0.6;
+    const vx = kx + Math.sin(knieHoek) * lengte * 0.5, vy = ky + Math.cos(knieHoek) * lengte * 0.5;
+    ctx.strokeStyle = i < 2 ? p.donker : p.kleur;
+    ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(kx, ky); ctx.lineTo(vx, vy); ctx.stroke();
+    ctx.fillStyle = '#3f2a1a';
+    ctx.beginPath(); ctx.arc(vx, vy, 4.5, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // staart
+  const zwaai = Math.sin(t * 0.8) * 6;
+  ctx.strokeStyle = p.manen;
+  ctx.lineWidth = 9;
+  ctx.beginPath();
+  ctx.moveTo(-38, -60);
+  ctx.quadraticCurveTo(-60, -58 + zwaai, -62, -30 + zwaai);
+  ctx.stroke();
+
+  if (p.goud) { ctx.shadowColor = '#fde047'; ctx.shadowBlur = 18; }
+
+  // lijf, nek en hoofd met een randje (anders zie je het witte paard niet)
+  ctx.fillStyle = p.kleur;
+  ctx.strokeStyle = p.donker;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(0, -55, 42, 21, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // nek
+  ctx.beginPath();
+  ctx.moveTo(18, -70); ctx.lineTo(38, -104); ctx.lineTo(54, -98); ctx.lineTo(40, -52);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(0, -55, 41, 20, 0, -0.9, 0.9); ctx.fill();
+  // hoofd
+  ctx.save();
+  ctx.translate(54, -100);
+  ctx.rotate(0.45);
+  ctx.beginPath(); ctx.ellipse(8, 0, 20, 11, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = p.donker;
+  ctx.beginPath(); ctx.ellipse(24, 2, 7, 8, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.shadowBlur = 0;
+
+  // oor
+  ctx.fillStyle = p.kleur;
+  ctx.beginPath(); ctx.moveTo(42, -108); ctx.lineTo(44, -124); ctx.lineTo(51, -110); ctx.closePath(); ctx.fill();
+  // oog
+  ctx.fillStyle = '#111';
+  ctx.beginPath(); ctx.arc(55, -104, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(56, -105, 1.1, 0, Math.PI * 2); ctx.fill();
+  // neusgat
+  ctx.fillStyle = '#3f2a1a';
+  ctx.beginPath(); ctx.arc(70, -88, 1.6, 0, Math.PI * 2); ctx.fill();
+
+  // manen
+  ctx.strokeStyle = p.manen;
+  ctx.lineWidth = 7;
+  ctx.beginPath();
+  ctx.moveTo(40, -110);
+  for (let i = 1; i <= 4; i++) ctx.lineTo(40 - i * 6 + Math.sin(t * 0.7 + i) * 2, -110 + i * 11);
+  ctx.stroke();
+
+  // hoorn
+  if (p.hoorn) {
+    ctx.fillStyle = '#fff7d6';
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(50, -112); ctx.lineTo(64, -138); ctx.lineTo(57, -109); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(53, -118); ctx.lineTo(58, -118); ctx.moveTo(56, -126); ctx.lineTo(60, -126); ctx.stroke();
+  }
+
+  // vleugels
+  if (p.vleugels) {
+    const flap = inLucht ? Math.sin(t * 2.2) * 0.6 : Math.sin(t * 0.5) * 0.15;
+    ctx.save();
+    ctx.translate(-4, -70);
+    ctx.rotate(-0.5 + flap);
+    ctx.fillStyle = p.goud ? '#fef08a' : '#ffffff';
+    ctx.strokeStyle = p.goud ? '#eab308' : '#94a3b8';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(-10, -40, -48, -46);
+    ctx.quadraticCurveTo(-40, -34, -44, -30);
+    ctx.quadraticCurveTo(-34, -22, -38, -16);
+    ctx.quadraticCurveTo(-26, -10, -26, -4);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  // hondje op de rug
+  if (metHond) {
+    ctx.font = '26px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('🐶', p.vleugels ? 10 : -6, -72 + (inLucht ? -3 : Math.abs(Math.sin(t)) * -2));
+  }
+
+  // glitters voor de legendary
+  if (p.goud) {
+    ctx.fillStyle = '#fff';
+    for (let i = 0; i < 4; i++) {
+      const a = t * 0.6 + i * 1.7;
+      const gx = Math.cos(a) * 55, gy = -70 + Math.sin(a * 1.3) * 45;
+      const r = 2 + Math.abs(Math.sin(t + i)) * 2.5;
+      ctx.beginPath();
+      ctx.moveTo(gx, gy - r * 2); ctx.lineTo(gx + r * 0.6, gy); ctx.lineTo(gx, gy + r * 2); ctx.lineTo(gx - r * 0.6, gy);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function hoogDoek(c, b, h) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  c.width = b * dpr; c.height = h * dpr;
+  const ctx = c.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return ctx;
+}
+
+// ================= menu =================
+function tekenMenu() {
+  $('muntTeller').textContent = nl(data.munten);
+
+  // levels
+  data.level = Math.max(1, Math.min(data.level, data.vrij));
+  $('levelNr').textContent = data.level;
+  $('minder').disabled = data.level <= 1;
+  $('meer').disabled = data.level >= data.vrij;
+  const p = PAARDEN[data.gekozen];
+  $('levelInfo').innerHTML =
+    `${nl(levelLengte(data.level))} meter rennen met je <b>${p.naam.toLowerCase()}</b>` +
+    (data.level <= data.gehaald ? ' · ✅ al gehaald' : '') +
+    `<br>Levels vrij: ${data.vrij} van de ${nl(MAX_LEVEL)}`;
+  const vk = $('vrijKnop');
+  if (data.vrij < MAX_LEVEL) {
+    vk.style.display = '';
+    if (data.gehaald < data.vrij) {
+      vk.disabled = true;
+      vk.textContent = `🔒 Haal eerst level ${data.vrij}`;
+    } else {
+      vk.disabled = data.munten < LEVEL_PRIJS;
+      vk.textContent = `🔓 Level ${data.vrij + 1} vrijspelen (${LEVEL_PRIJS} 🪙)`;
+    }
+  } else vk.style.display = 'none';
+
+  // paarden
+  const box = $('paarden');
+  box.innerHTML = '';
+  PAARDEN.forEach((pd, i) => {
+    const kaart = document.createElement('div');
+    kaart.className = 'paard' + (data.gekozen === i ? ' gekozen' : '');
+    const c = document.createElement('canvas');
+    kaart.appendChild(c);
+    const ctx = hoogDoek(c, 150, 110);
+    tekenPaard(ctx, 66, 104, Object.assign({}, pd, { schaal: pd.schaal * 0.72 }), 1.2, false, data.hond && data.gekozen === i);
+
+    kaart.insertAdjacentHTML('beforeend', `<h3>${i + 1}. ${pd.naam}</h3><p>${pd.uitleg}</p>`);
+    const knop = document.createElement('button');
+    knop.className = 'knop' + (pd.goud ? ' goud' : '');
+    if (data.paarden[i]) {
+      if (data.gekozen === i) { knop.textContent = 'Gekozen ✓'; knop.disabled = true; }
+      else { knop.textContent = 'Kies deze'; knop.onclick = () => { data.gekozen = i; bewaar(); tekenMenu(); }; }
+    } else if (data.munten >= pd.prijs) {
+      knop.textContent = `Koop voor ${nl(pd.prijs)} 🪙`;
+      knop.onclick = () => koopPaard(i);
+    } else {
+      knop.textContent = `${nl(pd.prijs)} 🪙 (nog ${nl(pd.prijs - data.munten)})`;
+      knop.disabled = true;
+    }
+    kaart.appendChild(knop);
+
+    if (pd.goud && !data.paarden[i]) {
+      const ww = document.createElement('form');
+      ww.className = 'wachtwoord';
+      ww.innerHTML = '<input type="text" placeholder="🔑 Wachtwoord?" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="knop goud" type="submit">OK</button>';
+      ww.onsubmit = e => { e.preventDefault(); probeerWachtwoord(ww.querySelector('input').value); };
+      kaart.appendChild(ww);
+    }
+    box.appendChild(kaart);
+  });
+
+  // winkel
+  const w = $('winkel');
+  w.innerHTML = '';
+  [
+    { sleutel: 'stal', ikoon: '🏠', naam: 'Stal', prijs: STAL_PRIJS, uitleg: 'Een eigen stal waar al je paarden wonen.' },
+    { sleutel: 'hond', ikoon: '🐶', naam: 'Hondje', prijs: HOND_PRIJS, uitleg: 'Een klein schattig hondje dat op je paard meerijdt.' },
+  ].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'ding' + (data[d.sleutel] ? ' heb' : '');
+    el.innerHTML = `<span class="ikoon">${d.ikoon}</span><span class="info"><b>${d.naam}</b>${d.uitleg}</span>`;
+    const knop = document.createElement('button');
+    knop.className = 'knop';
+    if (data[d.sleutel]) { knop.textContent = 'Heb je ✓'; knop.disabled = true; }
+    else {
+      knop.textContent = `${d.prijs} 🪙`;
+      knop.disabled = data.munten < d.prijs;
+      knop.onclick = () => {
+        if (data.munten < d.prijs) return;
+        data.munten -= d.prijs; data[d.sleutel] = true; bewaar();
+        geluid.koop();
+        if (d.sleutel === 'hond') setTimeout(geluid.woef, 300);
+        meld(d.sleutel === 'stal' ? '🏠 Je hebt nu een eigen stal!' : '🐶 Woef! Je hondje rijdt nu mee!');
+        tekenMenu();
+      };
+    }
+    el.appendChild(knop);
+    w.appendChild(el);
+  });
+
+  // stal
+  $('stalKaart').style.display = data.stal ? '' : 'none';
+  if (data.stal) tekenStal();
+}
+
+function tekenStal() {
+  const c = $('stalDoek');
+  const ctx = hoogDoek(c, 760, 220);
+  const g = ctx.createLinearGradient(0, 0, 0, 220);
+  g.addColorStop(0, '#bae6fd'); g.addColorStop(1, '#e0f2fe');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 760, 220);
+  ctx.fillStyle = '#86efac'; ctx.fillRect(0, 175, 760, 45);
+  ctx.fillStyle = '#4ade80'; ctx.fillRect(0, 175, 760, 6);
+
+  // schuur
+  ctx.fillStyle = '#b91c1c'; ctx.fillRect(20, 70, 170, 108);
+  ctx.fillStyle = '#7f1d1d';
+  ctx.beginPath(); ctx.moveTo(6, 74); ctx.lineTo(105, 18); ctx.lineTo(204, 74); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.fillRect(62, 112, 86, 66);
+  ctx.fillStyle = '#b91c1c'; ctx.fillRect(68, 118, 74, 60);
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(68, 118); ctx.lineTo(142, 178); ctx.moveTo(142, 118); ctx.lineTo(68, 178); ctx.stroke();
+  ctx.fillStyle = '#fef3c7'; ctx.fillRect(90, 80, 30, 22);
+  ctx.fillStyle = '#facc15'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('STAL', 105, 62);
+
+  // hek
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(200, 150); ctx.lineTo(750, 150); ctx.moveTo(200, 166); ctx.lineTo(750, 166); ctx.stroke();
+  for (let x = 210; x < 760; x += 60) { ctx.beginPath(); ctx.moveTo(x, 140); ctx.lineTo(x, 178); ctx.stroke(); }
+
+  let x = 270;
+  PAARDEN.forEach((p, i) => {
+    if (!data.paarden[i]) return;
+    tekenPaard(ctx, x, 192, Object.assign({}, p, { schaal: p.schaal * 0.85 }), i * 1.3, false, data.hond && data.gekozen === i);
+    x += 128;
+  });
+  if (data.paarden.filter(Boolean).length === 1) {
+    ctx.fillStyle = '#166534'; ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('Hier is nog plek voor meer paarden!', 390, 110);
+  }
+}
+
+function koopPaard(i) {
+  const pd = PAARDEN[i];
+  if (data.paarden[i] || data.munten < pd.prijs) return;
+  data.munten -= pd.prijs;
+  data.paarden[i] = true;
+  data.gekozen = i;
+  bewaar();
+  geluid.koop();
+  meld(`🎉 Je hebt nu het ${pd.naam.toLowerCase()}!`);
+  tekenMenu();
+}
+
+function probeerWachtwoord(waarde) {
+  const w = String(waarde).toLowerCase().replace(/[^a-z]/g, '');
+  if (w === 'horslover' || w === 'horselover') {
+    data.paarden[3] = true;
+    data.gekozen = 3;
+    bewaar();
+    geluid.klaar();
+    meld('🔑 Goed wachtwoord! De legendary is van jou! ✨');
+    tekenMenu();
+  } else {
+    geluid.bots();
+    meld('❌ Dat is niet het goede wachtwoord…');
+  }
+}
+
+$('minder').onclick = () => { data.level--; bewaar(); tekenMenu(); };
+$('meer').onclick = () => { data.level++; bewaar(); tekenMenu(); };
+$('speelKnop').onclick = () => startLevel(data.level);
+$('vrijKnop').onclick = () => {
+  if (vrijspelen()) { data.level = data.vrij; bewaar(); tekenMenu(); }
+};
+
+function vrijspelen() {
+  if (data.vrij >= MAX_LEVEL || data.gehaald < data.vrij || data.munten < LEVEL_PRIJS) return false;
+  data.munten -= LEVEL_PRIJS;
+  data.vrij++;
+  bewaar();
+  geluid.koop();
+  meld(`🔓 Level ${data.vrij} is vrij!`);
+  return true;
+}
+
+// ================= het spel =================
+const W = 800, H = 360, GROND = 300, PX = 150;   // PX = waar het paard staat
+const PPM = 40;                                   // pixels per meter
+const ZWAARTE = 2400, SPRONG = 820;
+const doek = $('doek');
+let ctx = null;
+
+function willekeur(zaad) {
+  return function () {
+    zaad = zaad + 0x6D2B79F5 | 0;
+    let t = Math.imul(zaad ^ zaad >>> 15, 1 | zaad);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+let spel = null;
+let vorige = 0;
+
+function startLevel(n) {
+  const p = PAARDEN[data.gekozen];
+  const snelheid = (8 + Math.min(n - 1, 100) * 0.04) * PPM * p.snel;
+  const lengte = levelLengte(n);
+  const r = willekeur(n * 7919 + 13);
+
+  // obstakels vooraf bepalen, zodat een level er altijd hetzelfde uitziet
+  const obstakels = [];
+  const soorten = n === 1 ? ['plas', 'plank'] : ['plas', 'plank', 'steen'];
+  const luchtAfstand = snelheid * (2 * SPRONG / ZWAARTE);
+  const minGat = luchtAfstand + 90;
+  const spreiding = snelheid * 1.4 * Math.max(0.3, 1 - (n - 1) / 120);
+  let x = 900;
+  const eind = lengte * PPM - 300;
+  while (x < eind) {
+    const soort = soorten[Math.floor(r() * soorten.length)];
+    let b, h;
+    if (soort === 'plas')  { b = 60 + r() * 30; h = 6; }
+    if (soort === 'plank') { b = 56 + r() * 20; h = 32 + r() * Math.min(14, n * 0.4); }
+    if (soort === 'steen') { b = 46 + r() * 18; h = 40 + r() * Math.min(22, n * 0.5); }
+    obstakels.push({ soort, x, b, h, vorm: r() });
+    x += b + minGat + r() * spreiding;
+  }
+
+  spel = {
+    level: n, p, lengte, snelheid, obstakels,
+    afstand: 0, y: 0, vy: 0, sprongen: 0, t: 0,
+    klaar: false, af: null, wachten: 0, kantel: 0, spetters: [],
+    hond: data.hond,
+  };
+
+  $('menu').style.display = 'none';
+  $('spel').style.display = 'block';
+  $('einde').classList.remove('aan');
+  $('hudLevel').textContent = n;
+  ctx = hoogDoek(doek, W, H);
+  window.scrollTo({ top: $('spel').getBoundingClientRect().top + window.scrollY - 10, behavior: 'smooth' });
+  vorige = performance.now();
+  requestAnimationFrame(lus);
+}
+
+function spring() {
+  if (!spel || spel.klaar || spel.af) return;
+  if (spel.y >= 0) {
+    spel.vy = -SPRONG; spel.sprongen = 1; geluid.spring();
+  } else if (spel.p.vleugels && spel.sprongen < 2) {
+    spel.vy = -SPRONG * 0.85; spel.sprongen = 2; geluid.flap();
+  }
+}
+
+function meters() { return Math.min(spel.lengte, Math.floor(spel.afstand / PPM)); }
+
+function lus(nu) {
+  if (!spel) return;
+  const dt = Math.min(0.04, (nu - vorige) / 1000);
+  vorige = nu;
+  update(dt);
+  teken();
+  if (spel && !spel.einde) requestAnimationFrame(lus);
+}
+
+function update(dt) {
+  const s = spel;
+  s.spetters.forEach(d => { d.x += d.vx * dt; d.y += d.vy * dt; d.vy += 900 * dt; d.leven -= dt; });
+  s.spetters = s.spetters.filter(d => d.leven > 0);
+
+  if (s.af || s.klaar) {
+    s.wachten -= dt;
+    if (s.af) s.kantel = Math.min(s.kantel + dt * 3, 0.5);
+    if (s.klaar) { s.afstand += s.snelheid * 0.5 * dt; s.t += dt * s.snelheid / 60; }
+    if (s.y < 0) { s.vy += ZWAARTE * dt; s.y = Math.min(0, s.y + s.vy * dt); }
+    if (s.wachten <= 0 && !s.einde) eindeLevel();
+    return;
+  }
+
+  s.afstand += s.snelheid * dt;
+  s.t += dt * s.snelheid / 60;
+  if (s.y < 0 || s.vy < 0) {
+    s.vy += ZWAARTE * dt;
+    s.y += s.vy * dt;
+    if (s.y >= 0) { s.y = 0; s.vy = 0; s.sprongen = 0; }
+  }
+
+  // botsen?
+  const sc = s.p.schaal;
+  const links = s.afstand - 30 * sc, rechts = s.afstand + 38 * sc;
+  const onder = GROND + s.y;
+  for (const o of s.obstakels) {
+    if (o.x > rechts) break;
+    if (o.x + o.b < links) continue;
+    const marge = o.soort === 'plas' ? 10 : 6;
+    if (o.x + marge < rechts && o.x + o.b - marge > links && onder > GROND - o.h + 2) {
+      s.af = o.soort;
+      s.wachten = 1.0;
+      if (o.soort === 'plas') {
+        geluid.plons();
+        for (let i = 0; i < 16; i++) s.spetters.push({ x: PX + 20, y: GROND - 4, vx: (Math.random() - 0.3) * 260, vy: -150 - Math.random() * 260, leven: 0.9 });
+      } else geluid.bots();
+      break;
+    }
+  }
+
+  if (meters() >= s.lengte) {
+    s.klaar = true;
+    s.wachten = 1.2;
+    geluid.klaar();
+    if (s.hond) setTimeout(geluid.woef, 500);
+  }
+
+  $('hudMeter').textContent = `${nl(meters())} m`;
+  $('hudMunt').textContent = nl(meters());
+  $('hudBalk').style.width = (meters() / s.lengte * 100) + '%';
+}
+
+function eindeLevel() {
+  const s = spel;
+  s.einde = true;
+  const m = meters();
+  let verdiend = m;
+  if (s.klaar) {
+    verdiend += FINISH_BONUS;
+    data.gehaald = Math.max(data.gehaald, s.level);
+  }
+  data.munten += verdiend;
+  bewaar();
+  $('hudMunt').textContent = nl(verdiend);
+
+  const knoppen = $('eindeKnoppen');
+  knoppen.innerHTML = '';
+  const knop = (tekst, klik, klasse = '') => {
+    const b = document.createElement('button');
+    b.className = 'knop ' + klasse;
+    b.textContent = tekst;
+    b.onclick = klik;
+    knoppen.appendChild(b);
+    return b;
+  };
+
+  if (s.klaar) {
+    $('eindeTitel').textContent = `🏁 Level ${s.level} gehaald!`;
+    $('eindeTekst').textContent = `${nl(m)} meter = ${nl(m)} muntjes, plus ${FINISH_BONUS} extra voor de finish. Je hebt er nu ${nl(data.munten)}!`;
+    const volgende = s.level + 1;
+    if (volgende <= MAX_LEVEL) {
+      if (volgende <= data.vrij) {
+        knop(`Level ${volgende} →`, () => { data.level = volgende; bewaar(); startLevel(volgende); });
+      } else if (data.munten >= LEVEL_PRIJS) {
+        knop(`Level ${volgende} (${LEVEL_PRIJS} 🪙) →`, () => {
+          if (vrijspelen()) { data.level = volgende; bewaar(); startLevel(volgende); }
+        });
+      }
+    } else {
+      $('eindeTitel').textContent = '🏆 ALLE 1000 LEVELS GEHAALD!';
+    }
+    knop('Nog een keer', () => startLevel(s.level), 'wit');
+  } else {
+    const titels = { plas: '💦 Plons! In de plas!', plank: '🪵 Au, tegen de plank!', steen: '🪨 Bonk, tegen een steen!' };
+    $('eindeTitel').textContent = titels[s.af];
+    $('eindeTekst').textContent = `Je kwam ${nl(m)} van de ${nl(s.lengte)} meter ver. Dat is ${nl(m)} muntjes!`;
+    knop('Nog een keer', () => startLevel(s.level));
+  }
+  knop('Menu', naarMenu, 'wit');
+  $('einde').classList.add('aan');
+}
+
+function naarMenu() {
+  spel = null;
+  $('spel').style.display = 'none';
+  $('menu').style.display = '';
+  tekenMenu();
+}
+
+// ---------- tekenen ----------
+const wolken = [[80, 60, 1], [330, 40, 1.3], [560, 80, 0.9], [760, 50, 1.1], [1000, 70, 1]];
+
+function wolk(x, y, s) {
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.beginPath();
+  ctx.arc(x, y, 18 * s, 0, Math.PI * 2);
+  ctx.arc(x + 22 * s, y - 10 * s, 22 * s, 0, Math.PI * 2);
+  ctx.arc(x + 46 * s, y, 17 * s, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function teken() {
+  const s = spel;
+  const lucht = ctx.createLinearGradient(0, 0, 0, GROND);
+  lucht.addColorStop(0, '#38bdf8'); lucht.addColorStop(1, '#e0f2fe');
+  ctx.fillStyle = lucht; ctx.fillRect(0, 0, W, H);
+
+  // zon
+  ctx.fillStyle = '#fde047';
+  ctx.beginPath(); ctx.arc(700, 62, 32, 0, Math.PI * 2); ctx.fill();
+
+  // wolken
+  wolken.forEach(([x, y, sc]) => {
+    const wx = ((x - s.afstand * 0.08) % 1200 + 1200) % 1200 - 100;
+    wolk(wx, y, sc);
+  });
+
+  // heuvels (twee lagen)
+  [[0.15, '#86efac', 210, 40], [0.35, '#4ade80', 245, 28]].forEach(([snel, kleur, basis, hoog]) => {
+    ctx.fillStyle = kleur;
+    ctx.beginPath();
+    ctx.moveTo(0, GROND);
+    for (let x = 0; x <= W; x += 10) {
+      const wx = x + s.afstand * snel;
+      ctx.lineTo(x, basis - Math.sin(wx / 140) * hoog - Math.sin(wx / 57) * hoog * 0.3);
+    }
+    ctx.lineTo(W, GROND);
+    ctx.fill();
+  });
+
+  // grond
+  ctx.fillStyle = '#65a30d'; ctx.fillRect(0, GROND, W, H - GROND);
+  ctx.fillStyle = '#a16207'; ctx.fillRect(0, GROND + 10, W, 26);
+  ctx.fillStyle = '#ca8a04';
+  for (let x = -((s.afstand) % 50); x < W; x += 50) ctx.fillRect(x, GROND + 21, 18, 3);
+  ctx.fillStyle = '#4d7c0f'; ctx.fillRect(0, GROND, W, 4);
+  // grassprietjes en bloemetjes
+  for (let x = -((s.afstand) % 90); x < W; x += 90) {
+    ctx.strokeStyle = '#3f6212'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x + 10, GROND + 52); ctx.lineTo(x + 6, GROND + 42); ctx.moveTo(x + 12, GROND + 52); ctx.lineTo(x + 16, GROND + 41); ctx.stroke();
+    ctx.fillStyle = ((Math.floor((x + s.afstand) / 90)) % 2) ? '#f472b6' : '#fde047';
+    ctx.beginPath(); ctx.arc(x + 50, GROND + 48, 3.5, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // meterbordjes elke 50 m
+  ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+  const eerste = Math.floor((s.afstand - PX) / (50 * PPM)) * 50;
+  for (let m = Math.max(50, eerste); m * PPM - s.afstand + PX < W + 40; m += 50) {
+    if (m >= s.lengte) break;
+    const bx = m * PPM - s.afstand + PX;
+    ctx.fillStyle = '#78350f'; ctx.fillRect(bx - 2, GROND - 34, 4, 34);
+    ctx.fillStyle = '#fff'; ctx.fillRect(bx - 18, GROND - 48, 36, 18);
+    ctx.fillStyle = '#78350f'; ctx.fillText(m + ' m', bx, GROND - 35);
+  }
+
+  // finish
+  const fx = s.lengte * PPM - s.afstand + PX;
+  if (fx < W + 40) {
+    ctx.fillStyle = '#334155'; ctx.fillRect(fx - 3, GROND - 120, 6, 120);
+    for (let r = 0; r < 4; r++) for (let k = 0; k < 6; k++) {
+      ctx.fillStyle = (r + k) % 2 ? '#111' : '#fff';
+      ctx.fillRect(fx + 3 + k * 9, GROND - 120 + r * 9, 9, 9);
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    for (let y = GROND; y < H; y += 12) ctx.fillRect(fx - 6, y, 12, 6);
+  }
+
+  // obstakels
+  for (const o of s.obstakels) {
+    const ox = o.x - s.afstand + PX;
+    if (ox > W + 20) break;
+    if (ox + o.b < -20) continue;
+    tekenObstakel(o, ox);
+  }
+
+  // paard
+  tekenPaard(ctx, PX, GROND + s.y, s.p, s.t, s.y < 0, s.hond, -s.kantel);
+
+  // spetters
+  ctx.fillStyle = '#38bdf8';
+  s.spetters.forEach(d => { ctx.beginPath(); ctx.arc(d.x, d.y, 4, 0, Math.PI * 2); ctx.fill(); });
+
+  // tekstje voor het begin
+  if (s.afstand < 500 && !s.af) {
+    ctx.fillStyle = 'rgba(255,255,255,0.88)';
+    ctx.fillRect(W / 2 - 150, 22, 300, 40);
+    ctx.fillStyle = '#14532d'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(`Level ${s.level} — ${nl(s.lengte)} meter!`, W / 2, 49);
+  }
+  if (s.klaar && s.hond) {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(PX - 50, GROND + s.y - 160, 66, 28);
+    ctx.fillStyle = '#0f172a'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Woef!', PX - 17, GROND + s.y - 140);
+  }
+}
+
+function tekenObstakel(o, x) {
+  if (o.soort === 'plas') {
+    ctx.fillStyle = '#0ea5e9';
+    ctx.beginPath(); ctx.ellipse(x + o.b / 2, GROND + 3, o.b / 2, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.beginPath(); ctx.ellipse(x + o.b * 0.38, GROND + 1, o.b * 0.16, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+  } else if (o.soort === 'plank') {
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(x + 2, GROND - o.h - 6, 7, o.h + 6);
+    ctx.fillRect(x + o.b - 9, GROND - o.h - 6, 7, o.h + 6);
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(x - 4, GROND - o.h, o.b + 8, 10);
+    ctx.fillRect(x - 4, GROND - o.h * 0.45, o.b + 8, 9);
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(x - 4, GROND - o.h + 7, o.b + 8, 3);
+  } else {
+    const top = GROND - o.h;
+    ctx.fillStyle = '#78716c';
+    ctx.beginPath();
+    ctx.moveTo(x, GROND);
+    ctx.quadraticCurveTo(x - 4, top + o.h * 0.3, x + o.b * (0.3 + o.vorm * 0.2), top);
+    ctx.quadraticCurveTo(x + o.b + 6, top + 4, x + o.b, GROND);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#a8a29e';
+    ctx.beginPath(); ctx.ellipse(x + o.b * 0.4, top + o.h * 0.3, o.b * 0.16, o.h * 0.12, -0.4, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+// ---------- besturing ----------
+doek.addEventListener('pointerdown', e => { e.preventDefault(); spring(); });
+document.addEventListener('keydown', e => {
+  if (!spel) return;
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+    e.preventDefault();
+    if (!e.repeat) spring();
+  }
+});
+
+tekenMenu();
+</script>
+</body>
+</html>

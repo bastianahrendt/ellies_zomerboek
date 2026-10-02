@@ -85,6 +85,37 @@
     backdrop-filter: blur(4px);
   }
 
+  /* ===== bezoekersteller ===== */
+  .teller {
+    position: relative;
+    z-index: 1;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin: -8px 0 18px;
+    padding: 8px 18px 8px 10px;
+    border-radius: 999px;
+    background: #fffdf7;
+    box-shadow: 0 6px 16px rgba(2,60,110,0.3);
+    font-weight: bold;
+    font-size: clamp(14px, 3.8vw, 16px);
+    color: #075985;
+  }
+  .teller.aan { display: inline-flex; }
+  .teller .oogjes { font-size: 22px; }
+  .teller .cijfers { display: inline-flex; gap: 3px; }
+  .teller .cijfers b {
+    background: #0f172a;
+    color: #fde047;
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    min-width: 20px;
+    padding: 2px 4px;
+    border-radius: 5px;
+    text-align: center;
+    box-shadow: inset 0 -3px 0 rgba(255,255,255,0.12);
+  }
+
   /* ===== nieuw-banner ===== */
   .banner {
     position: relative;
@@ -191,6 +222,7 @@
   .hoeken .plaatje { background: linear-gradient(140deg, #f59e0b, #ef4444); }
   .ogen   .plaatje { background: linear-gradient(140deg, #4c1d95, #65a30d); }
   .moord  .plaatje { background: linear-gradient(140deg, #4c1d95, #db2777); }
+  .paard  .plaatje { background: linear-gradient(140deg, #16a34a, #facc15); }
 
   .tekst { padding: 14px 16px 18px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
   .tegel h2 { font-size: 19px; color: #0f172a; }
@@ -213,6 +245,7 @@
   .hoeken  .speel { background: #ea580c; }
   .ogen    .speel { background: #6d28d9; }
   .moord   .speel { background: #7c3aed; }
+  .paard   .speel { background: #16a34a; }
 
   footer {
     color: #fff;
@@ -240,21 +273,28 @@
   <div class="vraag">👋 Wat wil je vandaag doen?</div>
 </header>
 
-<a class="banner" href="giftige-ogen.html">
-  <span class="sticker">NIEUW!</span>
-  <span class="btekst">👁️ Giftige ogen — bedacht door Ellie
-    <small>Kijk iemand aan, maar kijk niet naar wie naar jou kijkt!</small></span>
-  <span class="pijl">→</span>
-</a>
+<div class="teller" id="teller" title="Zoveel keer is Ellie's Zomerpret al bezocht">
+  <span class="oogjes">👀</span>
+  <span>Al <span class="cijfers" id="tellerCijfers"></span> bezoekers!</span>
+</div>
 
-<a class="banner" href="mordenaartje.html">
+<a class="banner" href="paard-en-hond.html">
   <span class="sticker">NIEUW!</span>
-  <span class="btekst">😉 Mordenaartje — bedacht door Ellie
-    <small>Wie knipoogt er? Zoek de moordenaar, of wees het zelf!</small></span>
+  <span class="btekst">🐴 Paard &amp; hond — bedacht door Ellie en Olivia
+    <small>Spring over plassen, planken en stenen. Spaar voor de gouden legendary!</small></span>
   <span class="pijl">→</span>
 </a>
 
 <main class="tegels">
+  <a class="tegel paard" href="paard-en-hond.html">
+    <div class="plaatje"><span>🐴</span></div>
+    <div class="tekst">
+      <h2>Paard &amp; hond</h2>
+      <p>Galoppeer door 1000 levels, verdien muntjes en koop een vleugelpaard, een stal en een schattig hondje!</p>
+      <span class="speel">Spelen →</span>
+    </div>
+  </a>
+
   <a class="tegel boek" href="zomerboekje.html">
     <div class="plaatje"><span>📖</span></div>
     <div class="tekst">
@@ -331,6 +371,28 @@
   <div class="golf"></div>
   <div class="zee"><footer>gemaakt door Ellie 💖</footer></div>
 </div>
+
+<script>
+// Bezoekersteller: tel één keer per bezoek (niet bij elke keer terugkomen naar dit scherm)
+(function () {
+  let alGeteld = false;
+  try { alGeteld = sessionStorage.getItem('ellie-geteld') === 'ja'; } catch (e) {}
+  fetch('/api/bezoekers', { method: alGeteld ? 'GET' : 'POST' })
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(d => {
+      if (typeof d.aantal !== 'number') return;
+      try { sessionStorage.setItem('ellie-geteld', 'ja'); } catch (e) {}
+      const vak = document.getElementById('tellerCijfers');
+      String(d.aantal).padStart(4, '0').split('').forEach(c => {
+        const b = document.createElement('b');
+        b.textContent = c;
+        vak.appendChild(b);
+      });
+      document.getElementById('teller').classList.add('aan');
+    })
+    .catch(() => {}); // geen server (bijv. bestand los geopend)? Dan geen teller.
+})();
+</script>
 
 </body>
 </html>

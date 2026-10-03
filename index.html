@@ -121,7 +121,7 @@
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 720px;
+    max-width: 1060px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -157,9 +157,9 @@
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 720px;
+    max-width: 1060px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 18px;
     margin-bottom: 34px;
   }
@@ -307,6 +307,15 @@
     font-size: 14px;
     font-weight: bold;
     text-shadow: 0 2px 6px rgba(0,0,0,0.45);
+  }
+
+  /* 3 naast elkaar op een groot scherm, 2 op een tablet, 1 op een telefoon */
+  @media (max-width: 920px) {
+    .tegels { grid-template-columns: repeat(2, 1fr); max-width: 720px; }
+    .banner { max-width: 720px; }
+  }
+  @media (max-width: 600px) {
+    .tegels { grid-template-columns: 1fr; }
   }
 
   @media (max-width: 420px) {

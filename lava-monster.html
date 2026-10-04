@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#ea580c" />
+<title>Lava monster 🌋</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%8B%3C/text%3E%3C/svg%3E" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #fde68a 0%, #fdba74 45%, #f97316 80%, #b91c1c 100%);
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 16px 32px;
+    overflow-x: hidden;
+  }
+
+  .terug {
+    display: inline-block;
+    margin: 6px 0 8px;
+    color: #9a3412;
+    background: rgba(255,255,255,0.8);
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  .terug:hover { background: #fff; }
+
+  h1 {
+    font-size: clamp(28px, 7vw, 42px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 3px 0 #c2410c, 0 6px 16px rgba(194,65,12,0.5);
+    text-align: center;
+  }
+  .bedacht { font-size: 14px; font-weight: bold; color: #9a3412; margin-bottom: 10px; text-align: center; }
+
+  .breed { width: 100%; max-width: 820px; }
+
+  .kaart {
+    background: rgba(255,255,255,0.93);
+    border-radius: 20px;
+    padding: 14px 16px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 20px rgba(154,52,18,0.25);
+  }
+  .kaart h2 { font-size: 19px; margin-bottom: 10px; color: #7c2d12; }
+
+  .regels { font-size: 14.5px; line-height: 1.55; color: #334155; padding-left: 22px; }
+  .regels li { margin-bottom: 4px; }
+
+  .keuzes { display: flex; flex-wrap: wrap; gap: 8px; }
+  .keuze {
+    border: 3px solid #e2e8f0; background: #f8fafc;
+    border-radius: 14px; padding: 8px 12px;
+    font-family: inherit; font-size: 14px; font-weight: bold; cursor: pointer;
+    color: #0f172a;
+  }
+  .keuze small { display: block; font-weight: normal; color: #64748b; font-size: 12px; }
+  .keuze.gekozen { border-color: #ea580c; background: #fff7ed; }
+  .kleur { width: 44px; height: 44px; border-radius: 50%; padding: 0; }
+  .kleur.gekozen { border-color: #0f172a; transform: scale(1.1); }
+
+  .rij { margin-bottom: 14px; }
+  .rij h3 { font-size: 15px; margin-bottom: 6px; color: #7c2d12; }
+  .naam {
+    border: 2px solid #fdba74; border-radius: 999px;
+    padding: 7px 14px; font-size: 15px; font-family: inherit; width: 200px; max-width: 100%;
+  }
+  .record { font-size: 13px; color: #9a3412; margin-top: 6px; font-weight: bold; }
+
+  .knop {
+    border: none; border-radius: 999px;
+    padding: 8px 16px; font-size: 14px; font-weight: bold; cursor: pointer;
+    background: #ea580c; color: #fff; font-family: inherit;
+  }
+  .knop:hover { filter: brightness(1.08); }
+  .knop.groot { font-size: 21px; padding: 12px 34px; }
+  .knop.wit { background: #fff; color: #9a3412; border: 2px solid #ea580c; }
+  .midden { text-align: center; }
+
+  /* ===== spel ===== */
+  #spel { display: none; }
+  .hud {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 16px 16px 0 0;
+    padding: 8px 14px;
+    font-weight: bold; font-size: 15px;
+  }
+  .hud .tijd { font-size: 18px; color: #9a3412; min-width: 54px; }
+  .hud .wat { flex: 1; text-align: center; }
+  .geluid {
+    border: none; background: #ffedd5; border-radius: 999px;
+    font-size: 18px; width: 36px; height: 36px; cursor: pointer;
+  }
+  .wereld { position: relative; }
+  canvas#doek {
+    display: block; width: 100%;
+    aspect-ratio: 800 / 450;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 12px 30px rgba(127,29,29,0.4);
+    touch-action: none; user-select: none;
+  }
+
+  .besturing {
+    display: flex; justify-content: space-between; gap: 10px;
+    margin-top: 10px; user-select: none; -webkit-user-select: none;
+  }
+  .besturing div { display: flex; gap: 10px; }
+  .pijl {
+    width: 72px; height: 64px; border-radius: 18px; border: none;
+    background: rgba(255,255,255,0.9); color: #9a3412;
+    font-size: 30px; font-weight: 900; cursor: pointer;
+    box-shadow: 0 4px 0 #c2410c;
+    touch-action: none;
+  }
+  .pijl.in { transform: translateY(3px); box-shadow: 0 1px 0 #c2410c; background: #ffedd5; }
+  .tip { text-align: center; font-size: 13px; color: #fff; font-weight: bold; margin-top: 8px; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+
+  .einde {
+    display: none; position: absolute; inset: 0;
+    background: rgba(15,23,42,0.55);
+    border-radius: 0 0 16px 16px;
+    align-items: center; justify-content: center; padding: 10px;
+  }
+  .einde.aan { display: flex; }
+  .doos {
+    background: #fff; border-radius: 20px; padding: 14px 18px;
+    text-align: center; max-width: 380px; width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    max-height: 100%; overflow-y: auto;
+  }
+  .doos h2 { font-size: clamp(19px, 5vw, 25px); margin-bottom: 6px; }
+  .doos ol { text-align: left; font-size: 14.5px; margin: 0 0 12px 26px; line-height: 1.6; }
+  .doos .knoppen { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+  @media (max-width: 480px) {
+    .pijl { width: 62px; height: 58px; }
+  }
+</style>
+</head>
+<body>
+
+<a class="terug" href="index.html">← Terug naar het startscherm</a>
+<h1>🌋 Lava monster 🌋</h1>
+<div class="bedacht">Bedacht door Ellie</div>
+
+<div class="breed" id="menu">
+  <div class="kaart">
+    <h2>📜 De regels</h2>
+    <ol class="regels">
+      <li>Je hebt een klimrek, en onder het klimrek zit <b>lava</b>!</li>
+      <li>Er is <b>1 lava monster</b>.</li>
+      <li>Val je op de grond of word je getikt? Dan ben <b>jij</b> de lava monster, en de vorige lava monster is <b>heilig</b> 😇 (die mag je even niet tikken).</li>
+      <li>Je moet voorzichtig over palen en stenen heen springen.</li>
+      <li>Wie na 90 seconden het <b>kortst</b> lava monster was, wint!</li>
+    </ol>
+  </div>
+
+  <div class="kaart">
+    <div class="rij">
+      <h3>Hoe heet jij?</h3>
+      <input class="naam" id="naam" maxlength="12" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="rij">
+      <h3>Kies je kleur</h3>
+      <div class="keuzes" id="kleuren"></div>
+    </div>
+    <div class="rij">
+      <h3>Kies je klimrek</h3>
+      <div class="keuzes" id="kaarten"></div>
+    </div>
+    <div class="rij">
+      <h3>Hoe moeilijk?</h3>
+      <div class="keuzes" id="niveaus"></div>
+      <div class="record" id="record"></div>
+    </div>
+    <div class="midden"><button class="knop groot" id="speelKnop">Spelen! 🔥</button></div>
+  </div>
+</div>
+
+<div class="breed" id="spel">
+  <div class="hud">
+    <span class="tijd" id="tijd">1:30</span>
+    <span class="wat" id="wat"></span>
+    <button class="geluid" id="geluidKnop" title="Geluid aan/uit">🔊</button>
+  </div>
+  <div class="wereld">
+    <canvas id="doek" width="800" height="450"></canvas>
+    <div class="einde" id="einde">
+      <div class="doos">
+        <h2 id="eindTitel"></h2>
+        <ol id="uitslag"></ol>
+        <div class="knoppen">
+          <button class="knop" id="opnieuwKnop">Nog een keer! 🔥</button>
+          <button class="knop wit" id="menuKnop">Menu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="besturing">
+    <div>
+      <button class="pijl" data-toets="links" aria-label="Links">◀</button>
+      <button class="pijl" data-toets="rechts" aria-label="Rechts">▶</button>
+    </div>
+    <div>
+      <button class="pijl" data-toets="omlaag" aria-label="Omlaag">▼</button>
+      <button class="pijl" data-toets="omhoog" aria-label="Springen of klimmen">▲</button>
+    </div>
+  </div>
+  <div class="tip">Pijltjes of WASD: lopen · ▲ / spatie: springen en omhoog klimmen langs een gele paal · ▼: omlaag</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const OPSLAG = 'lavamonster';
+
+// ================= opslag =================
+let data = { naam: 'Ellie', kleur: 0, kaart: 0, niveau: 1, stil: false, beste: {} };
+try {
+  const b = JSON.parse(localStorage.getItem(OPSLAG));
+  if (b && typeof b === 'object') data = Object.assign(data, b);
+} catch (e) {}
+function bewaar() { try { localStorage.setItem(OPSLAG, JSON.stringify(data)); } catch (e) {} }
+
+// ================= geluid =================
+let audio = null;
+function toon(freq, duur, type = 'sine', vol = 0.12, glijNaar) {
+  if (data.stil) return;
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audio.createOscillator(), g = audio.createGain();
+    const t = audio.currentTime;
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    if (glijNaar) o.frequency.exponentialRampToValueAtTime(glijNaar, t + duur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + duur);
+    o.connect(g).connect(audio.destination);
+    o.start(t); o.stop(t + duur);
+  } catch (e) {}
+}
+const geluid = {
+  spring: () => toon(330, 0.15, 'triangle', 0.08, 620),
+  tik:    () => { toon(220, 0.25, 'square', 0.1, 110); setTimeout(() => toon(880, 0.2, 'triangle', 0.1), 120); },
+  lava:   () => { toon(140, 0.5, 'sawtooth', 0.12, 40); },
+  tel:    () => toon(660, 0.12, 'sine', 0.1),
+  start:  () => toon(990, 0.3, 'triangle', 0.12),
+  klaar:  () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => toon(f, 0.22, 'triangle', 0.12), i * 110)),
+};
+function zetGeluidKnop() { $('geluidKnop').textContent = data.stil ? '🔇' : '🔊'; }
+$('geluidKnop').onclick = () => { data.stil = !data.stil; bewaar(); zetGeluidKnop(); };
+
+// ================= keuzes =================
+const KLEUREN = ['#ec4899', '#8b5cf6', '#0ea5e9', '#22c55e', '#facc15', '#f97316'];
+const VRIENDEN = [
+  { naam: 'Olivia', kleur: '#14b8a6', haar: '#facc15' },
+  { naam: 'Noor',   kleur: '#6366f1', haar: '#1f2937' },
+  { naam: 'Daan',   kleur: '#84cc16', haar: '#92400e' },
+];
+const NIVEAUS = [
+  { naam: 'Makkelijk', uitleg: 'Rustige monster', monster: 0.72, kijk: 170, reactie: 0.45, foutje: 0.18 },
+  { naam: 'Normaal',   uitleg: 'Pas op!',         monster: 0.88, kijk: 220, reactie: 0.28, foutje: 0.08 },
+  { naam: 'Moeilijk',  uitleg: 'Supersnelle monster', monster: 1.02, kijk: 280, reactie: 0.16, foutje: 0.03 },
+];
+
+const LAVA = 400;   // bovenkant van de lava
+// soorten: stang (klimrek), steen (in de lava), paaltje (houten paal om op te staan)
+const KAARTEN = [
+  {
+    naam: 'Speeltuin', uitleg: 'Een gewoon klimrek',
+    vlakken: [
+      ['steen', 30, 90, 372], ['steen', 200, 250, 375], ['steen', 370, 430, 372], ['steen', 560, 610, 375], ['steen', 720, 780, 372],
+      ['stang', 80, 300, 300], ['stang', 480, 720, 300], ['stang', 250, 550, 210],
+      ['stang', 30, 190, 195], ['stang', 610, 775, 205], ['stang', 120, 360, 118], ['stang', 440, 680, 118],
+    ],
+    palen: [[110, 118, 392], [400, 118, 392], [700, 205, 392]],
+  },
+  {
+    naam: 'Groot klimrek', uitleg: 'Vier verdiepingen hoog',
+    vlakken: [
+      ['steen', 40, 95, 372], ['steen', 300, 345, 378], ['steen', 520, 570, 372], ['steen', 730, 785, 375],
+      ['stang', 20, 240, 305], ['stang', 330, 470, 300], ['stang', 560, 780, 305],
+      ['stang', 120, 380, 225], ['stang', 440, 700, 225],
+      ['stang', 20, 180, 145], ['stang', 260, 540, 145], ['stang', 620, 780, 145],
+      ['stang', 150, 330, 70], ['stang', 470, 650, 70],
+    ],
+    palen: [[60, 145, 392], [300, 70, 392], [500, 70, 392], [740, 145, 392]],
+  },
+  {
+    naam: 'Vulkaan', uitleg: 'Bijna alleen palen en stenen',
+    vlakken: [
+      ['paaltje', 40, 80, 330], ['paaltje', 132, 168, 290], ['paaltje', 222, 258, 330], ['paaltje', 312, 348, 262],
+      ['paaltje', 452, 488, 262], ['paaltje', 542, 578, 330], ['paaltje', 632, 668, 290], ['paaltje', 720, 760, 330],
+      ['steen', 90, 125, 372], ['steen', 178, 212, 375], ['steen', 268, 302, 372], ['steen', 380, 420, 376],
+      ['steen', 498, 532, 372], ['steen', 588, 622, 375], ['steen', 676, 710, 372],
+      ['stang', 250, 550, 175], ['stang', 60, 200, 200], ['stang', 600, 740, 200],
+    ],
+    palen: [[400, 175, 392]],
+  },
+];
+
+let kaart = null; // { vlakken: [{soort,x1,x2,y}], palen: [{x,y1,y2}] }
+function laadKaart(i) {
+  const k = KAARTEN[i];
+  kaart = {
+    vlakken: k.vlakken.map(([soort, x1, x2, y]) => ({ soort, x1, x2, y })),
+    palen: k.palen.map(([x, y1, y2]) => ({ x, y1, y2 })),
+  };
+}
+
+function tekenKeuzes() {
+  if (!data.naam) data.naam = 'Ellie';
+  $('naam').value = data.naam;
+  $('kleuren').innerHTML = '';
+  KLEUREN.forEach((k, i) => {
+    const b = document.createElement('button');
+    b.className = 'keuze kleur' + (i === data.kleur ? ' gekozen' : '');
+    b.style.background = k;
+    b.setAttribute('aria-label', 'Kleur ' + (i + 1));
+    b.onclick = () => { data.kleur = i; bewaar(); tekenKeuzes(); };
+    $('kleuren').appendChild(b);
+  });
+  const lijst = (doel, items, sleutel) => {
+    $(doel).innerHTML = '';
+    items.forEach((it, i) => {
+      const b = document.createElement('button');
+      b.className = 'keuze' + (i === data[sleutel] ? ' gekozen' : '');
+      b.innerHTML = it.naam + '<small>' + it.uitleg + '</small>';
+      b.onclick = () => { data[sleutel] = i; bewaar(); tekenKeuzes(); };
+      $(doel).appendChild(b);
+    });
+  };
+  lijst('kaarten', KAARTEN, 'kaart');
+  lijst('niveaus', NIVEAUS, 'niveau');
+  const r = data.beste[data.kaart + '-' + data.niveau];
+  $('record').textContent = r === undefined ? '' :
+    '🏆 Jouw record hier: maar ' + r + ' seconden lava monster geweest!';
+}
+$('naam').addEventListener('input', () => { data.naam = $('naam').value.trim().slice(0, 12); bewaar(); });
+
+// ================= natuurkunde =================
+const ZWAARTE = 1500, SPRONG = 560, SNEL = 185, KLIM = 150, BREED = 11;
+const SPELTIJD = 90, HEILIG = 5, TELLEN = 2.5;
+
+function kanOpPaal(k) {
+  return kaart.palen.find(p => Math.abs(k.x - p.x) < 16 && k.y >= p.y1 - 2 && k.y <= p.y2 + 30);
+}
+// vlak waar je nu precies op staat (voor als je van een paal stapt)
+function vlakOnder(x, y) {
+  return kaart.vlakken.find(v => x >= v.x1 - 4 && x <= v.x2 + 4 && Math.abs(y - v.y) < 7);
+}
+
+// Eén stap bewegen. Wordt ook gebruikt om sprongen vooruit te 'proberen' (voor de computer).
+function stap(s, dt, isMonster) {
+  s.vy += ZWAARTE * dt;
+  const oudY = s.y;
+  s.x += s.vx * dt;
+  s.y += s.vy * dt;
+  if (s.x < 14) s.x = 14;
+  if (s.x > 786) s.x = 786;
+  s.grond = null;
+  if (s.vy >= 0) {
+    for (const v of kaart.vlakken) {
+      if (v === s.negeer) continue;
+      if (s.x >= v.x1 - 3 && s.x <= v.x2 + 3 && oudY <= v.y + 0.5 && s.y >= v.y) {
+        s.y = v.y; s.vy = 0; s.grond = v; break;
+      }
+    }
+  }
+  if (isMonster && s.y >= LAVA + 8) { s.y = LAVA + 8; s.vy = 0; s.grond = 'lava'; }
+}
+
+// Probeer een sprong of loopje van tevoren: waar kom je uit?
+function probeer(k, vx, vy, isMonster) {
+  const s = { x: k.x, y: k.y, vx, vy, grond: null, negeer: vy > 0 ? k.grond : null };
+  if (vy > 0) s.vy = 0;
+  for (let t = 0; t < 2.2; t += 1 / 60) {
+    stap(s, 1 / 60, isMonster);
+    if (t > 0.25) s.negeer = null;
+    if (s.grond && t > 0.02) return { x: s.x, y: s.y, grond: s.grond, t };
+    if (!isMonster && s.y > LAVA + 4) return null;
+  }
+  return null;
+}
+
+// ================= spel =================
+let spel = null;
+const toetsen = { links: false, rechts: false, omhoog: false, omlaag: false };
+
+function maakKind(naam, kleur, haar, x, y, speler) {
+  return {
+    naam, kleur, haar, speler,
+    x, y, vx: 0, vy: 0, grond: null, paal: null, negeer: null, negeerTijd: 0,
+    kijk: 1, loop: 0, monster: false, heilig: 0, bevroren: 0,
+    lavaTijd: 0, tikken: 0,
+    // voor de computer
+    plan: null, denk: Math.random() * 0.3, ruststap: 0,
+    invoer: { links: false, rechts: false, omhoog: false, omlaag: false },
+    sprongVorige: false,
+  };
+}
+
+function startSpel() {
+  laadKaart(data.kaart);
+  const niv = NIVEAUS[data.niveau];
+  const plekken = startPlekken();
+  const kinderen = [maakKind(data.naam || 'Jij', KLEUREN[data.kleur], '#7c2d12', plekken[0].x, plekken[0].y, true)];
+  VRIENDEN.forEach((v, i) => kinderen.push(maakKind(v.naam, v.kleur, v.haar, plekken[i + 1].x, plekken[i + 1].y, false)));
+  kinderen.forEach(k => k.grond = vlakOnder(k.x, k.y) || null);
+  spel = {
+    niv, kinderen, tijd: SPELTIJD, klaar: false, t: 0,
+    monster: null, sindsTik: 0, tekst: null, vonken: [], bellen: [],
+    laatsteTel: 0,
+  };
+  // De eerste lava monster wordt geloot (maar nooit meteen jij)
+  const m = kinderen[1 + Math.floor(Math.random() * 3)];
+  m.monster = true; m.bevroren = TELLEN + 0.5;
+  m.x = 400; m.y = LAVA + 8; m.grond = 'lava';
+  spel.monster = m;
+  zegIets(m.naam + ' is de lava monster! Wegwezen!');
+
+  $('menu').style.display = 'none';
+  $('spel').style.display = 'block';
+  $('einde').classList.remove('aan');
+  zetGeluidKnop();
+  geluid.start();
+  vorigeTijd = null;
+  const ditSpel = spel;
+  requestAnimationFrame(function lus(nu) {
+    if (spel !== ditSpel) return; // er is een nieuw spel begonnen
+    const dt = vorigeTijd === null ? 0 : Math.min(0.033, (nu - vorigeTijd) / 1000);
+    vorigeTijd = nu;
+    if (!spel.klaar) update(dt);
+    teken();
+    requestAnimationFrame(lus);
+  });
+}
+
+function startPlekken() {
+  // Hoge vlakken, ver uit elkaar
+  const hoog = kaart.vlakken.filter(v => v.soort !== 'steen').sort((a, b) => a.y - b.y);
+  const plekken = [];
+  for (const v of hoog) {
+    const x = (v.x1 + v.x2) / 2;
+    if (plekken.every(p => Math.abs(p.x - x) > 120 || Math.abs(p.y - v.y) > 60)) plekken.push({ x, y: v.y });
+    if (plekken.length === 4) break;
+  }
+  while (plekken.length < 4) plekken.push({ x: (hoog[0].x1 + hoog[0].x2) / 2, y: hoog[0].y });
+  // jij komt op een willekeurige plek
+  return plekken.sort(() => Math.random() - 0.5);
+}
+
+function zegIets(tekst) { spel.tekst = { tekst, tijd: 2.6 }; }
+
+function wordtMonster(k, reden) {
+  const oud = spel.monster;
+  if (oud === k) return;
+  oud.monster = false;
+  oud.heilig = HEILIG;
+  oud.bevroren = 0;
+  oud.plan = null;
+  if (oud.y > LAVA - 3) {
+    // De oude monster springt met een vonkenwolk naar een veilige plek
+    vonken(oud.x, oud.y - 20, '#fde047');
+    const plek = veiligePlek(k);
+    oud.x = plek.x; oud.y = plek.y; oud.vx = 0; oud.vy = 0; oud.grond = plek.v; oud.paal = null;
+    vonken(oud.x, oud.y - 20, '#fde047');
+  }
+  k.monster = true;
+  k.heilig = 0;
+  k.bevroren = TELLEN;
+  k.vx = 0;
+  k.plan = null;
+  spel.monster = k;
+  spel.sindsTik = 0;
+  spel.laatsteTel = 0;
+  vonken(k.x, k.y - 20, '#f97316');
+  if (reden === 'lava') { geluid.lava(); zegIets(k.speler ? 'Oei, jij viel in de lava! Nu ben jij de lava monster!' : k.naam + ' viel in de lava! Nu is ' + k.naam + ' de lava monster!'); }
+  else {
+    geluid.tik();
+    if (oud.speler) oud.tikken++;
+    zegIets(k.speler ? 'Getikt! Nu ben jij de lava monster!' : (oud.speler ? 'Jij tikte ' + k.naam + '! Jij bent heilig 😇' : oud.naam + ' tikte ' + k.naam + '!'));
+  }
+}
+
+function veiligePlek(weg) {
+  let beste = null, besteAfstand = -1;
+  for (const v of kaart.vlakken) {
+    if (v.soort === 'steen') continue;
+    const x = (v.x1 + v.x2) / 2;
+    const a = Math.hypot(x - weg.x, v.y - weg.y);
+    if (a > besteAfstand) { besteAfstand = a; beste = { x, y: v.y, v }; }
+  }
+  return beste;
+}
+
+function vonken(x, y, kleur) {
+  for (let i = 0; i < 18; i++) {
+    const h = Math.random() * Math.PI * 2, s = 60 + Math.random() * 160;
+    spel.vonken.push({ x, y, vx: Math.cos(h) * s, vy: Math.sin(h) * s - 60, leven: 0.6 + Math.random() * 0.4, kleur });
+  }
+}
+
+// ================= besturing van één kind =================
+function beweeg(k, inv, dt) {
+  const isM = k.monster;
+  if (k.bevroren > 0) { inv = { links: false, rechts: false, omhoog: false, omlaag: false }; }
+  const heet = isM ? Math.min(1.35, 1 + Math.max(0, spel.sindsTik - 15) * 0.02) : 1;
+  let snel = SNEL * heet * (isM && !k.speler ? spel.niv.monster * 1.12 : 1);
+  if (isM && k.grond === 'lava') snel *= 0.75;
+  const richting = (inv.rechts ? 1 : 0) - (inv.links ? 1 : 0);
+  if (richting) k.kijk = richting;
+  const nieuweSprong = inv.omhoog && !k.sprongVorige;
+  k.sprongVorige = inv.omhoog;
+
+  if (k.negeerTijd > 0) { k.negeerTijd -= dt; if (k.negeerTijd <= 0) k.negeer = null; }
+
+  if (k.paal) {
+    const p = k.paal;
+    k.vx = 0; k.vy = 0;
+    if (inv.omhoog && !richting) k.y = Math.max(p.y1, k.y - KLIM * heet * dt);
+    if (inv.omlaag) k.y = Math.min(p.y2, k.y + KLIM * heet * dt);
+    k.loop += (inv.omhoog || inv.omlaag) ? dt * 8 : 0;
+    if (richting) {
+      k.paal = null;
+      const v = vlakOnder(k.x + richting * 8, k.y);
+      if (v) { k.y = v.y; k.grond = v; k.vx = richting * snel; }
+      else if (inv.omhoog) { k.vy = -SPRONG * 0.85; k.vx = richting * snel; geluid.spring(); }
+      else { k.vx = richting * snel; }
+    } else if (!isM && k.y >= p.y2 && inv.omlaag) {
+      k.paal = null; // laat los... de lava in!
+    }
+    if (k.paal) return;
+  }
+
+  k.vx = richting * snel;
+  if (inv.omhoog) {
+    const p = kanOpPaal(k);
+    // Op een paal klim je; anders spring je
+    if (p && (!k.grond || nieuweSprong) && !(k.grond && k.y <= p.y1 + 2)) {
+      k.paal = p; k.x = p.x; k.y = Math.min(Math.max(k.y, p.y1), p.y2); k.grond = null; return;
+    }
+    if (nieuweSprong && k.grond) { k.vy = -SPRONG; k.grond = null; geluid.spring(); }
+  }
+  if (inv.omlaag && k.grond) {
+    const p = kanOpPaal(k);
+    if (p && k.y < p.y2 - 4) { k.paal = p; k.x = p.x; k.grond = null; return; }
+    if (k.grond !== 'lava' && k.grond.soort === 'stang') { k.negeer = k.grond; k.negeerTijd = 0.25; k.grond = null; k.y += 1; }
+  }
+  stap(k, dt, isM);
+  if (richting && k.grond) k.loop += dt * 10;
+}
+
+// ================= de computer =================
+function besturingComputer(k, dt) {
+  const inv = k.invoer;
+  k.denk -= dt;
+  if (k.plan && k.plan.sprong) {
+    // Tijdens een sprong blijf je dezelfde kant op gaan
+    inv.omhoog = k.plan.drukSprong > 0; k.plan.drukSprong -= dt;
+    inv.links = k.plan.dir < 0; inv.rechts = k.plan.dir > 0; inv.omlaag = k.plan.drukOmlaag > 0; k.plan.drukOmlaag -= dt;
+    if ((k.grond && k.plan.drukSprong <= 0 && k.plan.drukOmlaag <= 0) || k.paal) k.plan = null;
+    return;
+  }
+  if (k.monster) zoekNaarKind(k, dt); else vluchtVoorMonster(k, dt);
+  // Niet per ongeluk van de rand af lopen
+  const g = k.grond;
+  if (!k.monster && g && g !== 'lava' && !k.paal) {
+    if (inv.links && k.x - g.x1 < 10) inv.links = false;
+    if (inv.rechts && g.x2 - k.x < 10) inv.rechts = false;
+  }
+}
+
+function zetInvoer(k, dir, omhoog, omlaag) {
+  const inv = k.invoer;
+  inv.links = dir < 0; inv.rechts = dir > 0; inv.omhoog = !!omhoog; inv.omlaag = !!omlaag;
+}
+
+function springPlan(k, dir, soort) {
+  k.plan = { sprong: true, dir, drukSprong: soort === 'spring' ? 0.08 : 0, drukOmlaag: soort === 'val' ? 0.05 : 0 };
+  k.sprongVorige = false;
+}
+
+// Alle mogelijke sprongen en loopjes over de rand: waar kom je uit?
+function opties(k, isM) {
+  const uit = [];
+  const snel = SNEL * (isM ? spel.niv.monster * 1.12 * (k.grond === 'lava' ? 0.75 : 1) : 1);
+  for (const dir of [-1, 0, 1]) {
+    const r = probeer(k, dir * snel, -SPRONG, isM);
+    uit.push({ soort: 'spring', dir, uit: r });
+  }
+  if (k.grond && k.grond !== 'lava') {
+    for (const dir of [-1, 1]) {
+      const randX = dir < 0 ? k.grond.x1 : k.grond.x2;
+      if (Math.abs(randX - k.x) < 40) uit.push({ soort: 'loop', dir, uit: probeer({ x: randX + dir * 6, y: k.y, grond: null }, dir * snel, 0, isM) });
+    }
+    if (k.grond.soort === 'stang') uit.push({ soort: 'val', dir: 0, uit: probeer(k, 0, 1, isM) });
+  }
+  return uit;
+}
+
+function vluchtVoorMonster(k, dt) {
+  const m = spel.monster, niv = spel.niv;
+  if (k.paal) return paalAfstappen(k, m, false);
+  if (k.denk > 0) return;
+  k.denk = niv.reactie * (0.7 + Math.random() * 0.6);
+  if (!k.grond) { zetInvoer(k, k.invoer.rechts ? 1 : k.invoer.links ? -1 : 0); return; }
+
+  const dx = k.x - m.x, dy = k.y - m.y, afstand = Math.hypot(dx, dy * 1.4);
+  const gevaar = !m.heilig && afstand < niv.kijk && !(m.bevroren > 1.2 && afstand > 90);
+
+  if (Math.random() < niv.foutje * (gevaar ? 0.5 : 0.15)) {
+    // Oeps! Een onhandige sprong
+    springPlan(k, Math.random() < 0.5 ? -1 : 1, 'spring');
+    return;
+  }
+
+  if (!gevaar) {
+    // Rustig rondhangen op het klimrek
+    if (k.ruststap > 0) { k.ruststap -= niv.reactie; return; }
+    const dir = Math.random() < 0.4 ? 0 : (Math.random() < 0.5 ? -1 : 1);
+    const randOk = dir === 0 || (dir < 0 ? k.x - k.grond.x1 > 26 : k.grond.x2 - k.x > 26);
+    zetInvoer(k, randOk ? dir : 0);
+    k.ruststap = 0.6 + Math.random() * 1.2;
+    if (Math.random() < 0.12) {
+      const goede = opties(k, false).filter(o => o.uit && o.uit.grond !== k.grond);
+      if (goede.length) { const o = goede[Math.floor(Math.random() * goede.length)]; springPlan(k, o.dir, o.soort); }
+    }
+    return;
+  }
+
+  const weg = dx === 0 ? (Math.random() < 0.5 ? -1 : 1) : Math.sign(dx);
+  const ruimte = weg < 0 ? k.x - k.grond.x1 : k.grond.x2 - k.x;
+  const zelfdeHoogte = Math.abs(dy) < 30;
+  // Wegrennen kan nog: doe dat
+  if (ruimte > 34 && (zelfdeHoogte || afstand > 110)) { zetInvoer(k, weg); return; }
+
+  // Zoek de veiligste landingsplek
+  let beste = null, besteScore = -Infinity;
+  for (const o of opties(k, false)) {
+    if (!o.uit) continue;
+    let score = Math.hypot(o.uit.x - m.x, (o.uit.y - m.y) * 1.4);
+    if (o.uit.grond === k.grond) score -= 40;
+    if (o.uit.grond.soort === 'steen') score -= 50; // stenen zijn vlak bij de lava
+    if (score > besteScore) { besteScore = score; beste = o; }
+  }
+  const p = kanOpPaal(k);
+  if (p && m.y > k.y + 20 && p.y1 < k.y - 40 && afstand > 50) { zetInvoer(k, 0, true); return; }
+  if (beste && besteScore > afstand - 30) { springPlan(k, beste.dir, beste.soort); return; }
+  // Geen goede sprong: blijf staan of loop de andere kant op
+  const andere = -weg, ruimteAndere = andere < 0 ? k.x - k.grond.x1 : k.grond.x2 - k.x;
+  zetInvoer(k, ruimteAndere > 30 && afstand > 70 ? andere : 0);
+}
+
+// Op een paal: kies een verdieping en stap eraf
+function paalAfstappen(k, doel, naarToe) {
+  const p = k.paal;
+  const uitgangen = kaart.vlakken.filter(v => v.x1 - 4 <= p.x && p.x <= v.x2 + 4 && v.y >= p.y1 - 2 && v.y <= p.y2);
+  if (!k.paalDoel || !uitgangen.includes(k.paalDoel.v)) {
+    let beste = null, besteScore = Infinity;
+    for (const v of uitgangen) for (const dir of [-1, 1]) {
+      const randOk = dir < 0 ? p.x - v.x1 > 14 : v.x2 - p.x > 14;
+      if (!randOk) continue;
+      const x = p.x + dir * 40;
+      let a = Math.hypot(x - doel.x, (v.y - doel.y) * 1.4);
+      const score = naarToe ? a : -a;
+      if (score < besteScore) { besteScore = score; beste = { v, dir }; }
+    }
+    k.paalDoel = beste || { v: null, dir: 1 };
+  }
+  const d = k.paalDoel;
+  if (!d.v) { zetInvoer(k, 0, true); if (k.y <= p.y1 + 1) { zetInvoer(k, d.dir, true); k.paalDoel = null; } return; }
+  if (Math.abs(k.y - d.v.y) < 3) { k.y = d.v.y; zetInvoer(k, d.dir); k.paalDoel = null; return; }
+  zetInvoer(k, 0, k.y > d.v.y, k.y < d.v.y);
+}
+
+function zoekNaarKind(m, dt) {
+  // Kies het dichtstbijzijnde kind dat niet heilig is
+  let doel = null, kort = Infinity;
+  for (const k of spel.kinderen) {
+    if (k === m || k.heilig > 0) continue;
+    const a = Math.hypot(k.x - m.x, (k.y - m.y) * 1.3);
+    if (a < kort) { kort = a; doel = k; }
+  }
+  if (!doel) { zetInvoer(m, 0); return; }
+  if (m.paal) return paalAfstappen(m, doel, true);
+  if (m.denk > 0) return;
+  m.denk = spel.niv.reactie * (0.6 + Math.random() * 0.5);
+  if (!m.grond) return;
+
+  const dx = doel.x - m.x, dy = doel.y - m.y;
+  const dir = Math.abs(dx) < 6 ? 0 : Math.sign(dx);
+  const opMijnVlak = m.grond !== 'lava' && doel.grond === m.grond;
+  if (opMijnVlak || (Math.abs(dy) < 20 && m.grond === doel.grond)) { zetInvoer(m, dir); return; }
+
+  // Vergelijk: rennen, springen, of naar een paal
+  let beste = null, besteScore = kort;
+  for (const o of opties(m, true)) {
+    if (!o.uit) continue;
+    const score = Math.hypot(o.uit.x - doel.x, (o.uit.y - doel.y) * 1.3) + 10;
+    if (score < besteScore) { besteScore = score; beste = o; }
+  }
+  // rennen over het eigen vlak (of door de lava) richting het doel
+  const vx = m.grond === 'lava' ? doel.x : Math.min(Math.max(doel.x, m.grond.x1), m.grond.x2);
+  const renScore = Math.hypot(vx - doel.x, (m.y - doel.y) * 1.3) + Math.abs(vx - m.x) * 0.15;
+  let paalKeuze = null;
+  if (dy < -50) {
+    for (const p of kaart.palen) {
+      const bereikbaar = m.grond === 'lava' ? true : (p.x >= m.grond.x1 && p.x <= m.grond.x2 && m.y >= p.y1 && m.y <= p.y2);
+      if (!bereikbaar) continue;
+      const s = Math.abs(p.x - m.x) * 0.5 + Math.hypot(p.x - doel.x, (Math.max(p.y1, doel.y) - doel.y) * 1.3);
+      if (s < besteScore && s < renScore) { besteScore = s; paalKeuze = p; }
+    }
+  }
+  if (paalKeuze) {
+    if (Math.abs(paalKeuze.x - m.x) < 10) { m.x = paalKeuze.x; zetInvoer(m, 0, true); }
+    else zetInvoer(m, Math.sign(paalKeuze.x - m.x));
+    return;
+  }
+  if (beste && besteScore < renScore - 15) { springPlan(m, beste.dir, beste.soort); return; }
+  zetInvoer(m, Math.abs(vx - m.x) < 6 ? 0 : Math.sign(vx - m.x));
+}
+
+// ================= de lus =================
+let vorigeTijd = null;
+
+function update(dt) {
+  spel.t += dt;
+  spel.tijd -= dt;
+  spel.sindsTik += dt;
+  const m = spel.monster;
+
+  for (const k of spel.kinderen) {
+    if (k.heilig > 0) k.heilig = Math.max(0, k.heilig - dt);
+    if (k.bevroren > 0) {
+      k.bevroren -= dt;
+      if (k === m) {
+        const tel = Math.ceil(k.bevroren);
+        if (tel !== spel.laatsteTel && tel > 0) { spel.laatsteTel = tel; geluid.tel(); }
+      }
+    }
+    if (k.monster) k.lavaTijd += dt;
+    if (!k.speler) besturingComputer(k, dt);
+    beweeg(k, k.speler ? toetsen : k.invoer, dt);
+  }
+
+  // In de lava gevallen?
+  for (const k of spel.kinderen) {
+    if (!k.monster && k.y > LAVA + 2) {
+      wordtMonster(k, 'lava');
+      k.y = LAVA + 8; k.vy = 0; k.grond = 'lava'; k.paal = null;
+      break;
+    }
+  }
+  // Getikt?
+  const mo = spel.monster;
+  if (mo.bevroren <= 0) {
+    for (const k of spel.kinderen) {
+      if (k === mo || k.heilig > 0) continue;
+      if (Math.abs(k.x - mo.x) < 22 && Math.abs(k.y - mo.y) < 34) { wordtMonster(k, 'tik'); break; }
+    }
+  }
+
+  for (const v of spel.vonken) { v.x += v.vx * dt; v.y += v.vy * dt; v.vy += 300 * dt; v.leven -= dt; }
+  spel.vonken = spel.vonken.filter(v => v.leven > 0);
+  if (Math.random() < dt * 6) spel.bellen.push({ x: Math.random() * 800, r: 0, max: 4 + Math.random() * 8 });
+  for (const b of spel.bellen) b.r += dt * 12;
+  spel.bellen = spel.bellen.filter(b => b.r < b.max);
+  if (spel.tekst) { spel.tekst.tijd -= dt; if (spel.tekst.tijd <= 0) spel.tekst = null; }
+
+  zetHud();
+  if (spel.tijd <= 0) eindeSpel();
+}
+
+function zetHud() {
+  const s = Math.max(0, Math.ceil(spel.tijd));
+  $('tijd').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  const ik = spel.kinderen[0];
+  let wat;
+  if (ik.monster) wat = ik.bevroren > 0 ? '🔥 Jij bent de lava monster! Tel tot 3…' : '🔥 Jij bent de lava monster! Tik iemand!';
+  else if (ik.heilig > 0) wat = '😇 Jij bent heilig! Nog ' + Math.ceil(ik.heilig) + ' sec';
+  else wat = '🏃 Pas op voor ' + spel.monster.naam + '!';
+  $('wat').textContent = wat;
+}
+
+function eindeSpel() {
+  spel.klaar = true;
+  geluid.klaar();
+  const rij = [...spel.kinderen].sort((a, b) => a.lavaTijd - b.lavaTijd);
+  const ik = spel.kinderen[0];
+  const mijnTijd = Math.round(ik.lavaTijd);
+  const plek = rij.indexOf(ik) + 1;
+  $('eindTitel').textContent = plek === 1 ? '🏆 Jij hebt gewonnen!' : plek === 2 ? '🥈 Tweede plek!' : 'Goed gespeeld!';
+  $('uitslag').innerHTML = rij.map(k =>
+    '<li>' + (k.speler ? '<b>' : '') + k.naam + ' — ' + Math.round(k.lavaTijd) + ' sec lava monster' + (k.speler ? '</b>' : '') + '</li>'
+  ).join('') + (ik.tikken ? '<div style="margin-top:6px">Jij tikte ' + ik.tikken + ' keer' + ' iemand 🔥</div>' : '');
+  const sleutel = data.kaart + '-' + data.niveau;
+  if (data.beste[sleutel] === undefined || mijnTijd < data.beste[sleutel]) {
+    data.beste[sleutel] = mijnTijd;
+    bewaar();
+    $('eindTitel').textContent += ' Nieuw record!';
+  }
+  $('einde').classList.add('aan');
+}
+
+// ================= tekenen =================
+const doek = $('doek');
+const ctx = doek.getContext('2d');
+function pasDoekAan() {
+  const r = Math.min(window.devicePixelRatio || 1, 2);
+  doek.width = 800 * r; doek.height = 450 * r;
+  ctx.setTransform(r, 0, 0, r, 0, 0);
+}
+pasDoekAan();
+
+function teken() {
+  const t = spel.t;
+  // lucht
+  let g = ctx.createLinearGradient(0, 0, 0, LAVA);
+  g.addColorStop(0, '#7dd3fc'); g.addColorStop(1, '#fde68a');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 800, 450);
+  // bomen in de verte
+  ctx.fillStyle = '#86efac';
+  for (let i = 0; i < 9; i++) {
+    ctx.beginPath(); ctx.arc(i * 100 + 30, LAVA - 10, 60 + (i % 3) * 12, Math.PI, 0); ctx.fill();
+  }
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  for (const [x, y, s] of [[120, 50, 1], [430, 35, 1.3], [690, 70, 0.9]]) {
+    const wx = (x + t * 8 * s) % 900 - 50;
+    ctx.beginPath(); ctx.arc(wx, y, 18 * s, 0, 7); ctx.arc(wx + 22 * s, y - 8 * s, 22 * s, 0, 7); ctx.arc(wx + 46 * s, y, 17 * s, 0, 7); ctx.fill();
+  }
+
+  // gloed boven de lava
+  g = ctx.createLinearGradient(0, LAVA - 70, 0, LAVA);
+  g.addColorStop(0, 'rgba(249,115,22,0)'); g.addColorStop(1, 'rgba(249,115,22,0.45)');
+  ctx.fillStyle = g; ctx.fillRect(0, LAVA - 70, 800, 70);
+
+  tekenKlimrek();
+
+  // lava
+  g = ctx.createLinearGradient(0, LAVA, 0, 450);
+  g.addColorStop(0, '#fb923c'); g.addColorStop(0.3, '#ea580c'); g.addColorStop(1, '#7f1d1d');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.moveTo(0, 450);
+  for (let x = 0; x <= 800; x += 10) ctx.lineTo(x, LAVA + Math.sin(x / 40 + t * 2) * 3);
+  ctx.lineTo(800, 450); ctx.fill();
+  ctx.fillStyle = 'rgba(253,224,71,0.7)';
+  for (let i = 0; i < 12; i++) {
+    const x = (i * 71 + t * 20 * (i % 2 ? 1 : -1) + 800) % 800;
+    ctx.beginPath(); ctx.ellipse(x, LAVA + 18 + (i % 3) * 12, 18, 3, 0, 0, 7); ctx.fill();
+  }
+  for (const b of spel.bellen) {
+    ctx.strokeStyle = 'rgba(254,240,138,' + (1 - b.r / b.max) + ')'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(b.x, LAVA + 4, b.r, Math.PI, 0); ctx.stroke();
+  }
+
+  // kinderen (monster als laatste zodat die bovenop staat)
+  const volgorde = [...spel.kinderen].sort((a, b) => (a.monster ? 1 : 0) - (b.monster ? 1 : 0));
+  for (const k of volgorde) tekenKind(k, t);
+
+  for (const v of spel.vonken) {
+    ctx.globalAlpha = Math.max(0, v.leven);
+    ctx.fillStyle = v.kleur;
+    ctx.beginPath(); ctx.arc(v.x, v.y, 3, 0, 7); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // aftellen van de nieuwe monster
+  const m = spel.monster;
+  if (m.bevroren > 0 && !spel.klaar) {
+    const n = Math.ceil(m.bevroren);
+    ctx.font = '900 64px "Segoe UI", sans-serif'; ctx.textAlign = 'center';
+    ctx.lineWidth = 8; ctx.strokeStyle = '#7c2d12'; ctx.fillStyle = '#fde047';
+    ctx.strokeText(n, 400, 110); ctx.fillText(n, 400, 110);
+  }
+  if (spel.tekst) {
+    ctx.globalAlpha = Math.min(1, spel.tekst.tijd * 2);
+    ctx.font = 'bold 19px "Segoe UI", sans-serif'; ctx.textAlign = 'center';
+    const w = ctx.measureText(spel.tekst.tekst).width + 30;
+    ctx.fillStyle = 'rgba(124,45,18,0.85)';
+    rondeRechthoek(400 - w / 2, 14, w, 34, 17); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.fillText(spel.tekst.tekst, 400, 38);
+    ctx.globalAlpha = 1;
+  }
+}
+
+function rondeRechthoek(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+function tekenKlimrek() {
+  ctx.lineCap = 'round';
+  // steunpoten van de stangen (alleen versiering)
+  for (const v of kaart.vlakken) {
+    if (v.soort !== 'stang') continue;
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 4;
+    for (const x of [v.x1 + 8, v.x2 - 8]) { ctx.beginPath(); ctx.moveTo(x, v.y + 4); ctx.lineTo(x, LAVA + 5); ctx.stroke(); }
+  }
+  // houten paaltjes
+  for (const v of kaart.vlakken) {
+    if (v.soort !== 'paaltje') continue;
+    const g = ctx.createLinearGradient(v.x1, 0, v.x2, 0);
+    g.addColorStop(0, '#78350f'); g.addColorStop(0.5, '#b45309'); g.addColorStop(1, '#78350f');
+    ctx.fillStyle = g; ctx.fillRect(v.x1 + 3, v.y, v.x2 - v.x1 - 6, LAVA + 10 - v.y);
+    ctx.fillStyle = '#d97706'; ctx.beginPath(); ctx.ellipse((v.x1 + v.x2) / 2, v.y + 2, (v.x2 - v.x1) / 2, 6, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#92400e'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse((v.x1 + v.x2) / 2, v.y + 2, (v.x2 - v.x1) / 4, 3, 0, 0, 7); ctx.stroke();
+  }
+  // gele klimpalen
+  for (const p of kaart.palen) {
+    const g = ctx.createLinearGradient(p.x - 6, 0, p.x + 6, 0);
+    g.addColorStop(0, '#ca8a04'); g.addColorStop(0.4, '#fde047'); g.addColorStop(1, '#a16207');
+    ctx.fillStyle = g; ctx.fillRect(p.x - 5, p.y1 - 10, 10, LAVA + 10 - p.y1);
+    ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(p.x, p.y1 - 10, 7, 0, 7); ctx.fill();
+  }
+  // stangen van het klimrek
+  const kleuren = ['#ef4444', '#3b82f6', '#22c55e', '#a855f7'];
+  kaart.vlakken.forEach((v, i) => {
+    if (v.soort !== 'stang') return;
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 10;
+    ctx.beginPath(); ctx.moveTo(v.x1, v.y + 6); ctx.lineTo(v.x2, v.y + 6); ctx.stroke();
+    ctx.strokeStyle = kleuren[i % kleuren.length]; ctx.lineWidth = 9;
+    ctx.beginPath(); ctx.moveTo(v.x1, v.y + 4); ctx.lineTo(v.x2, v.y + 4); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(v.x1 + 4, v.y + 2); ctx.lineTo(v.x2 - 4, v.y + 2); ctx.stroke();
+  });
+  // stenen in de lava
+  for (const v of kaart.vlakken) {
+    if (v.soort !== 'steen') continue;
+    const cx = (v.x1 + v.x2) / 2, w = (v.x2 - v.x1) / 2 + 2;
+    ctx.fillStyle = '#57534e';
+    ctx.beginPath(); ctx.ellipse(cx, v.y + 14, w, 18, 0, Math.PI, 0); ctx.lineTo(cx + w, LAVA + 12); ctx.lineTo(cx - w, LAVA + 12); ctx.fill();
+    ctx.fillStyle = '#a8a29e';
+    ctx.beginPath(); ctx.ellipse(cx, v.y + 5, w - 3, 6, 0, 0, 7); ctx.fill();
+  }
+  ctx.lineCap = 'butt';
+}
+
+function tekenKind(k, t) {
+  const x = k.x, y = k.y;
+  const m = k.monster;
+  ctx.save();
+  ctx.translate(x, y);
+
+  if (k.heilig > 0) {
+    ctx.globalAlpha = 0.35 + Math.sin(t * 8) * 0.1;
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath(); ctx.arc(0, -20, 30, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  if (m) {
+    ctx.fillStyle = 'rgba(249,115,22,0.35)';
+    ctx.beginPath(); ctx.arc(0, -20, 30 + Math.sin(t * 6) * 3, 0, 7); ctx.fill();
+  }
+
+  const zwaai = k.paal ? 0 : Math.sin(k.loop) * 6;
+  // benen
+  ctx.strokeStyle = m ? '#7f1d1d' : '#334155'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-4, -14); ctx.lineTo(-4 + zwaai * 0.6, 0); ctx.moveTo(4, -14); ctx.lineTo(4 - zwaai * 0.6, 0); ctx.stroke();
+  // lijf
+  if (m) {
+    const g = ctx.createLinearGradient(0, -32, 0, -12);
+    g.addColorStop(0, '#f97316'); g.addColorStop(1, '#b91c1c');
+    ctx.fillStyle = g;
+  } else ctx.fillStyle = k.kleur;
+  rondeRechthoek(-9, -32, 18, 20, 6); ctx.fill();
+  // armen
+  ctx.strokeStyle = m ? '#ea580c' : k.kleur; ctx.lineWidth = 4;
+  ctx.beginPath();
+  if (k.paal) { ctx.moveTo(-6, -28); ctx.lineTo(-2, -42); ctx.moveTo(6, -28); ctx.lineTo(2, -38); }
+  else if (m) { ctx.moveTo(-8, -28); ctx.lineTo(-17, -36 + Math.sin(t * 10) * 3); ctx.moveTo(8, -28); ctx.lineTo(17, -36 - Math.sin(t * 10) * 3); }
+  else { ctx.moveTo(-8, -28); ctx.lineTo(-12 - zwaai * 0.3, -16); ctx.moveTo(8, -28); ctx.lineTo(12 + zwaai * 0.3, -16); }
+  ctx.stroke();
+  // hoofd
+  ctx.fillStyle = m ? '#dc2626' : '#fcd9b6';
+  ctx.beginPath(); ctx.arc(0, -41, 10, 0, 7); ctx.fill();
+  if (m) {
+    // hoorntjes en lava-druppels
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath(); ctx.moveTo(-8, -46); ctx.lineTo(-12, -58); ctx.lineTo(-3, -49); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(8, -46); ctx.lineTo(12, -58); ctx.lineTo(3, -49); ctx.fill();
+    ctx.fillStyle = '#fb923c';
+    for (let i = 0; i < 3; i++) {
+      const d = ((t * 1.5 + i * 0.33) % 1);
+      ctx.beginPath(); ctx.arc(-6 + i * 6, -12 + d * 12, 2.2, 0, 7); ctx.fill();
+    }
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath(); ctx.arc(-4 + k.kijk * 2, -43, 2.6, 0, 7); ctx.arc(4 + k.kijk * 2, -43, 2.6, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#450a0a'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-5, -36); ctx.lineTo(-2, -38); ctx.lineTo(1, -36); ctx.lineTo(4, -38); ctx.stroke();
+  } else {
+    ctx.fillStyle = k.haar;
+    ctx.beginPath(); ctx.arc(0, -43, 10.5, Math.PI * 1.05, Math.PI * 1.95); ctx.fill();
+    ctx.beginPath(); ctx.arc(-k.kijk * 8, -40, 5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath(); ctx.arc(-3 + k.kijk * 3, -41, 1.6, 0, 7); ctx.arc(3 + k.kijk * 3, -41, 1.6, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#be185d'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(k.kijk * 2, -38, 3, 0.2, Math.PI - 0.2); ctx.stroke();
+  }
+  if (k.heilig > 0) {
+    ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(0, -58, 10, 3.5, 0, 0, 7); ctx.stroke();
+  }
+  // naam
+  ctx.font = 'bold 12px "Segoe UI", sans-serif'; ctx.textAlign = 'center';
+  ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx.fillStyle = m ? '#b91c1c' : '#0f172a';
+  const label = k.speler ? '▼ ' + k.naam : k.naam;
+  const ly = k.heilig > 0 ? -66 : m ? -62 : -56;
+  ctx.strokeText(label, 0, ly); ctx.fillText(label, 0, ly);
+  ctx.restore();
+}
+
+// ================= invoer =================
+const TOETSEN = {
+  ArrowLeft: 'links', KeyA: 'links', ArrowRight: 'rechts', KeyD: 'rechts',
+  ArrowUp: 'omhoog', KeyW: 'omhoog', Space: 'omhoog', ArrowDown: 'omlaag', KeyS: 'omlaag',
+};
+document.addEventListener('keydown', e => {
+  const t = TOETSEN[e.code];
+  if (!t || !spel || spel.klaar || document.activeElement === $('naam')) return;
+  e.preventDefault();
+  toetsen[t] = true;
+});
+document.addEventListener('keyup', e => { const t = TOETSEN[e.code]; if (t) toetsen[t] = false; });
+document.querySelectorAll('.pijl').forEach(b => {
+  const t = b.dataset.toets;
+  const aan = e => { e.preventDefault(); toetsen[t] = true; b.classList.add('in'); try { b.setPointerCapture(e.pointerId); } catch (_) {} };
+  const uit = e => { toetsen[t] = false; b.classList.remove('in'); };
+  b.addEventListener('pointerdown', aan);
+  b.addEventListener('pointerup', uit);
+  b.addEventListener('pointercancel', uit);
+  b.addEventListener('lostpointercapture', uit);
+  b.addEventListener('contextmenu', e => e.preventDefault());
+});
+window.addEventListener('blur', () => Object.keys(toetsen).forEach(t => toetsen[t] = false));
+
+function naarMenu() {
+  spel = null;
+  $('spel').style.display = 'none';
+  $('menu').style.display = 'block';
+  tekenKeuzes();
+}
+$('speelKnop').onclick = startSpel;
+$('opnieuwKnop').onclick = startSpel;
+$('menuKnop').onclick = naarMenu;
+
+tekenKeuzes();
+</script>
+</body>
+</html>

@@ -107,3 +107,19 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Zomerboekje draait op poort ${PORT}`);
 });
+
+// Railway stuurt SIGTERM bij elke nieuwe deploy. Netjes afsluiten (exit 0),
+// anders staat er "npm error signal SIGTERM" in de logs alsof er iets crasht.
+function stop(signaal) {
+  console.log(`${signaal} ontvangen, server stopt netjes`);
+  try {   // laatste stand direct wegschrijven, zodat er geen bezoek of like verloren gaat
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(TELLER_BESTAND, JSON.stringify({ aantal: bezoekers }));
+    fs.writeFileSync(LIKES_BESTAND, JSON.stringify(likes));
+  } catch (e) { console.error('Niet bewaard bij afsluiten:', e.message); }
+  server.close(() => process.exit(0));
+  server.closeAllConnections();
+  setTimeout(() => process.exit(0), 3000).unref();
+}
+process.on('SIGTERM', () => stop('SIGTERM'));
+process.on('SIGINT', () => stop('SIGINT'));

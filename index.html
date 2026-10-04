@@ -224,6 +224,7 @@
   .moord  .plaatje { background: linear-gradient(140deg, #4c1d95, #db2777); }
   .paard  .plaatje { background: linear-gradient(140deg, #16a34a, #facc15); }
   .knuffel .plaatje { background: linear-gradient(140deg, #ec4899, #c084fc); }
+  .bom    .plaatje { background: linear-gradient(140deg, #f97316, #7c2d12); }
 
   .tekst { padding: 14px 16px 18px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
   .tegel h2 { font-size: 19px; color: #0f172a; }
@@ -248,6 +249,7 @@
   .moord   .speel { background: #7c3aed; }
   .paard   .speel { background: #16a34a; }
   .knuffel .speel { background: #db2777; }
+  .bom     .speel { background: #c2410c; }
 
   /* ===== duimpjes en ranglijst ===== */
   .onder { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
@@ -342,16 +344,25 @@
   <span>Al <span class="cijfers" id="tellerCijfers"></span> bezoekers!</span>
 </div>
 
-<a class="banner" href="knuffelmachine.html">
+<a class="banner" href="ballenspel.html">
   <span class="sticker">NIEUW!</span>
-  <span class="btekst">🧸 Knuffel machine — bedacht door Ellie
-    <small>Grijp knuffels en speelgoed uit de machine. Vind jij alle 18 legendary knuffels?</small></span>
+  <span class="btekst">💣 Ballen spel — bedacht door Ellie
+    <small>Gooi de bal snel over! Roept de tijdbom BOEM en heb jij de bal? Dan ben je af.</small></span>
   <span class="pijl">→</span>
 </a>
 
 <div class="likeuitleg">👍 Geef je lievelingsspel een duim! De spellen met de meeste duimpjes staan bovenaan.</div>
 
 <main class="tegels">
+  <a class="tegel bom" href="ballenspel.html">
+    <div class="plaatje"><span>💣</span></div>
+    <div class="tekst">
+      <h2>Ballen spel</h2>
+      <p>Gooi de bal over in de kring. De tijdbom ziet niks en roept zomaar BOEM! Heb jij de bal? Dan ben je af. Of ben jij zelf de tijdbom?</p>
+      <span class="speel">Gooien →</span>
+    </div>
+  </a>
+
   <a class="tegel knuffel" href="knuffelmachine.html">
     <div class="plaatje"><span>🧸</span></div>
     <div class="tekst">

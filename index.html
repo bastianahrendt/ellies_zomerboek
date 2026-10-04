@@ -225,6 +225,7 @@
   .paard  .plaatje { background: linear-gradient(140deg, #16a34a, #facc15); }
   .knuffel .plaatje { background: linear-gradient(140deg, #ec4899, #c084fc); }
   .lava   .plaatje { background: linear-gradient(140deg, #f59e0b, #b91c1c); }
+  .voetbal .plaatje { background: linear-gradient(140deg, #16a34a, #0ea5e9); }
   .bom    .plaatje { background: linear-gradient(140deg, #f97316, #7c2d12); }
 
   .tekst { padding: 14px 16px 18px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
@@ -251,6 +252,7 @@
   .paard   .speel { background: #16a34a; }
   .knuffel .speel { background: #db2777; }
   .lava    .speel { background: #ea580c; }
+  .voetbal .speel { background: #15803d; }
   .bom     .speel { background: #c2410c; }
 
   /* ===== duimpjes en ranglijst ===== */
@@ -346,6 +348,13 @@
   <span>Al <span class="cijfers" id="tellerCijfers"></span> bezoekers!</span>
 </div>
 
+<a class="banner" href="voetbal.html">
+  <span class="sticker">NIEUW!</span>
+  <span class="btekst">⚽ Voetbal spel — bedacht door Ellie
+    <small>Kies je speler en je bal, en schiet hem langs de keeper!</small></span>
+  <span class="pijl">→</span>
+</a>
+
 <a class="banner" href="lava-monster.html">
   <span class="sticker">NIEUW!</span>
   <span class="btekst">🌋 Lava monster — bedacht door Ellie
@@ -363,6 +372,15 @@
 <div class="likeuitleg">👍 Geef je lievelingsspel een duim! De spellen met de meeste duimpjes staan bovenaan.</div>
 
 <main class="tegels">
+  <a class="tegel voetbal" href="voetbal.html">
+    <div class="plaatje"><span>⚽</span></div>
+    <div class="tekst">
+      <h2>Voetbal spel</h2>
+      <p>Kies je speler, je kleur bal en waar je speelt. Kun jij scoren langs de keeper?</p>
+      <span class="speel">Schieten →</span>
+    </div>
+  </a>
+
   <a class="tegel lava" href="lava-monster.html">
     <div class="plaatje"><span>🌋</span></div>
     <div class="tekst">

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#f59e0b" />
+<title>Boter, kaas en eieren ❌⭕</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%AD%95%3C/text%3E%3C/svg%3E" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255,255,255,0.35) 0 40px, transparent 41px),
+      radial-gradient(circle at 85% 70%, rgba(255,255,255,0.25) 0 60px, transparent 61px),
+      linear-gradient(160deg, #fde68a, #f59e0b);
+    background-attachment: fixed;
+    color: #0f172a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 16px 32px;
+    overflow-x: hidden;
+  }
+
+  .terug {
+    display: inline-block;
+    margin: 6px 0 8px;
+    color: #92400e;
+    background: rgba(255,255,255,0.85);
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  .terug:hover { background: #fff; }
+
+  h1 {
+    font-size: clamp(26px, 7vw, 42px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 3px 0 #b45309, 0 6px 16px rgba(0,0,0,0.25);
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .breed { width: 100%; max-width: 520px; }
+
+  .kaart {
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    padding: 14px 16px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 20px rgba(146,64,14,0.25);
+  }
+  .kaart h2 { font-size: 19px; margin-bottom: 10px; color: #92400e; }
+  .regels { font-size: 14.5px; line-height: 1.55; color: #334155; padding-left: 22px; }
+
+  .stap { margin-bottom: 16px; }
+  .stap h3 { font-size: 15.5px; margin-bottom: 8px; color: #92400e; }
+  .keuzes { display: flex; flex-wrap: wrap; gap: 8px; }
+  .keuze {
+    flex: 1 1 120px;
+    border: 3px solid #e2e8f0; background: #f8fafc;
+    border-radius: 14px; padding: 8px 10px;
+    font-family: inherit; font-size: 15px; font-weight: bold; cursor: pointer;
+    color: #0f172a; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .keuze small { font-weight: normal; color: #64748b; font-size: 12px; }
+  .keuze .groot { font-size: 30px; }
+  .keuze.gekozen { border-color: #f59e0b; background: #fffbeb; }
+
+  .namen { display: flex; flex-wrap: wrap; gap: 10px; }
+  .naam { flex: 1 1 160px; display: flex; align-items: center; gap: 8px; font-weight: bold; }
+  .naam input {
+    flex: 1; min-width: 0;
+    font-family: inherit; font-size: 15px;
+    border: 3px solid #e2e8f0; border-radius: 12px; padding: 7px 10px;
+  }
+  .naam input:focus { outline: none; border-color: #f59e0b; }
+
+  .knop {
+    border: none; border-radius: 999px;
+    padding: 8px 16px; font-size: 15px; font-weight: bold; cursor: pointer;
+    background: #f59e0b; color: #fff; font-family: inherit;
+  }
+  .knop:hover { filter: brightness(1.06); }
+  .knop.groot { font-size: 21px; padding: 12px 34px; }
+  .knop.wit { background: #fff; color: #b45309; border: 2px solid #f59e0b; }
+  .midden { text-align: center; }
+
+  /* ===== spel ===== */
+  #spel { display: none; }
+
+  .stand {
+    display: flex; align-items: stretch; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .speler {
+    flex: 1; min-width: 0;
+    background: rgba(255,255,255,0.9);
+    border: 3px solid transparent;
+    border-radius: 16px; padding: 6px 8px;
+    text-align: center; transition: border-color .2s, transform .2s;
+  }
+  .speler.beurt { border-color: #fff; transform: translateY(-2px); box-shadow: 0 6px 14px rgba(146,64,14,0.3); }
+  .speler .wie { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .speler .punten { font-size: 26px; font-weight: 900; }
+  .speler.x .punten { color: #e11d48; }
+  .speler.o .punten { color: #2563eb; }
+  .gelijk { flex: 0 0 72px; }
+  .gelijk .punten { color: #64748b; }
+
+  .bericht {
+    text-align: center; font-size: 18px; font-weight: bold; color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    min-height: 28px; margin-bottom: 8px;
+  }
+
+  .bord {
+    position: relative;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    background: #b45309;
+    padding: 10px; border-radius: 20px;
+    aspect-ratio: 1 / 1;
+    box-shadow: 0 12px 30px rgba(146,64,14,0.4);
+    user-select: none;
+  }
+  .vak {
+    border: none; border-radius: 12px;
+    background: #fffbeb;
+    font-family: inherit; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    padding: 12%;
+  }
+  .vak:hover:not(:disabled) { background: #fff; }
+  .vak:disabled { cursor: default; }
+  .vak svg { width: 100%; height: 100%; overflow: visible; }
+  .vak .lijn { fill: none; stroke-width: 14; stroke-linecap: round; }
+  .vak.x .lijn { stroke: #e11d48; }
+  .vak.o .lijn { stroke: #2563eb; }
+  .vak .lijn.teken { animation: teken .28s ease-out forwards; }
+  .vak .lijn.teken2 { animation-delay: .14s; }
+  @keyframes teken { to { stroke-dashoffset: 0; } }
+  .vak.winst { background: #bbf7d0; animation: hup .5s ease-in-out 2; }
+  @keyframes hup { 50% { transform: scale(1.08); } }
+  .bord.klaar .vak:not(.winst) { opacity: .55; }
+
+  .onderkant { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .geluid {
+    border: none; background: rgba(255,255,255,0.9); border-radius: 999px;
+    font-size: 18px; width: 40px; height: 40px; cursor: pointer;
+  }
+
+  .snoep { position: fixed; top: -40px; font-size: 26px; pointer-events: none; animation: val linear forwards; z-index: 5; }
+  @keyframes val { to { transform: translateY(110vh) rotate(540deg); } }
+</style>
+</head>
+<body>
+
+<a class="terug" href="index.html">← Terug naar het startscherm</a>
+<h1>❌ Boter, kaas en eieren ⭕</h1>
+
+<div class="breed" id="menu">
+  <div class="kaart">
+    <h2>📜 De regels</h2>
+    <ol class="regels">
+      <li>Je speelt met z'n tweeën op een bord van 3 bij 3.</li>
+      <li>De een zet kruisjes ❌, de ander rondjes ⭕. Om de beurt zet je er één neer.</li>
+      <li>Wie als eerste 3 op een rij heeft wint! Recht, schuin of van boven naar beneden.</li>
+      <li>Is het bord vol en heeft niemand 3 op een rij? Dan is het gelijkspel.</li>
+    </ol>
+  </div>
+
+  <div class="kaart">
+    <div class="stap">
+      <h3>1. Tegen wie speel je?</h3>
+      <div class="keuzes" id="tegen">
+        <button class="keuze gekozen" data-tegen="computer"><span class="groot">🤖</span>Tegen de computer</button>
+        <button class="keuze" data-tegen="mens"><span class="groot">🧒</span>Tegen een mens<small>samen op één scherm</small></button>
+      </div>
+    </div>
+    <div class="stap" id="stapNiveau">
+      <h3>2. Hoe slim is de computer?</h3>
+      <div class="keuzes" id="niveaus">
+        <button class="keuze" data-niveau="makkelijk"><span class="groot">🐣</span>Makkelijk</button>
+        <button class="keuze gekozen" data-niveau="gemiddeld"><span class="groot">🦊</span>Gemiddeld</button>
+        <button class="keuze" data-niveau="moeilijk"><span class="groot">🦉</span>Moeilijk<small>bijna niet te winnen!</small></button>
+      </div>
+    </div>
+    <div class="stap">
+      <h3 id="namenKop">3. Hoe heet je?</h3>
+      <div class="namen">
+        <label class="naam"><span>❌</span><input id="naam1" maxlength="14" placeholder="Speler 1" /></label>
+        <label class="naam" id="naam2vak"><span>⭕</span><input id="naam2" maxlength="14" placeholder="Speler 2" /></label>
+      </div>
+    </div>
+    <div class="midden"><button class="knop groot" id="speelKnop">Spelen! ❌⭕</button></div>
+  </div>
+</div>
+
+<div class="breed" id="spel">
+  <div class="stand">
+    <div class="speler x" id="kaartX"><div class="wie" id="wieX"></div><div class="punten" id="puntenX">0</div></div>
+    <div class="speler gelijk"><div class="wie">Gelijk</div><div class="punten" id="puntenGelijk">0</div></div>
+    <div class="speler o" id="kaartO"><div class="wie" id="wieO"></div><div class="punten" id="puntenO">0</div></div>
+  </div>
+  <div class="bericht" id="bericht"></div>
+  <div class="bord" id="bord"></div>
+  <div class="onderkant">
+    <button class="knop" id="nogEens">Nog een keer! 🔄</button>
+    <button class="knop wit" id="naarMenu">Andere keuze</button>
+    <button class="geluid" id="geluidKnop" title="Geluid aan/uit">🔊</button>
+  </div>
+</div>
+
+<script>
+const OPSLAG = 'ellie-boter-kaas-eieren';
+const RIJEN = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+let instelling = { tegen: 'computer', niveau: 'gemiddeld', naam1: '', naam2: '', geluid: true };
+try { Object.assign(instelling, JSON.parse(localStorage.getItem(OPSLAG)) || {}); } catch (e) {}
+function bewaar() { try { localStorage.setItem(OPSLAG, JSON.stringify(instelling)); } catch (e) {} }
+
+const $ = id => document.getElementById(id);
+
+// ===== geluid =====
+let audio = null;
+function maakAudio() { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); return audio; }
+function toon(freq, duur, wanneer = 0, type = 'sine', hard = 0.15) {
+  if (!instelling.geluid) return;
+  try {
+    const a = maakAudio();
+    const t = a.currentTime + wanneer;
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(hard, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + duur);
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t + duur);
+  } catch (e) {}
+}
+const geluiden = {
+  x: () => toon(520, 0.12, 0, 'triangle'),
+  o: () => toon(390, 0.12, 0, 'triangle'),
+  winst: () => [523, 659, 784, 1047].forEach((f, i) => toon(f, 0.25, i * 0.12, 'triangle', 0.18)),
+  verlies: () => [392, 330, 262].forEach((f, i) => toon(f, 0.3, i * 0.16, 'sawtooth', 0.08)),
+  gelijk: () => [440, 440].forEach((f, i) => toon(f, 0.18, i * 0.2, 'square', 0.06)),
+};
+
+// ===== menu =====
+function kiesKnoppen(bak, sleutel) {
+  bak.querySelectorAll('.keuze').forEach(k => {
+    k.classList.toggle('gekozen', k.dataset[sleutel] === instelling[sleutel]);
+    k.onclick = () => { instelling[sleutel] = k.dataset[sleutel]; kiesKnoppen(bak, sleutel); werkMenuBij(); };
+  });
+}
+function werkMenuBij() {
+  const computer = instelling.tegen === 'computer';
+  $('stapNiveau').style.display = computer ? '' : 'none';
+  $('naam2vak').style.display = computer ? 'none' : '';
+  $('namenKop').textContent = (computer ? '3. Hoe heet je?' : '2. Hoe heten jullie?');
+  $('naam1').placeholder = computer ? 'Jouw naam' : 'Speler 1';
+}
+kiesKnoppen($('tegen'), 'tegen');
+kiesKnoppen($('niveaus'), 'niveau');
+$('naam1').value = instelling.naam1;
+$('naam2').value = instelling.naam2;
+werkMenuBij();
+
+// ===== spel =====
+let bord, beurt, klaar, beginner, denkt, stand, namen;
+const vakken = [];
+for (let i = 0; i < 9; i++) {
+  const v = document.createElement('button');
+  v.className = 'vak';
+  v.setAttribute('aria-label', 'Vak ' + (i + 1));
+  v.onclick = () => klikVak(i);
+  $('bord').appendChild(v);
+  vakken.push(v);
+}
+
+const tegenComputer = () => instelling.tegen === 'computer';
+const isComputer = teken => tegenComputer() && teken === 'o';
+
+$('speelKnop').onclick = () => {
+  instelling.naam1 = $('naam1').value.trim();
+  instelling.naam2 = $('naam2').value.trim();
+  bewaar();
+  maakAudio();
+  namen = {
+    x: instelling.naam1 || (tegenComputer() ? 'Jij' : 'Speler 1'),
+    o: tegenComputer() ? ({ makkelijk: '🐣 Computer', gemiddeld: '🦊 Computer', moeilijk: '🦉 Computer' })[instelling.niveau]
+                       : (instelling.naam2 || 'Speler 2'),
+  };
+  $('wieX').textContent = '❌ ' + namen.x;
+  $('wieO').textContent = (tegenComputer() ? '' : '⭕ ') + namen.o;
+  stand = { x: 0, o: 0, gelijk: 0 };
+  beginner = 'o'; // wordt bij de eerste ronde omgedraaid, dus ❌ begint
+  $('menu').style.display = 'none';
+  $('spel').style.display = 'block';
+  nieuweRonde();
+};
+
+$('naarMenu').onclick = () => {
+  clearTimeout(denkt);
+  $('spel').style.display = 'none';
+  $('menu').style.display = 'block';
+};
+$('nogEens').onclick = nieuweRonde;
+
+function zetGeluidKnop() { $('geluidKnop').textContent = instelling.geluid ? '🔊' : '🔇'; }
+$('geluidKnop').onclick = () => { instelling.geluid = !instelling.geluid; bewaar(); zetGeluidKnop(); };
+zetGeluidKnop();
+
+function nieuweRonde() {
+  clearTimeout(denkt);
+  bord = Array(9).fill(null);
+  klaar = false;
+  beginner = beginner === 'x' ? 'o' : 'x'; // om de beurt beginnen
+  beurt = beginner;
+  $('bord').classList.remove('klaar');
+  vakken.forEach(v => { v.className = 'vak'; v.innerHTML = ''; });
+  $('nogEens').textContent = 'Opnieuw 🔄';
+  werkStandBij();
+  volgendeBeurt();
+}
+
+function werkStandBij() {
+  $('puntenX').textContent = stand.x;
+  $('puntenO').textContent = stand.o;
+  $('puntenGelijk').textContent = stand.gelijk;
+  $('kaartX').classList.toggle('beurt', !klaar && beurt === 'x');
+  $('kaartO').classList.toggle('beurt', !klaar && beurt === 'o');
+}
+
+function volgendeBeurt() {
+  werkStandBij();
+  zetVakken();
+  if (isComputer(beurt)) {
+    $('bericht').textContent = '🤔 De computer denkt na...';
+    denkt = setTimeout(() => zet(computerZet()), 500 + Math.random() * 400);
+  } else {
+    const teken = beurt === 'x' ? '❌' : '⭕';
+    $('bericht').textContent = tegenComputer() ? `Jij bent aan de beurt ${teken}` : `${namen[beurt]} is aan de beurt ${teken}`;
+  }
+}
+
+function zetVakken() {
+  vakken.forEach((v, i) => { v.disabled = klaar || bord[i] !== null || isComputer(beurt); });
+}
+
+function klikVak(i) {
+  if (klaar || bord[i] !== null || isComputer(beurt)) return;
+  zet(i);
+}
+
+function tekenSymbool(v, teken) {
+  v.classList.add(teken);
+  if (teken === 'x') {
+    v.innerHTML = '<svg viewBox="0 0 100 100"><path class="lijn teken" d="M15 15 L85 85" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>' +
+                  '<path class="lijn teken teken2" d="M85 15 L15 85" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></svg>';
+  } else {
+    v.innerHTML = '<svg viewBox="0 0 100 100"><circle class="lijn teken" cx="50" cy="50" r="36" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" transform="rotate(-90 50 50)"/></svg>';
+  }
+}
+
+function zet(i) {
+  bord[i] = beurt;
+  tekenSymbool(vakken[i], beurt);
+  geluiden[beurt]();
+  const rij = winnaarRij(bord);
+  if (rij) return einde(beurt, rij);
+  if (bord.every(Boolean)) return einde(null);
+  beurt = beurt === 'x' ? 'o' : 'x';
+  volgendeBeurt();
+}
+
+function einde(winnaar, rij) {
+  klaar = true;
+  $('bord').classList.add('klaar');
+  if (winnaar) {
+    stand[winnaar]++;
+    rij.forEach(i => vakken[i].classList.add('winst'));
+    if (isComputer(winnaar)) {
+      $('bericht').textContent = '🤖 De computer wint! Probeer het nog eens!';
+      geluiden.verlies();
+    } else {
+      $('bericht').textContent = tegenComputer() ? '🎉 Jij wint! Super goed! 🎉' : `🎉 ${namen[winnaar]} wint! 🎉`;
+      geluiden.winst();
+      feest(winnaar);
+    }
+  } else {
+    stand.gelijk++;
+    $('bericht').textContent = '🤝 Gelijkspel! Niemand heeft 3 op een rij.';
+    geluiden.gelijk();
+  }
+  $('nogEens').textContent = 'Nog een keer! 🔄';
+  werkStandBij();
+  zetVakken();
+}
+
+function feest(winnaar) {
+  const dingen = winnaar === 'x' ? ['❌', '🎉', '⭐', '🧈', '🧀', '🥚'] : ['⭕', '🎉', '⭐', '🧈', '🧀', '🥚'];
+  for (let i = 0; i < 28; i++) {
+    const s = document.createElement('div');
+    s.className = 'snoep';
+    s.textContent = dingen[i % dingen.length];
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.animationDuration = 1.8 + Math.random() * 1.6 + 's';
+    s.style.animationDelay = Math.random() * 0.6 + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 4200);
+  }
+}
+
+// ===== slimheid van de computer =====
+function winnaarRij(b) {
+  return RIJEN.find(([a, c, d]) => b[a] && b[a] === b[c] && b[a] === b[d]) || null;
+}
+const leeg = b => b.map((v, i) => v ? null : i).filter(i => i !== null);
+const willekeurig = lijst => lijst[Math.floor(Math.random() * lijst.length)];
+
+// Een zet waarmee 'teken' meteen 3 op een rij krijgt (of null)
+function winZet(b, teken) {
+  return leeg(b).find(i => { const k = b.slice(); k[i] = teken; return winnaarRij(k); }) ?? null;
+}
+
+// Minimax: kijkt alle mogelijke spellen vooruit. Sneller winnen = beter.
+function minimax(b, teken, diepte) {
+  const rij = winnaarRij(b);
+  if (rij) return b[rij[0]] === 'o' ? 10 - diepte : diepte - 10;
+  const vrij = leeg(b);
+  if (!vrij.length) return 0;
+  const scores = vrij.map(i => {
+    b[i] = teken;
+    const s = minimax(b, teken === 'o' ? 'x' : 'o', diepte + 1);
+    b[i] = null;
+    return s;
+  });
+  return teken === 'o' ? Math.max(...scores) : Math.min(...scores);
+}
+function besteZet(b) {
+  const vrij = leeg(b);
+  const scores = vrij.map(i => { b[i] = 'o'; const s = minimax(b, 'x', 1); b[i] = null; return s; });
+  const top = Math.max(...scores);
+  return willekeurig(vrij.filter((_, n) => scores[n] === top)); // bij gelijke zetten: kies er zomaar één
+}
+
+function computerZet() {
+  const b = bord.slice();
+  const vrij = leeg(b);
+  if (instelling.niveau === 'makkelijk') {
+    // Ziet soms dat hij kan winnen, maar let niet op jou
+    if (Math.random() < 0.5) { const w = winZet(b, 'o'); if (w !== null) return w; }
+    return willekeurig(vrij);
+  }
+  if (instelling.niveau === 'gemiddeld') {
+    const w = winZet(b, 'o'); if (w !== null) return w;
+    const blok = winZet(b, 'x'); if (blok !== null && Math.random() < 0.85) return blok;
+    if (b[4] === null && Math.random() < 0.5) return 4;
+    return willekeurig(vrij);
+  }
+  return besteZet(b);
+}
+</script>
+</body>
+</html>

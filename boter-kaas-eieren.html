@@ -122,7 +122,10 @@
 
   .bord {
     position: relative;
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    display: grid; gap: 10px;
+    /* vaste vakken: even groot, of er nu iets in staat of niet */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
     background: #b45309;
     padding: 10px; border-radius: 20px;
     aspect-ratio: 1 / 1;
@@ -134,11 +137,11 @@
     background: #fffbeb;
     font-family: inherit; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    padding: 12%;
+    position: relative; min-width: 0; min-height: 0;
   }
   .vak:hover:not(:disabled) { background: #fff; }
   .vak:disabled { cursor: default; }
-  .vak svg { width: 100%; height: 100%; overflow: visible; }
+  .vak svg { position: absolute; inset: 14%; width: 72%; height: 72%; overflow: visible; }
   .vak .lijn { fill: none; stroke-width: 14; stroke-linecap: round; }
   .vak.x .lijn { stroke: #e11d48; }
   .vak.o .lijn { stroke: #2563eb; }
